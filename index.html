@@ -86,10 +86,10 @@ textarea{height:80px;padding:9px 11px;resize:vertical}
 .pactions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.badge.new{background:var(--blue-bg);color:var(--blue-text)}
-.badge.contacted{background:var(--yellow-bg);color:var(--yellow-text)}
-.badge.demo{background:var(--green-bg);color:var(--green-text)}
-.badge.pass{background:var(--bg2);color:var(--text2)}
+.badge.Open{background:var(--blue-bg);color:var(--blue-text)}
+.badge.Won{background:var(--green-bg);color:var(--green-text)}
+.badge.Lost{background:var(--red-bg);color:var(--red-text)}
+.badge.Abandoned{background:var(--bg2);color:var(--text2)}
 
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-row select,.filter-row input{flex:1;min-width:110px}
@@ -158,10 +158,10 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div class="row">
         <input type="text" id="p-name" placeholder="Restaurant name *" style="flex:2;min-width:180px">
         <select id="p-status" style="max-width:160px">
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="demo">Demo Booked</option>
-          <option value="pass">Pass</option>
+          <option value="Open">Open</option>
+          <option value="Won">Won</option>
+          <option value="Lost">Lost</option>
+          <option value="Abandoned">Abandoned</option>
         </select>
       </div>
       <div class="row">
@@ -193,7 +193,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
           </select>
           <input type="text" id="p-current-other" placeholder="Specify POS system…" style="display:none">
         </div>
-        <input type="text" id="p-owner" placeholder="Owner / manager name">
+        <input type="text" id="p-owner" placeholder="Main contact name">
       </div>
       <div class="row">
         <input type="text" id="p-notes" placeholder="Notes">
@@ -209,17 +209,17 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <div id="tab-list" class="panel">
       <div class="stats">
         <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
-        <div class="stat"><div class="stat-n" id="s-new">0</div><div class="stat-l">New</div></div>
-        <div class="stat"><div class="stat-n" id="s-contacted">0</div><div class="stat-l">Contacted</div></div>
-        <div class="stat"><div class="stat-n" id="s-demo">0</div><div class="stat-l">Demos</div></div>
+        <div class="stat"><div class="stat-n" id="s-open">0</div><div class="stat-l">Open</div></div>
+        <div class="stat"><div class="stat-n" id="s-won">0</div><div class="stat-l">Won</div></div>
+        <div class="stat"><div class="stat-n" id="s-lost">0</div><div class="stat-l">Lost</div></div>
       </div>
       <div class="filter-row">
         <select id="filter-status" onchange="renderList()">
           <option value="all">All statuses</option>
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="demo">Demo Booked</option>
-          <option value="pass">Pass</option>
+          <option value="Open">Open</option>
+          <option value="Won">Won</option>
+          <option value="Lost">Lost</option>
+          <option value="Abandoned">Abandoned</option>
         </select>
         <input type="text" id="filter-search" placeholder="Search name…" oninput="renderList()">
       </div>
@@ -494,7 +494,7 @@ function addProspect() {
     current: getPosValue(),
     owner:   document.getElementById('p-owner').value.trim(),
     notes:   document.getElementById('p-notes').value.trim(),
-    status:  document.getElementById('p-status').value,
+    status:  document.getElementById('p-status').value || 'Open',
     added:   new Date().toLocaleDateString()
   });
   save(); updateStats(); clearForm();
@@ -506,14 +506,14 @@ function clearForm() {
     .forEach(id => document.getElementById(id).value='');
   document.getElementById('p-current').value='';
   document.getElementById('p-current-other').style.display='none';
-  document.getElementById('p-status').value='new';
+  document.getElementById('p-status').value='Open';
 }
 
 function updateStats() {
-  document.getElementById('s-total').textContent     = prospects.length;
-  document.getElementById('s-new').textContent       = prospects.filter(p=>p.status==='new').length;
-  document.getElementById('s-contacted').textContent = prospects.filter(p=>p.status==='contacted').length;
-  document.getElementById('s-demo').textContent      = prospects.filter(p=>p.status==='demo').length;
+  document.getElementById('s-total').textContent = prospects.length;
+  document.getElementById('s-open').textContent  = prospects.filter(p=>p.status==='Open').length;
+  document.getElementById('s-won').textContent   = prospects.filter(p=>p.status==='Won').length;
+  document.getElementById('s-lost').textContent  = prospects.filter(p=>p.status==='Lost').length;
   document.getElementById('count-badge').textContent = prospects.length ? '('+prospects.length+')' : '';
 }
 
@@ -539,13 +539,13 @@ function renderList() {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
           <div class="pname">${esc(p.name)}</div>
-          ${p.owner?`<div class="pdetail">👤 ${esc(p.owner)}</div>`:''}
+          ${p.owner?`<div class="pdetail">👤 ${esc(p.owner)} (main contact)</div>`:''}
         </div>
         <select onchange="updateStatus('${p.id}',this.value)" style="height:28px;font-size:12px;padding:0 7px;min-width:118px">
-          <option value="new"${p.status==='new'?' selected':''}>New</option>
-          <option value="contacted"${p.status==='contacted'?' selected':''}>Contacted</option>
-          <option value="demo"${p.status==='demo'?' selected':''}>Demo Booked</option>
-          <option value="pass"${p.status==='pass'?' selected':''}>Pass</option>
+          <option value="Open"${p.status==='Open'?' selected':''}>Open</option>
+          <option value="Won"${p.status==='Won'?' selected':''}>Won</option>
+          <option value="Lost"${p.status==='Lost'?' selected':''}>Lost</option>
+          <option value="Abandoned"${p.status==='Abandoned'?' selected':''}>Abandoned</option>
         </select>
       </div>
       ${p.addr   ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(p.addr)}${p.city?', '+esc(p.city):''}</div>`:''}
@@ -576,7 +576,7 @@ function switchTab(t) {
 
 // ── ROUTE ─────────────────────────────────────────────────────────────────────
 function renderRoute() {
-  const list = prospects.filter(p=>p.addr&&p.status!=='pass');
+  const list = prospects.filter(p=>p.addr&&p.status==='Open');
   const el   = document.getElementById('route-list');
   if(!list.length){el.innerHTML='<div class="empty">Add prospects with addresses to plan a route.</div>';return;}
   el.innerHTML = list.map(p=>`
@@ -589,7 +589,7 @@ function renderRoute() {
   updateRouteCount();
 }
 function toggleRoute(id,val){val?routeSelected.add(id):routeSelected.delete(id);updateRouteCount();}
-function selectRouteAll(){prospects.filter(p=>p.addr&&p.status==='new').forEach(p=>routeSelected.add(p.id));renderRoute();}
+function selectRouteAll(){prospects.filter(p=>p.addr&&p.status==='Open').forEach(p=>routeSelected.add(p.id));renderRoute();}
 function clearRouteSelect(){routeSelected.clear();renderRoute();}
 function updateRouteCount(){document.getElementById('route-count').textContent=routeSelected.size?routeSelected.size+' selected':'';}
 function getRouteSel(){return prospects.filter(p=>routeSelected.has(p.id)&&p.addr);}
@@ -616,51 +616,54 @@ function dl(content,type,filename){const a=document.createElement('a');a.href=UR
 function downloadJSON(){dl(getJSON(),'application/json','vs_prospects_'+today()+'.json');showMsg('export-msg','JSON backup downloaded.','ok');}
 function copyJSON(){navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok'));}
 function exportCSV(){
-  // Column headers match Copper's exact field names for clean auto-mapping on import.
-  // Opportunity Name = restaurant name.
-  // Primary Contact / Full Name = owner/manager name if available.
-  // Address built as single street+city string (Copper "Street" field).
-  // Close Date pre-filled 30 days out as a working default.
-  // Pipeline, Stage, Status, Source pre-filled to match your Copper defaults.
   const closeDate = new Date();
-  closeDate.setDate(closeDate.getDate() + 30);
+  closeDate.setDate(closeDate.getDate()+30);
   const closeDateStr = (closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
 
   const headers = [
-    'Name',           // Opportunity name → restaurant name
-    'Pipeline',       // Pre-filled: Sales
-    'Status',         // Pre-filled: Open
-    'Stage',          // Pre-filled: Qualified
-    'Source',         // Pre-filled: Cold Call (walk-in)
-    'Close Date',     // Pre-filled: 30 days out
-    'Primary Contact',// Owner/manager name
-    'Full Name',      // Same — Copper uses this for contact creation
-    'Company',        // Restaurant name (also used as company)
+    'Name',            // Opportunity name → restaurant name
+    'Pipeline',        // Sales
+    'Status',          // Open / Won / Lost / Abandoned
+    'Stage',           // Qualified
+    'Source',          // Cold Call
+    'Close Date',      // 30 days out
+    'Primary Contact', // Main contact name
+    'Full Name',       // Same — used for contact record creation
+    'Company',         // Restaurant name
     'Phone',
     'Email',
-    'Street',         // Address
-    'Description',    // Notes → Description
-    'CURRENT POS',    // Custom Copper field (exact name from your screenshot)
+    'Street',          // Full address
+    'Description',     // Notes + address + phone + email appended
+    'CURRENT POS',     // Custom Copper field
   ];
 
-  const rows = [headers];
-  prospects.forEach(p => {
-    const fullAddr = [p.addr, p.city].filter(Boolean).join(', ');
+  const rows=[headers];
+  prospects.forEach(p=>{
+    const fullAddr = [p.addr,p.city].filter(Boolean).join(', ');
+
+    // Build rich Description: user notes first, then contact details appended
+    const descParts=[];
+    if(p.notes)   descParts.push(p.notes);
+    if(fullAddr)  descParts.push('Address: '+fullAddr);
+    if(p.phone)   descParts.push('Phone: '+p.phone);
+    if(p.email)   descParts.push('Email: '+p.email);
+    const description = descParts.join(' | ');
+
     rows.push([
       p.name,
       'Sales',
-      'Open',
+      p.status||'Open',
       'Qualified',
       'Cold Call',
       closeDateStr,
-      p.owner || '',
-      p.owner || '',
-      p.name,
-      p.phone  || '',
-      p.email  || '',
+      p.owner||'',   // Primary Contact
+      p.owner||'',   // Full Name
+      p.name,        // Company
+      p.phone ||'',
+      p.email ||'',
       fullAddr,
-      p.notes  || '',
-      p.current|| '',
+      description,
+      p.current||'',
     ]);
   });
 
