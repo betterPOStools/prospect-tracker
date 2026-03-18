@@ -248,6 +248,13 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div class="sync-box">
         <div class="sync-title">Export for Copper CRM</div>
         <div class="sync-desc">Exports a Copper-ready <strong>.xlsx</strong> Excel file — no data loss from special characters or line breaks. No Company field (won't create unwanted company records). Address, phone, and email are in the Description cell. In Copper go to <strong>Opportunities → Import → Excel</strong>.</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:13px;color:var(--text2)">Export as:</span>
+          <select id="export-owner" style="height:34px;font-size:13px;width:auto;flex:none">
+            <option value="Aaron Neece">Aaron Neece</option>
+            <option value="Jacob Bilton">Jacob Bilton</option>
+          </select>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn primary" onclick="exportXLSX()">Download Excel for Copper</button>
           <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
@@ -629,6 +636,8 @@ function exportXLSX(){
   // Headers match Copper Opportunity field names exactly.
   // No Company column (avoids unwanted company record creation).
   // Phone, email, address folded into Description — not separate columns.
+  const owner = document.getElementById('export-owner').value;
+
   const headers = [
     'Name',
     'Pipeline',
@@ -636,6 +645,7 @@ function exportXLSX(){
     'Stage',
     'Source',
     'Close Date',
+    'Owner',
     'Primary Contact',
     'Description',
     'CURRENT POS',
@@ -655,7 +665,8 @@ function exportXLSX(){
       'Qualified',
       'Cold Call',
       closeDateStr,
-      p.owner   || '',
+      owner,                   // Copper record owner — Aaron Neece or Jacob Bilton
+      p.owner   || '',         // Primary Contact — main contact at the restaurant
       descParts.join('\n'),   // real line breaks inside the cell — no CSV truncation
       p.current || '',
     ];
@@ -672,6 +683,7 @@ function exportXLSX(){
     {wch:12}, // Stage
     {wch:10}, // Source
     {wch:12}, // Close Date
+    {wch:16}, // Owner
     {wch:20}, // Primary Contact
     {wch:50}, // Description
     {wch:22}, // CURRENT POS
@@ -680,7 +692,7 @@ function exportXLSX(){
   // Wrap text in Description column (col index 7) so line breaks render in Excel
   const range = XLSX.utils.decode_range(ws['!ref']);
   for(let r = 1; r <= range.e.r; r++){
-    const cellAddr = XLSX.utils.encode_cell({r, c:7});
+    const cellAddr = XLSX.utils.encode_cell({r, c:8});
     if(ws[cellAddr]){
       if(!ws[cellAddr].s) ws[cellAddr].s = {};
       ws[cellAddr].s.alignment = { wrapText: true };
