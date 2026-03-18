@@ -247,7 +247,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <div id="tab-sync" class="panel">
       <div class="sync-box">
         <div class="sync-title">Export for Copper CRM</div>
-        <div class="sync-desc">Download a CSV to import directly into Copper, or grab a JSON backup. Google Drive handles device-to-device sync automatically — use these for CRM imports and manual backups.</div>
+        <div class="sync-desc">Downloads a Copper-ready CSV — headers match Copper's exact field names so the mapper auto-assigns on import with no manual work. In Copper go to <strong>Opportunities → Import → CSV</strong>. Close Date pre-filled 30 days out; Pipeline = Sales; Stage = Qualified; Source = Cold Call.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn primary" onclick="exportCSV()">Download CSV for Copper</button>
           <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
@@ -616,10 +616,60 @@ function dl(content,type,filename){const a=document.createElement('a');a.href=UR
 function downloadJSON(){dl(getJSON(),'application/json','vs_prospects_'+today()+'.json');showMsg('export-msg','JSON backup downloaded.','ok');}
 function copyJSON(){navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok'));}
 function exportCSV(){
-  const rows=[['Name','Owner','Address','City','Phone','Email','Current POS','Status','Notes','Added']];
-  prospects.forEach(p=>rows.push([p.name,p.owner||'',p.addr||'',p.city||'',p.phone||'',p.email||'',p.current||'',p.status,p.notes||'',p.added||'']));
-  dl(rows.map(r=>r.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')).join('\n'),'text/csv','vs_prospects_'+today()+'.csv');
-  showMsg('export-msg','CSV downloaded — ready to import into Copper.','ok');
+  // Column headers match Copper's exact field names for clean auto-mapping on import.
+  // Opportunity Name = restaurant name.
+  // Primary Contact / Full Name = owner/manager name if available.
+  // Address built as single street+city string (Copper "Street" field).
+  // Close Date pre-filled 30 days out as a working default.
+  // Pipeline, Stage, Status, Source pre-filled to match your Copper defaults.
+  const closeDate = new Date();
+  closeDate.setDate(closeDate.getDate() + 30);
+  const closeDateStr = (closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
+
+  const headers = [
+    'Name',           // Opportunity name → restaurant name
+    'Pipeline',       // Pre-filled: Sales
+    'Status',         // Pre-filled: Open
+    'Stage',          // Pre-filled: Qualified
+    'Source',         // Pre-filled: Cold Call (walk-in)
+    'Close Date',     // Pre-filled: 30 days out
+    'Primary Contact',// Owner/manager name
+    'Full Name',      // Same — Copper uses this for contact creation
+    'Company',        // Restaurant name (also used as company)
+    'Phone',
+    'Email',
+    'Street',         // Address
+    'Description',    // Notes → Description
+    'CURRENT POS',    // Custom Copper field (exact name from your screenshot)
+  ];
+
+  const rows = [headers];
+  prospects.forEach(p => {
+    const fullAddr = [p.addr, p.city].filter(Boolean).join(', ');
+    rows.push([
+      p.name,
+      'Sales',
+      'Open',
+      'Qualified',
+      'Cold Call',
+      closeDateStr,
+      p.owner || '',
+      p.owner || '',
+      p.name,
+      p.phone  || '',
+      p.email  || '',
+      fullAddr,
+      p.notes  || '',
+      p.current|| '',
+    ]);
+  });
+
+  dl(
+    rows.map(r=>r.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')).join('\n'),
+    'text/csv',
+    'copper_import_'+today()+'.csv'
+  );
+  showMsg('export-msg','CSV downloaded — column headers match Copper\'s field names for clean import.','ok');
 }
 function importJSON(){const t=document.getElementById('import-text').value.trim();if(!t){showMsg('import-msg','Paste exported JSON first.','err');return;}processImport(t,'import-msg');}
 function importFile(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>processImport(e.target.result,'import-msg');r.readAsText(f);}
