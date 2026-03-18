@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
-:root {
+:root{
   --bg:#ffffff;--bg2:#f5f5f3;--bg3:#ededea;
   --text:#1a1a18;--text2:#6b6b66;--text3:#9a9a94;
   --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);--border3:rgba(0,0,0,0.35);
@@ -15,10 +15,11 @@
   --yellow-bg:#faeeda;--yellow-text:#854f0b;
   --green-bg:#eaf3de;--green-text:#3b6d11;
   --red-bg:#fcebeb;--red-text:#a32d2d;
+  --purple-bg:#eeedfe;--purple-text:#534ab7;
   --accent:#1a1a18;--radius:8px;--radius-lg:12px;
   --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
 }
-[data-theme="dark"] {
+[data-theme="dark"]{
   --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
   --text:#e8e8e2;--text2:#9a9a94;--text3:#6b6b66;
   --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.18);--border3:rgba(255,255,255,0.28);
@@ -26,13 +27,13 @@
   --yellow-bg:#633806;--yellow-text:#fac775;
   --green-bg:#27500a;--green-text:#c0dd97;
   --red-bg:#791f1f;--red-text:#f7c1c1;
+  --purple-bg:#26215c;--purple-text:#afa9ec;
   --accent:#e8e8e2;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px}
 body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh;padding:24px 16px 48px;transition:background .2s,color .2s}
 .container{max-width:760px;margin:0 auto}
-
 .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px}
 .header-title h1{font-size:20px;font-weight:500;color:var(--text);margin-bottom:3px}
 .header-title p{font-size:13px;color:var(--text2)}
@@ -50,61 +51,84 @@ body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:
 .drive-btn{background:none;border:none;font-family:var(--font);font-size:12px;color:var(--blue-text);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px}
 .drive-btn:hover{opacity:.75}
 
+/* SHELL */
 .shell{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden}
 .tabs{display:flex;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg)}
-.tab{padding:12px 16px;font-size:13px;font-family:var(--font);cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
+.tab{padding:12px 14px;font-size:13px;font-family:var(--font);cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500}
 .panel{display:none;padding:20px}
 .panel.active{display:block}
 
+/* FORMS */
 input[type=text],input[type=tel],input[type=email],select,textarea{height:38px;padding:0 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--font);width:100%;transition:border-color .12s;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--border3)}
-textarea{height:80px;padding:9px 11px;resize:vertical}
+textarea{height:72px;padding:9px 11px;resize:vertical}
 .row{display:flex;gap:8px;margin-bottom:9px;flex-wrap:wrap}
 .row input,.row select{flex:1;min-width:120px}
 
+/* BUTTONS */
 .btn{height:38px;padding:0 15px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);font-size:13px;font-family:var(--font);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:background .12s;text-decoration:none}
 .btn:hover{background:var(--bg2)}
 .btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .btn.primary:hover{opacity:.82}
+.btn.success{background:var(--green-text);color:#fff;border-color:var(--green-text)}
+.btn.success:hover{opacity:.85}
 .btn.danger{color:var(--red-text);border-color:rgba(163,45,45,0.3)}
 .btn.danger:hover{background:var(--red-bg)}
 .btn.sm{height:30px;font-size:12px;padding:0 11px}
 .theme-btn{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 12px;font-size:13px;font-family:var(--font);color:var(--text2);cursor:pointer}
 .theme-btn:hover{background:var(--bg3)}
 
+/* STATS */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
 .stat{background:var(--bg2);border-radius:var(--radius);padding:11px 10px;text-align:center}
 .stat-n{font-size:22px;font-weight:500;color:var(--text)}
 .stat-l{font-size:11px;color:var(--text2);margin-top:2px}
 
+/* CARDS */
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;margin-bottom:9px}
 .card:hover{border-color:var(--border2)}
+.card.archived{opacity:.6}
 .pname{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
 .pdetail{font-size:12px;color:var(--text2);margin-bottom:2px}
 .pactions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
 
+/* BADGES */
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
 .badge.Open{background:var(--blue-bg);color:var(--blue-text)}
 .badge.Won{background:var(--green-bg);color:var(--green-text)}
 .badge.Lost{background:var(--red-bg);color:var(--red-text)}
 .badge.Abandoned{background:var(--bg2);color:var(--text2)}
+.badge.canvass{background:var(--purple-bg);color:var(--purple-text)}
+.badge.converted{background:var(--green-bg);color:var(--green-text)}
 
+/* SECTION HEADERS IN ROUTE */
+.route-section-hdr{font-size:12px;font-weight:500;color:var(--text2);padding:8px 0 4px;border-bottom:0.5px solid var(--border);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+
+/* FILTER */
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .filter-row select,.filter-row input{flex:1;min-width:110px}
 
+/* SYNC BOXES */
 .sync-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
 .sync-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:5px}
 .sync-desc{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6}
 .sync-box.danger{border-color:rgba(163,45,45,0.35)}
 .sync-title.danger{color:var(--red-text)}
 
+/* ROUTE ROWS */
 .route-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer}
 .route-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:var(--accent)}
 .route-name{flex:1;color:var(--text);font-weight:500}
 .route-addr{color:var(--text2);font-size:12px;text-align:right}
 
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:16px}
+
+/* MISC */
 .msg{font-size:12px;min-height:18px;margin-top:7px}
 .msg.ok{color:var(--green-text)}
 .msg.err{color:var(--red-text)}
@@ -118,13 +142,6 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 .src-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
 .src-desc{font-size:12px;color:var(--text2);margin-bottom:9px;line-height:1.55}
 
-@media(max-width:520px){
-  body{padding:12px 8px 40px}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .source-grid{grid-template-columns:1fr}
-  .panel{padding:14px}
-}
-
 /* PASSWORD GATE */
 #gate{position:fixed;inset:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;z-index:9999}
 #gate.hidden{display:none}
@@ -134,17 +151,65 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 .gate-box input[type=password]{text-align:center;letter-spacing:0.15em;font-size:15px;margin-bottom:10px}
 .gate-box button{width:100%;height:40px;font-size:14px}
 .gate-err{font-size:12px;color:var(--red-text);margin-top:8px;min-height:16px}
+
+@media(max-width:520px){
+  body{padding:12px 8px 40px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .source-grid{grid-template-columns:1fr}
+  .panel{padding:14px}
+}
 </style>
 </head>
 <body>
 
+<!-- PASSWORD GATE -->
 <div id="gate">
   <div class="gate-box">
     <div class="gate-logo">Restaurant Prospect Tracker</div>
     <div class="gate-sub">Value Systems — enter password to continue</div>
-    <input type="password" id="gate-pw" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()">
-    <button class="btn primary" onclick="checkPassword()">Unlock</button>
+    <form id="gate-form" action="#" onsubmit="checkPassword(); return false;" autocomplete="on">
+      <input type="text" name="username" value="valuesystems" autocomplete="username" style="display:none">
+      <input type="password" id="gate-pw" name="password" placeholder="Password" autocomplete="current-password">
+      <button type="submit" class="btn primary" style="width:100%;margin-top:10px">Unlock</button>
+    </form>
     <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- CONVERT TO LEAD MODAL -->
+<div id="convert-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Convert to Lead</div>
+    <input type="hidden" id="modal-canvass-id">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Fill in any additional details — everything from the canvass stop is pre-loaded.</p>
+    <div class="row">
+      <input type="text" id="m-email" placeholder="Email (if found)">
+      <input type="text" id="m-owner" placeholder="Main contact name">
+    </div>
+    <div style="margin-bottom:9px;display:flex;flex-direction:column;gap:6px">
+      <select id="m-pos" onchange="toggleModalOther(this.value)">
+        <option value="">Current POS system…</option>
+        <option value="Toast">Toast</option>
+        <option value="Square for Restaurants">Square for Restaurants</option>
+        <option value="Clover">Clover</option>
+        <option value="Lightspeed">Lightspeed</option>
+        <option value="TouchBistro">TouchBistro</option>
+        <option value="Revel Systems">Revel Systems</option>
+        <option value="Aloha (NCR)">Aloha (NCR)</option>
+        <option value="Micros (Oracle)">Micros (Oracle)</option>
+        <option value="Heartland">Heartland</option>
+        <option value="SpotOn">SpotOn</option>
+        <option value="Shift4 (Harbortouch)">Shift4 (Harbortouch)</option>
+        <option value="PAX">PAX</option>
+        <option value="None / Unknown">None / Unknown</option>
+        <option value="other">Other…</option>
+      </select>
+      <input type="text" id="m-pos-other" placeholder="Specify POS system…" style="display:none">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn success" onclick="confirmConvert()">Convert to Lead</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -158,7 +223,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
 
-  <!-- DRIVE STATUS BAR -->
+  <!-- DRIVE BAR -->
   <div id="drive-bar">
     <div class="drive-dot"></div>
     <span id="drive-label">Not connected to Google Drive</span>
@@ -167,73 +232,132 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 
   <div class="shell">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('add')">Add Lead</button>
-      <button class="tab" onclick="switchTab('list')">My List <span id="count-badge"></span></button>
+      <button class="tab active" onclick="switchTab('canvass')">Canvass</button>
+      <button class="tab" onclick="switchTab('list')">My Leads <span id="count-badge"></span></button>
       <button class="tab" onclick="switchTab('route')">Route</button>
       <button class="tab" onclick="switchTab('sync')">Export / Import</button>
       <button class="tab" onclick="switchTab('sources')">Free Sources</button>
     </div>
 
-    <!-- ADD -->
-    <div id="tab-add" class="panel active">
-      <div class="row">
-        <input type="text" id="p-name" placeholder="Restaurant name *" style="flex:2;min-width:180px">
-        <select id="p-status" style="max-width:160px">
-          <option value="Open">Open</option>
-          <option value="Won">Won</option>
-          <option value="Lost">Lost</option>
-          <option value="Abandoned">Abandoned</option>
-        </select>
-      </div>
-      <div class="row">
-        <input type="text" id="p-addr" placeholder="Street address">
-        <input type="text" id="p-city" placeholder="City, ST" style="max-width:180px">
-      </div>
-      <div class="row">
-        <input type="tel" id="p-phone" placeholder="Phone number">
-        <input type="text" id="p-email" placeholder="Email (if found)">
-      </div>
-      <div class="row">
-        <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px">
-          <select id="p-current" onchange="togglePosOther(this.value)">
-            <option value="">Current POS system…</option>
-            <option value="Toast">Toast</option>
-            <option value="Square for Restaurants">Square for Restaurants</option>
-            <option value="Clover">Clover</option>
-            <option value="Lightspeed">Lightspeed</option>
-            <option value="TouchBistro">TouchBistro</option>
-            <option value="Revel Systems">Revel Systems</option>
-            <option value="Aloha (NCR)">Aloha (NCR)</option>
-            <option value="Micros (Oracle)">Micros (Oracle)</option>
-            <option value="Heartland">Heartland</option>
-            <option value="SpotOn">SpotOn</option>
-            <option value="Shift4 (Harbortouch)">Shift4 (Harbortouch)</option>
-            <option value="PAX">PAX</option>
-            <option value="None / Unknown">None / Unknown</option>
-            <option value="other">Other…</option>
+    <!-- ── CANVASS TAB ── -->
+    <div id="tab-canvass" class="panel active">
+      <!-- Quick add -->
+      <div style="margin-bottom:16px">
+        <div class="row">
+          <input type="text" id="c-name" placeholder="Business name *" style="flex:2;min-width:180px">
+          <select id="c-status" style="max-width:180px">
+            <option value="Not visited yet">Not visited yet</option>
+            <option value="No answer / closed">No answer / closed</option>
+            <option value="Not interested">Not interested</option>
+            <option value="Come back later">Come back later</option>
+            <option value="Decision maker unavailable">Decision maker unavailable</option>
           </select>
-          <input type="text" id="p-current-other" placeholder="Specify POS system…" style="display:none">
         </div>
-        <input type="text" id="p-owner" placeholder="Main contact name">
+        <div class="row">
+          <input type="text" id="c-addr" placeholder="Street address">
+          <input type="text" id="c-city" placeholder="City, ST" style="max-width:180px">
+        </div>
+        <div class="row">
+          <input type="tel" id="c-phone" placeholder="Phone number">
+          <input type="text" id="c-notes" placeholder="Notes / first impression">
+        </div>
+        <div class="row" style="margin-top:4px">
+          <button class="btn primary" onclick="addCanvass()">+ Add Stop</button>
+          <button class="btn" onclick="clearCanvassForm()">Clear</button>
+        </div>
+        <div id="canvass-add-msg" class="msg ok"></div>
       </div>
-      <div class="row">
-        <input type="text" id="p-notes" placeholder="Notes">
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="cs-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="cs-pending">0</div><div class="stat-l">Pending</div></div>
+        <div class="stat"><div class="stat-n" id="cs-converted">0</div><div class="stat-l">Converted</div></div>
+        <div class="stat"><div class="stat-n" id="cs-today">0</div><div class="stat-l">Today</div></div>
       </div>
-      <div class="row" style="margin-top:6px">
-        <button class="btn primary" onclick="addProspect()">+ Add to List</button>
-        <button class="btn" onclick="clearForm()">Clear</button>
+
+      <!-- Filter -->
+      <div class="filter-row">
+        <select id="canvass-filter-status" onchange="renderCanvass()">
+          <option value="all">All stops</option>
+          <option value="active">Active only</option>
+          <option value="Not visited yet">Not visited yet</option>
+          <option value="No answer / closed">No answer / closed</option>
+          <option value="Not interested">Not interested</option>
+          <option value="Come back later">Come back later</option>
+          <option value="Decision maker unavailable">Decision maker unavailable</option>
+          <option value="Converted">Converted (archived)</option>
+        </select>
+        <input type="text" id="canvass-filter-search" placeholder="Search name…" oninput="renderCanvass()">
+        <button class="btn sm" onclick="exportCanvassSummary()">Daily Summary ↓</button>
       </div>
-      <div id="add-msg" class="msg ok"></div>
+
+      <div id="canvass-list"></div>
     </div>
 
-    <!-- LIST -->
+    <!-- ── LEADS TAB ── -->
     <div id="tab-list" class="panel">
+      <!-- Add lead form -->
+      <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px">Add a lead manually</div>
+        <div class="row">
+          <input type="text" id="p-name" placeholder="Restaurant name *" style="flex:2;min-width:180px">
+          <select id="p-status" style="max-width:160px">
+            <option value="Open">Open</option>
+            <option value="Won">Won</option>
+            <option value="Lost">Lost</option>
+            <option value="Abandoned">Abandoned</option>
+          </select>
+        </div>
+        <div class="row">
+          <input type="text" id="p-addr" placeholder="Street address">
+          <input type="text" id="p-city" placeholder="City, ST" style="max-width:180px">
+        </div>
+        <div class="row">
+          <input type="tel" id="p-phone" placeholder="Phone number">
+          <input type="text" id="p-email" placeholder="Email (if found)">
+        </div>
+        <div class="row">
+          <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px">
+            <select id="p-current" onchange="togglePosOther(this.value)">
+              <option value="">Current POS system…</option>
+              <option value="Toast">Toast</option>
+              <option value="Square for Restaurants">Square for Restaurants</option>
+              <option value="Clover">Clover</option>
+              <option value="Lightspeed">Lightspeed</option>
+              <option value="TouchBistro">TouchBistro</option>
+              <option value="Revel Systems">Revel Systems</option>
+              <option value="Aloha (NCR)">Aloha (NCR)</option>
+              <option value="Micros (Oracle)">Micros (Oracle)</option>
+              <option value="Heartland">Heartland</option>
+              <option value="SpotOn">SpotOn</option>
+              <option value="Shift4 (Harbortouch)">Shift4 (Harbortouch)</option>
+              <option value="PAX">PAX</option>
+              <option value="None / Unknown">None / Unknown</option>
+              <option value="other">Other…</option>
+            </select>
+            <input type="text" id="p-current-other" placeholder="Specify POS system…" style="display:none">
+          </div>
+          <input type="text" id="p-owner" placeholder="Main contact name">
+        </div>
+        <div class="row">
+          <input type="text" id="p-notes" placeholder="Notes">
+        </div>
+        <div class="row" style="margin-top:4px">
+          <button class="btn primary" onclick="addProspect()">+ Add Lead</button>
+          <button class="btn" onclick="clearForm()">Clear</button>
+        </div>
+        <div id="add-msg" class="msg ok"></div>
+      </div>
+
+      <!-- Lead stats -->
       <div class="stats">
         <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
         <div class="stat"><div class="stat-n" id="s-open">0</div><div class="stat-l">Open</div></div>
         <div class="stat"><div class="stat-n" id="s-won">0</div><div class="stat-l">Won</div></div>
         <div class="stat"><div class="stat-n" id="s-lost">0</div><div class="stat-l">Lost</div></div>
       </div>
+
       <div class="filter-row">
         <select id="filter-status" onchange="renderList()">
           <option value="all">All statuses</option>
@@ -247,16 +371,26 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div id="prospect-list"></div>
     </div>
 
-    <!-- ROUTE -->
+    <!-- ── ROUTE TAB ── -->
     <div id="tab-route" class="panel">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Check the stops you want to hit, then send to a route planner.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Select stops from canvass and/or leads, then build a route.</p>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-        <button class="btn sm" onclick="selectRouteAll()">Select all new</button>
+        <button class="btn sm" onclick="selectRouteCanvass()">All canvass stops</button>
+        <button class="btn sm" onclick="selectRouteLeads()">All open leads</button>
         <button class="btn sm" onclick="clearRouteSelect()">Clear</button>
         <span id="route-count" style="font-size:12px;color:var(--text2)"></span>
       </div>
-      <div id="route-list" style="margin-bottom:14px"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+      <div id="route-canvass-section">
+        <div class="route-section-hdr">Canvass stops</div>
+        <div id="route-canvass-list"></div>
+      </div>
+      <div id="route-leads-section" style="margin-top:12px">
+        <div class="route-section-hdr">Leads</div>
+        <div id="route-leads-list"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
         <button class="btn primary" onclick="openGoogleMaps()">Google Maps ↗</button>
         <button class="btn" onclick="openRouteXL()">RouteXL (free, 20 stops) ↗</button>
         <button class="btn" onclick="copyAddresses()">Copy addresses</button>
@@ -264,11 +398,11 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div id="route-msg" class="msg ok" style="margin-top:8px"></div>
     </div>
 
-    <!-- EXPORT / IMPORT -->
+    <!-- ── EXPORT / IMPORT TAB ── -->
     <div id="tab-sync" class="panel">
       <div class="sync-box">
-        <div class="sync-title">Export for Copper CRM</div>
-        <div class="sync-desc">Exports a Copper-ready <strong>.xlsx</strong> Excel file — no data loss from special characters or line breaks. No Company field (won't create unwanted company records). Address, phone, and email are in the Description cell. In Copper go to <strong>Opportunities → Import → Excel</strong>.</div>
+        <div class="sync-title">Export Leads for Copper CRM</div>
+        <div class="sync-desc">9-column Copper-ready Excel file. No Company field. Address, phone, and email folded into Description. In Copper go to <strong>Opportunities → Import → Excel</strong>.</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
           <span style="font-size:13px;color:var(--text2)">Export as:</span>
           <select id="export-owner" style="height:34px;font-size:13px;width:auto;flex:none">
@@ -278,11 +412,13 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn primary" onclick="exportXLSX()">Download Excel for Copper</button>
+          <button class="btn" onclick="exportCanvassSummary()">Daily Canvass Summary</button>
           <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
           <button class="btn" onclick="copyJSON()">Copy JSON</button>
         </div>
         <div id="export-msg" class="msg ok"></div>
       </div>
+
       <div class="sync-box">
         <div class="sync-title">Import</div>
         <div class="sync-desc">Paste a JSON export or load a .json file. Merges records in without deleting existing ones.</div>
@@ -293,6 +429,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         </div>
         <div id="import-msg" class="msg ok"></div>
       </div>
+
       <div class="sync-box danger">
         <div class="sync-title danger">Danger zone</div>
         <div class="sync-desc">Clears local browser data only. Does <strong>not</strong> delete your Google Drive file.</div>
@@ -300,10 +437,10 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         <div id="clear-msg" class="msg err"></div>
       </div>
       <hr>
-      <p class="note"><strong>Copper import tip:</strong> In Copper go to People → Import → CSV. Map Name, Phone, Email, and Notes → Description. Import once per canvassing batch.</p>
+      <p class="note"><strong>Copper import tip:</strong> In Copper go to Opportunities → Import → Excel. Map Name, Pipeline, Status, Stage, Source, Close Date, Owner, Primary Contact, Description, CURRENT POS.</p>
     </div>
 
-    <!-- SOURCES -->
+    <!-- ── FREE SOURCES TAB ── -->
     <div id="tab-sources" class="panel">
       <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Free tools for finding restaurant leads. No credit card needed.</p>
       <div class="source-grid">
@@ -317,13 +454,11 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div class="tip"><strong>Email tip:</strong> Check the restaurant website footer or /contact page. Facebook business pages often list owner email — about 30 seconds per lead.</div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /shell -->
+</div><!-- /app-container -->
 
-<!-- Google Identity Services library -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CLIENT_ID  = '874681040584-kv8cd6krhn8dndut2458qe5ua9e6nssr.apps.googleusercontent.com';
@@ -333,7 +468,8 @@ const DRIVE_API  = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prospects     = [];
+let prospects     = [];   // leads
+let canvassStops  = [];   // canvass
 let routeSelected = new Set();
 let accessToken   = null;
 let driveFileId   = null;
@@ -342,11 +478,13 @@ let isSyncing     = false;
 
 // ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
 function localLoad() {
-  try { prospects = JSON.parse(localStorage.getItem('vs_p3') || '[]'); } catch(e) { prospects = []; }
+  try { prospects    = JSON.parse(localStorage.getItem('vs_p3')  || '[]'); } catch(e){ prospects=[]; }
+  try { canvassStops = JSON.parse(localStorage.getItem('vs_c1')  || '[]'); } catch(e){ canvassStops=[]; }
   driveFileId = localStorage.getItem('vs_drive_fid') || null;
 }
 function localSave() {
   localStorage.setItem('vs_p3', JSON.stringify(prospects));
+  localStorage.setItem('vs_c1', JSON.stringify(canvassStops));
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────────
@@ -362,30 +500,21 @@ function setStatus(state, msg) {
   const bar = document.getElementById('drive-bar');
   const lbl = document.getElementById('drive-label');
   const btn = document.getElementById('drive-btn');
-  bar.className = state ? 'id="drive-bar" '+state : '';
-  // reset classes properly
   bar.setAttribute('class','');
   if(state) bar.classList.add(state);
   lbl.textContent = msg;
   btn.textContent = (state==='connected'||state==='syncing') ? 'Disconnect' : (state==='error' ? 'Retry' : 'Connect');
 }
 
-// ── OAUTH ─────────────────────────────────────────────────────────────────────
-function driveAction() {
-  if (accessToken) { disconnect(); } else { connect(); }
-}
+function driveAction() { accessToken ? disconnect() : connect(); }
 
 function connect() {
-  if (typeof google === 'undefined') {
-    setStatus('error','Google script not loaded — check internet connection and reload.');
-    return;
-  }
+  if(typeof google==='undefined'){ setStatus('error','Google script not loaded — check internet connection.'); return; }
   setStatus('syncing','Waiting for Google sign-in…');
   google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
+    client_id: CLIENT_ID, scope: SCOPES,
     callback: async (resp) => {
-      if (resp.error) { setStatus('error','Sign-in failed: '+resp.error); return; }
+      if(resp.error){ setStatus('error','Sign-in failed: '+resp.error); return; }
       accessToken = resp.access_token;
       setStatus('syncing','Signed in — loading Drive data…');
       await driveInit();
@@ -394,145 +523,258 @@ function connect() {
 }
 
 function disconnect() {
-  if (accessToken && typeof google !== 'undefined') {
-    google.accounts.oauth2.revoke(accessToken, ()=>{});
-  }
-  accessToken = null;
-  localStorage.removeItem('vs_drive_fid');
+  if(accessToken && typeof google!=='undefined') google.accounts.oauth2.revoke(accessToken,()=>{});
+  accessToken=null; localStorage.removeItem('vs_drive_fid');
   setStatus('','Not connected to Google Drive');
 }
 
 // ── DRIVE API ─────────────────────────────────────────────────────────────────
-async function req(url, opts={}) {
-  const r = await fetch(url, {
-    ...opts,
-    headers: { 'Authorization':'Bearer '+accessToken, ...(opts.headers||{}) }
-  });
-  if (r.status===401) {
-    accessToken=null;
-    setStatus('error','Session expired — click Retry to sign in again.');
-    throw new Error('401');
-  }
+async function req(url,opts={}) {
+  const r = await fetch(url,{...opts,headers:{'Authorization':'Bearer '+accessToken,...(opts.headers||{})}});
+  if(r.status===401){ accessToken=null; setStatus('error','Session expired — click Retry.'); throw new Error('401'); }
   return r;
 }
-
 async function findFile() {
-  const q = encodeURIComponent(`name='${FILE_NAME}' and trashed=false`);
-  const r = await req(`${DRIVE_API}/files?q=${q}&fields=files(id)&spaces=drive`);
-  const d = await r.json();
-  return (d.files && d.files.length) ? d.files[0].id : null;
+  const q=encodeURIComponent(`name='${FILE_NAME}' and trashed=false`);
+  const r=await req(`${DRIVE_API}/files?q=${q}&fields=files(id)&spaces=drive`);
+  const d=await r.json();
+  return (d.files&&d.files.length)?d.files[0].id:null;
 }
-
-async function readFile(id) {
-  const r = await req(`${DRIVE_API}/files/${id}?alt=media`);
-  return await r.json();
-}
-
-async function writeFile(id, data) {
-  const body = JSON.stringify({ version:3, updated:new Date().toISOString(), prospects:data });
-  if (id) {
-    await req(`${UPLOAD_API}/files/${id}?uploadType=media`, {
-      method:'PATCH', headers:{'Content-Type':'application/json'}, body
-    });
-    return id;
-  }
-  const meta = JSON.stringify({ name:FILE_NAME, mimeType:'application/json' });
-  const form = new FormData();
-  form.append('metadata', new Blob([meta],{type:'application/json'}));
-  form.append('file',     new Blob([body],{type:'application/json'}));
-  const r = await req(`${UPLOAD_API}/files?uploadType=multipart`, { method:'POST', body:form });
-  const d = await r.json();
-  return d.id;
+async function readFile(id) { const r=await req(`${DRIVE_API}/files/${id}?alt=media`); return await r.json(); }
+async function writeFile(id,data) {
+  const body=JSON.stringify({version:4,updated:new Date().toISOString(),prospects:data.prospects,canvassStops:data.canvassStops});
+  if(id){ await req(`${UPLOAD_API}/files/${id}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body}); return id; }
+  const meta=JSON.stringify({name:FILE_NAME,mimeType:'application/json'});
+  const form=new FormData();
+  form.append('metadata',new Blob([meta],{type:'application/json'}));
+  form.append('file',new Blob([body],{type:'application/json'}));
+  const r=await req(`${UPLOAD_API}/files?uploadType=multipart`,{method:'POST',body:form});
+  return (await r.json()).id;
 }
 
 async function driveInit() {
   try {
-    // Try cached file ID first
-    if (driveFileId) {
-      try {
-        const data = await readFile(driveFileId);
-        mergeIn(data.prospects || []);
-      } catch(e) {
-        if (e.message==='401') return;
-        driveFileId = null; // stale, search below
-      }
-    }
-    if (!driveFileId) {
-      const found = await findFile();
-      if (found) {
-        driveFileId = found;
-        localStorage.setItem('vs_drive_fid', driveFileId);
-        const data = await readFile(driveFileId);
-        mergeIn(data.prospects || []);
-      } else {
-        // No file yet — create from local data
-        driveFileId = await writeFile(null, prospects);
-        localStorage.setItem('vs_drive_fid', driveFileId);
-      }
-    }
-    localSave();
-    updateStats();
-    renderList();
-    setStatus('connected', 'Google Drive synced — '+prospects.length+' prospects');
-  } catch(e) {
-    if (e.message!=='401') setStatus('error','Drive error: '+e.message);
-  }
+    let loaded=false;
+    if(driveFileId){ try{ const d=await readFile(driveFileId); mergeData(d); loaded=true; }catch(e){ if(e.message==='401')return; driveFileId=null; } }
+    if(!loaded){ const fid=await findFile(); if(fid){ driveFileId=fid; localStorage.setItem('vs_drive_fid',driveFileId); const d=await readFile(driveFileId); mergeData(d); } else { driveFileId=await writeFile(null,{prospects,canvassStops}); localStorage.setItem('vs_drive_fid',driveFileId); } }
+    localSave(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
+    setStatus('connected','Google Drive synced — '+prospects.length+' leads, '+canvassStops.length+' canvass stops');
+  } catch(e){ if(e.message!=='401') setStatus('error','Drive error: '+e.message); }
 }
 
-function mergeIn(incoming) {
-  incoming.forEach(p => {
-    if (!p.id||!p.name) return;
-    const i = prospects.findIndex(x=>x.id===p.id);
-    if (i===-1) prospects.push(p);
-    else prospects[i] = {...prospects[i], ...p};
-  });
+function mergeData(d) {
+  if(Array.isArray(d.prospects))    mergeArr(prospects,    d.prospects);
+  if(Array.isArray(d.canvassStops)) mergeArr(canvassStops, d.canvassStops);
+}
+function mergeArr(local,incoming) {
+  incoming.forEach(p=>{ if(!p.id||!p.name)return; const i=local.findIndex(x=>x.id===p.id); if(i===-1)local.push(p); else local[i]={...local[i],...p}; });
 }
 
 function scheduleSave() {
-  if (!accessToken) return;
+  if(!accessToken) return;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(async () => {
-    if (isSyncing) { scheduleSave(); return; }
-    isSyncing = true;
-    setStatus('syncing', 'Saving to Google Drive…');
-    try {
-      driveFileId = await writeFile(driveFileId, prospects);
-      localStorage.setItem('vs_drive_fid', driveFileId);
-      setStatus('connected','Saved to Drive — '+new Date().toLocaleTimeString());
-    } catch(e) {
-      if (e.message!=='401') setStatus('error','Save failed — '+e.message+'. Click Retry.');
-    }
-    isSyncing = false;
-  }, 1500);
+  syncTimer=setTimeout(async()=>{
+    if(isSyncing){scheduleSave();return;}
+    isSyncing=true; setStatus('syncing','Saving to Google Drive…');
+    try{ driveFileId=await writeFile(driveFileId,{prospects,canvassStops}); localStorage.setItem('vs_drive_fid',driveFileId); setStatus('connected','Saved — '+new Date().toLocaleTimeString()); }
+    catch(e){ if(e.message!=='401') setStatus('error','Save failed — '+e.message); }
+    isSyncing=false;
+  },1500);
 }
 
-// ── SAVE (local + drive) ──────────────────────────────────────────────────────
 function save() { localSave(); scheduleSave(); }
+function uid()  { return Date.now()+'_'+Math.random().toString(36).slice(2,6); }
 
-// ── PROSPECT OPS ──────────────────────────────────────────────────────────────
-function addProspect() {
-  const name = document.getElementById('p-name').value.trim();
-  if (!name) { showMsg('add-msg','Name is required.','err'); return; }
+// ── CANVASS ───────────────────────────────────────────────────────────────────
+const CANVASS_ACTIVE_STATUSES = ['Not visited yet','No answer / closed','Not interested','Come back later','Decision maker unavailable'];
+
+function addCanvass() {
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){showMsg('canvass-add-msg','Business name is required.','err');return;}
+  canvassStops.push({
+    id:uid(), name,
+    addr:  document.getElementById('c-addr').value.trim(),
+    city:  document.getElementById('c-city').value.trim(),
+    phone: document.getElementById('c-phone').value.trim(),
+    notes: document.getElementById('c-notes').value.trim(),
+    status:document.getElementById('c-status').value,
+    date:  new Date().toLocaleDateString(),
+    added: new Date().toISOString(),
+  });
+  save(); updateCanvassStats(); clearCanvassForm(); renderCanvass();
+  showMsg('canvass-add-msg','Stop added — '+canvassStops.length+' total.','ok');
+}
+
+function clearCanvassForm() {
+  ['c-name','c-addr','c-city','c-phone','c-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-status').value='Not visited yet';
+}
+
+function updateCanvassStats() {
+  const today=new Date().toLocaleDateString();
+  document.getElementById('cs-total').textContent    = canvassStops.length;
+  document.getElementById('cs-pending').textContent  = canvassStops.filter(c=>CANVASS_ACTIVE_STATUSES.includes(c.status)).length;
+  document.getElementById('cs-converted').textContent= canvassStops.filter(c=>c.status==='Converted').length;
+  document.getElementById('cs-today').textContent    = canvassStops.filter(c=>c.date===today).length;
+}
+
+function renderCanvass() {
+  const fStatus=document.getElementById('canvass-filter-status').value;
+  const q=(document.getElementById('canvass-filter-search').value||'').toLowerCase();
+  let list=canvassStops.filter(c=>{
+    if(q&&!c.name.toLowerCase().includes(q))return false;
+    if(fStatus==='all')return true;
+    if(fStatus==='active')return CANVASS_ACTIVE_STATUSES.includes(c.status);
+    if(fStatus==='Converted')return c.status==='Converted';
+    return c.status===fStatus;
+  });
+  // Most recent first
+  list=[...list].sort((a,b)=>new Date(b.added)-new Date(a.added));
+  const el=document.getElementById('canvass-list');
+  if(!list.length){el.innerHTML='<div class="empty">No canvass stops yet. Add your first stop above.</div>';return;}
+  el.innerHTML=list.map(c=>renderCanvassCard(c)).join('');
+}
+
+function renderCanvassCard(c) {
+  const isConverted=c.status==='Converted';
+  const statusColor=isConverted?'converted':
+    c.status==='Not interested'?'Lost':
+    c.status==='Come back later'?'contacted':'canvass';
+  return `
+    <div class="card${isConverted?' archived':''}" id="ccard-${c.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div class="pname">${esc(c.name)}</div>
+          ${c.date?`<div class="pdetail" style="font-size:11px;color:var(--text3)">${c.date}</div>`:''}
+        </div>
+        ${isConverted
+          ? `<span class="badge converted">Converted</span>`
+          : `<select onchange="updateCanvassStatus('${c.id}',this.value)" style="height:28px;font-size:12px;padding:0 7px;min-width:170px">
+              ${CANVASS_ACTIVE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
+             </select>`
+        }
+      </div>
+      ${c.addr ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(c.addr)}${c.city?', '+esc(c.city):''}</div>`:''}
+      ${c.phone?`<div class="pdetail">📞 ${esc(c.phone)}</div>`:''}
+      ${c.notes?`<div class="pdetail" style="font-style:italic;margin-top:4px">${esc(c.notes)}</div>`:''}
+      <div class="pactions">
+        ${c.phone&&!isConverted?`<a href="tel:${esc(c.phone)}" class="btn sm">Call</a>`:''}
+        ${c.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(c.addr+(c.city?', '+c.city:''))}" target="_blank" class="btn sm">Map ↗</a>`:''}
+        ${!isConverted?`<button class="btn sm" onclick="openCanvassEdit('${c.id}')">Edit</button>`:''}
+        ${!isConverted?`<button class="btn sm success" onclick="openConvertModal('${c.id}')">Convert to Lead</button>`:''}
+        <button class="btn sm danger" onclick="deleteCanvass('${c.id}')">Remove</button>
+      </div>
+    </div>`;
+}
+
+function updateCanvassStatus(id,val) {
+  const c=canvassStops.find(x=>x.id===id); if(c){c.status=val;save();updateCanvassStats();}
+}
+
+function deleteCanvass(id) {
+  canvassStops=canvassStops.filter(c=>c.id!==id);
+  routeSelected.delete('c_'+id);
+  save(); renderCanvass(); updateCanvassStats();
+}
+
+function openCanvassEdit(id) {
+  const c=canvassStops.find(x=>x.id===id); if(!c)return;
+  const card=document.getElementById('ccard-'+id);
+  card.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="row">
+        <input type="text" id="ce-name-${id}" value="${esc(c.name)}" placeholder="Business name *" style="flex:2">
+        <select id="ce-status-${id}" style="height:38px;font-size:13px;padding:0 8px;min-width:170px">
+          ${CANVASS_ACTIVE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="row">
+        <input type="text" id="ce-addr-${id}" value="${esc(c.addr||'')}" placeholder="Street address" style="flex:2">
+        <input type="text" id="ce-city-${id}" value="${esc(c.city||'')}" placeholder="City, ST" style="max-width:160px">
+      </div>
+      <div class="row">
+        <input type="tel"  id="ce-phone-${id}" value="${esc(c.phone||'')}" placeholder="Phone">
+        <input type="text" id="ce-notes-${id}" value="${esc(c.notes||'')}" placeholder="Notes">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn primary sm" onclick="saveCanvassEdit('${id}')">Save</button>
+        <button class="btn sm" onclick="renderCanvass()">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function saveCanvassEdit(id) {
+  const c=canvassStops.find(x=>x.id===id); if(!c)return;
+  c.name  =document.getElementById('ce-name-'+id).value.trim()||c.name;
+  c.status=document.getElementById('ce-status-'+id).value;
+  c.addr  =document.getElementById('ce-addr-'+id).value.trim();
+  c.city  =document.getElementById('ce-city-'+id).value.trim();
+  c.phone =document.getElementById('ce-phone-'+id).value.trim();
+  c.notes =document.getElementById('ce-notes-'+id).value.trim();
+  save(); updateCanvassStats();
+  const card=document.getElementById('ccard-'+id);
+  card.outerHTML=renderCanvassCard(c);
+}
+
+// ── CONVERT TO LEAD MODAL ─────────────────────────────────────────────────────
+function openConvertModal(canvassId) {
+  document.getElementById('modal-canvass-id').value=canvassId;
+  document.getElementById('m-email').value='';
+  document.getElementById('m-owner').value='';
+  document.getElementById('m-pos').value='';
+  document.getElementById('m-pos-other').style.display='none';
+  document.getElementById('convert-modal').style.display='flex';
+}
+function closeModal() { document.getElementById('convert-modal').style.display='none'; }
+function toggleModalOther(v){ const el=document.getElementById('m-pos-other'); el.style.display=v==='other'?'block':'none'; if(v==='other')el.focus(); }
+
+function confirmConvert() {
+  const canvassId=document.getElementById('modal-canvass-id').value;
+  const c=canvassStops.find(x=>x.id===canvassId); if(!c)return;
+  const posVal=document.getElementById('m-pos').value;
+  const current=posVal==='other'?document.getElementById('m-pos-other').value.trim():posVal;
+
+  // Create lead from canvass data + modal extras
   prospects.push({
-    id:      Date.now()+'_'+Math.random().toString(36).slice(2,6),
-    name,
-    addr:    document.getElementById('p-addr').value.trim(),
-    city:    document.getElementById('p-city').value.trim(),
-    phone:   document.getElementById('p-phone').value.trim(),
-    email:   document.getElementById('p-email').value.trim(),
-    current: getPosValue(),
-    owner:   document.getElementById('p-owner').value.trim(),
-    notes:   document.getElementById('p-notes').value.trim(),
-    status:  document.getElementById('p-status').value || 'Open',
-    added:   new Date().toLocaleDateString()
+    id:uid(), name:c.name, addr:c.addr, city:c.city, phone:c.phone,
+    email:document.getElementById('m-email').value.trim(),
+    current, owner:document.getElementById('m-owner').value.trim(),
+    notes:c.notes, status:'Open',
+    added:new Date().toLocaleDateString(),
+    fromCanvass:canvassId,
+  });
+
+  // Archive canvass stop
+  c.status='Converted';
+  c.convertedDate=new Date().toLocaleDateString();
+
+  save(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
+  closeModal();
+  showMsg('canvass-add-msg',`${c.name} converted to lead.`,'ok');
+}
+
+// ── LEADS ─────────────────────────────────────────────────────────────────────
+function addProspect() {
+  const name=document.getElementById('p-name').value.trim();
+  if(!name){showMsg('add-msg','Name is required.','err');return;}
+  prospects.push({
+    id:uid(), name,
+    addr:   document.getElementById('p-addr').value.trim(),
+    city:   document.getElementById('p-city').value.trim(),
+    phone:  document.getElementById('p-phone').value.trim(),
+    email:  document.getElementById('p-email').value.trim(),
+    current:getPosValue(),
+    owner:  document.getElementById('p-owner').value.trim(),
+    notes:  document.getElementById('p-notes').value.trim(),
+    status: document.getElementById('p-status').value||'Open',
+    added:  new Date().toLocaleDateString(),
   });
   save(); updateStats(); clearForm();
-  showMsg('add-msg','Added — '+prospects.length+' prospects total.','ok');
+  showMsg('add-msg','Added — '+prospects.length+' leads total.','ok');
 }
 
 function clearForm() {
-  ['p-name','p-addr','p-city','p-phone','p-email','p-current-other','p-owner','p-notes']
-    .forEach(id => document.getElementById(id).value='');
+  ['p-name','p-addr','p-city','p-phone','p-email','p-current-other','p-owner','p-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('p-current').value='';
   document.getElementById('p-current-other').style.display='none';
   document.getElementById('p-status').value='Open';
@@ -543,27 +785,19 @@ function updateStats() {
   document.getElementById('s-open').textContent  = prospects.filter(p=>p.status==='Open').length;
   document.getElementById('s-won').textContent   = prospects.filter(p=>p.status==='Won').length;
   document.getElementById('s-lost').textContent  = prospects.filter(p=>p.status==='Lost').length;
-  document.getElementById('count-badge').textContent = prospects.length ? '('+prospects.length+')' : '';
+  document.getElementById('count-badge').textContent=prospects.length?'('+prospects.length+')':'';
 }
 
-function updateStatus(id,val) {
-  const p=prospects.find(x=>x.id===id); if(p){p.status=val;save();updateStats();}
-}
+function updateStatus(id,val) { const p=prospects.find(x=>x.id===id); if(p){p.status=val;save();updateStats();} }
+function deleteProspect(id)   { prospects=prospects.filter(p=>p.id!==id); routeSelected.delete('p_'+id); save();renderList();updateStats(); }
 
-function deleteProspect(id) {
-  prospects=prospects.filter(p=>p.id!==id);
-  routeSelected.delete(id);
-  save(); renderList(); updateStats();
-}
-
-// ── LIST ──────────────────────────────────────────────────────────────────────
 function renderList() {
-  const status = document.getElementById('filter-status').value;
-  const q      = (document.getElementById('filter-search').value||'').toLowerCase();
-  const list   = prospects.filter(p=>(status==='all'||p.status===status)&&p.name.toLowerCase().includes(q));
-  const el     = document.getElementById('prospect-list');
-  if (!list.length) { el.innerHTML='<div class="empty">No prospects yet. Add some on the Add Lead tab.</div>'; return; }
-  el.innerHTML = list.map(p => renderCard(p)).join('');
+  const status=document.getElementById('filter-status').value;
+  const q=(document.getElementById('filter-search').value||'').toLowerCase();
+  const list=prospects.filter(p=>(status==='all'||p.status===status)&&p.name.toLowerCase().includes(q));
+  const el=document.getElementById('prospect-list');
+  if(!list.length){el.innerHTML='<div class="empty">No leads yet.</div>';return;}
+  el.innerHTML=list.map(p=>renderCard(p)).join('');
 }
 
 function renderCard(p) {
@@ -596,20 +830,14 @@ function renderCard(p) {
 }
 
 function openEdit(id) {
-  const p = prospects.find(x=>x.id===id);
-  if (!p) return;
-  const card = document.getElementById('card-'+id);
-  const posOptions = ['','Toast','Square for Restaurants','Clover','Lightspeed','TouchBistro',
-    'Revel Systems','Aloha (NCR)','Micros (Oracle)','Heartland','SpotOn',
-    'Shift4 (Harbortouch)','PAX','None / Unknown'];
-  const posSelect = posOptions.map(o =>
-    `<option value="${o}"${p.current===o?' selected':''}>${o||'Current POS system…'}</option>`
-  ).join('') + `<option value="__other__"${!posOptions.includes(p.current)&&p.current?' selected':''}>Other…</option>`;
-  const isOther = p.current && !posOptions.includes(p.current);
-
-  card.innerHTML = `
+  const p=prospects.find(x=>x.id===id); if(!p)return;
+  const card=document.getElementById('card-'+id);
+  const posOptions=['','Toast','Square for Restaurants','Clover','Lightspeed','TouchBistro','Revel Systems','Aloha (NCR)','Micros (Oracle)','Heartland','SpotOn','Shift4 (Harbortouch)','PAX','None / Unknown'];
+  const isOther=p.current&&!posOptions.includes(p.current);
+  const posSelect=posOptions.map(o=>`<option value="${o}"${p.current===o?' selected':''}>${o||'Current POS system…'}</option>`).join('')+`<option value="__other__"${isOther?' selected':''}>Other…</option>`;
+  card.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="row">
         <input type="text" id="e-name-${id}" value="${esc(p.name)}" placeholder="Restaurant name *" style="flex:2;min-width:160px">
         <select id="e-status-${id}" style="min-width:118px;height:38px;font-size:13px;padding:0 8px">
           <option value="Open"${p.status==='Open'?' selected':''}>Open</option>
@@ -618,263 +846,231 @@ function openEdit(id) {
           <option value="Abandoned"${p.status==='Abandoned'?' selected':''}>Abandoned</option>
         </select>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="e-addr-${id}" value="${esc(p.addr||'')}" placeholder="Street address" style="flex:2;min-width:160px">
+      <div class="row">
+        <input type="text" id="e-addr-${id}" value="${esc(p.addr||'')}" placeholder="Street address" style="flex:2">
         <input type="text" id="e-city-${id}" value="${esc(p.city||'')}" placeholder="City, ST" style="max-width:160px">
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="tel"  id="e-phone-${id}" value="${esc(p.phone||'')}" placeholder="Phone number">
+      <div class="row">
+        <input type="tel"  id="e-phone-${id}" value="${esc(p.phone||'')}" placeholder="Phone">
         <input type="text" id="e-email-${id}" value="${esc(p.email||'')}" placeholder="Email">
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <select id="e-pos-${id}" onchange="toggleEditOther('${id}',this.value)" style="height:38px;font-size:13px;padding:0 8px">${posSelect}</select>
-        <input type="text" id="e-pos-other-${id}" value="${isOther?esc(p.current):''}" placeholder="Specify POS system…" style="display:${isOther?'block':'none'}">
+        <input type="text" id="e-pos-other-${id}" value="${isOther?esc(p.current):''}" placeholder="Specify POS…" style="display:${isOther?'block':'none'}">
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="e-owner-${id}" value="${esc(p.owner||'')}" placeholder="Main contact name">
-      </div>
+      <input type="text" id="e-owner-${id}" value="${esc(p.owner||'')}" placeholder="Main contact name">
       <input type="text" id="e-notes-${id}" value="${esc(p.notes||'')}" placeholder="Notes">
-      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn primary sm" onclick="saveEdit('${id}')">Save</button>
         <button class="btn sm" onclick="cancelEdit('${id}')">Cancel</button>
       </div>
     </div>`;
 }
 
-function toggleEditOther(id, val) {
-  const el = document.getElementById('e-pos-other-'+id);
-  el.style.display = val==='__other__' ? 'block' : 'none';
-  if(val==='__other__') el.focus();
-}
+function toggleEditOther(id,val){ const el=document.getElementById('e-pos-other-'+id); el.style.display=val==='__other__'?'block':'none'; if(val==='__other__')el.focus(); }
 
 function saveEdit(id) {
-  const p = prospects.find(x=>x.id===id);
-  if (!p) return;
-  const posVal = document.getElementById('e-pos-'+id).value;
-  p.name    = document.getElementById('e-name-'+id).value.trim()  || p.name;
-  p.status  = document.getElementById('e-status-'+id).value;
-  p.addr    = document.getElementById('e-addr-'+id).value.trim();
-  p.city    = document.getElementById('e-city-'+id).value.trim();
-  p.phone   = document.getElementById('e-phone-'+id).value.trim();
-  p.email   = document.getElementById('e-email-'+id).value.trim();
-  p.current = posVal==='__other__'
-    ? document.getElementById('e-pos-other-'+id).value.trim()
-    : posVal;
-  p.owner   = document.getElementById('e-owner-'+id).value.trim();
-  p.notes   = document.getElementById('e-notes-'+id).value.trim();
-  save();
-  updateStats();
-  // Replace just this card without re-rendering the whole list
-  const card = document.getElementById('card-'+id);
-  card.outerHTML = renderCard(p);
+  const p=prospects.find(x=>x.id===id); if(!p)return;
+  const posVal=document.getElementById('e-pos-'+id).value;
+  p.name   =document.getElementById('e-name-'+id).value.trim()||p.name;
+  p.status =document.getElementById('e-status-'+id).value;
+  p.addr   =document.getElementById('e-addr-'+id).value.trim();
+  p.city   =document.getElementById('e-city-'+id).value.trim();
+  p.phone  =document.getElementById('e-phone-'+id).value.trim();
+  p.email  =document.getElementById('e-email-'+id).value.trim();
+  p.current=posVal==='__other__'?document.getElementById('e-pos-other-'+id).value.trim():posVal;
+  p.owner  =document.getElementById('e-owner-'+id).value.trim();
+  p.notes  =document.getElementById('e-notes-'+id).value.trim();
+  save(); updateStats();
+  document.getElementById('card-'+id).outerHTML=renderCard(p);
 }
 
-function cancelEdit(id) {
-  const p = prospects.find(x=>x.id===id);
-  if (!p) return;
-  const card = document.getElementById('card-'+id);
-  card.outerHTML = renderCard(p);
-}
-
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function cancelEdit(id) { const p=prospects.find(x=>x.id===id); if(!p)return; document.getElementById('card-'+id).outerHTML=renderCard(p); }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(t) {
-  const order=['add','list','route','sync','sources'];
+  const order=['canvass','list','route','sync','sources'];
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',order[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  if(t==='list')renderList();
-  if(t==='route')renderRoute();
-  updateStats();
+  if(t==='list'){ renderList(); updateStats(); }
+  if(t==='canvass'){ renderCanvass(); updateCanvassStats(); }
+  if(t==='route') renderRoute();
 }
 
 // ── ROUTE ─────────────────────────────────────────────────────────────────────
 function renderRoute() {
-  const list = prospects.filter(p=>p.addr&&p.status==='Open');
-  const el   = document.getElementById('route-list');
-  if(!list.length){el.innerHTML='<div class="empty">Add prospects with addresses to plan a route.</div>';return;}
-  el.innerHTML = list.map(p=>`
+  // Canvass stops (active only, with address)
+  const cList=canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE_STATUSES.includes(c.status));
+  const elC=document.getElementById('route-canvass-list');
+  elC.innerHTML=cList.length ? cList.map(c=>`
     <label class="route-row">
-      <input type="checkbox" ${routeSelected.has(p.id)?'checked':''} onchange="toggleRoute('${p.id}',this.checked)">
+      <input type="checkbox" ${routeSelected.has('c_'+c.id)?'checked':''} onchange="toggleRoute('c_${c.id}',this.checked)">
+      <span class="route-name">${esc(c.name)}</span>
+      <span class="route-addr">${esc(c.addr)}${c.city?', '+esc(c.city):''}</span>
+      <span class="badge canvass" style="flex-shrink:0">${esc(c.status)}</span>
+    </label>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No active canvass stops with addresses.</div>';
+
+  // Leads (Open only, with address)
+  const pList=prospects.filter(p=>p.addr&&p.status==='Open');
+  const elP=document.getElementById('route-leads-list');
+  elP.innerHTML=pList.length ? pList.map(p=>`
+    <label class="route-row">
+      <input type="checkbox" ${routeSelected.has('p_'+p.id)?'checked':''} onchange="toggleRoute('p_${p.id}',this.checked)">
       <span class="route-name">${esc(p.name)}</span>
       <span class="route-addr">${esc(p.addr)}${p.city?', '+esc(p.city):''}</span>
-      <span class="badge ${p.status}">${p.status}</span>
-    </label>`).join('');
+      <span class="badge Open" style="flex-shrink:0">Lead</span>
+    </label>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No open leads with addresses.</div>';
+
   updateRouteCount();
 }
-function toggleRoute(id,val){val?routeSelected.add(id):routeSelected.delete(id);updateRouteCount();}
-function selectRouteAll(){prospects.filter(p=>p.addr&&p.status==='Open').forEach(p=>routeSelected.add(p.id));renderRoute();}
-function clearRouteSelect(){routeSelected.clear();renderRoute();}
-function updateRouteCount(){document.getElementById('route-count').textContent=routeSelected.size?routeSelected.size+' selected':'';}
-function getRouteSel(){return prospects.filter(p=>routeSelected.has(p.id)&&p.addr);}
-function openGoogleMaps(){
-  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select at least one stop with an address.','err');return;}
-  window.open('https://www.google.com/maps/dir/'+s.map(p=>encodeURIComponent(p.addr+(p.city?', '+p.city:''))).join('/'),'_blank');
-  showMsg('route-msg','Opened '+s.length+' stops in Google Maps.','ok');
+
+function toggleRoute(key,val){ val?routeSelected.add(key):routeSelected.delete(key); updateRouteCount(); }
+function updateRouteCount(){ document.getElementById('route-count').textContent=routeSelected.size?routeSelected.size+' selected':''; }
+function selectRouteCanvass(){ canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE_STATUSES.includes(c.status)).forEach(c=>routeSelected.add('c_'+c.id)); renderRoute(); }
+function selectRouteLeads()  { prospects.filter(p=>p.addr&&p.status==='Open').forEach(p=>routeSelected.add('p_'+p.id)); renderRoute(); }
+function clearRouteSelect()  { routeSelected.clear(); renderRoute(); }
+
+function getRouteItems() {
+  const items=[];
+  routeSelected.forEach(key=>{
+    if(key.startsWith('c_')){ const c=canvassStops.find(x=>x.id===key.slice(2)); if(c&&c.addr)items.push({name:c.name,addr:c.addr,city:c.city||''}); }
+    else{ const p=prospects.find(x=>x.id===key.slice(2)); if(p&&p.addr)items.push({name:p.name,addr:p.addr,city:p.city||''}); }
+  });
+  return items;
 }
-function openRouteXL(){
-  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select at least one stop.','err');return;}
-  copyAddresses(); window.open('https://www.routexl.com','_blank');
+
+function openGoogleMaps() {
+  const items=getRouteItems();
+  if(!items.length){showMsg('route-msg','Select at least one stop with an address.','err');return;}
+  window.open('https://www.google.com/maps/dir/'+items.map(i=>encodeURIComponent(i.addr+(i.city?', '+i.city:''))).join('/'),'_blank');
+  showMsg('route-msg','Opened '+items.length+' stops in Google Maps.','ok');
+}
+function openRouteXL() {
+  const items=getRouteItems();
+  if(!items.length){showMsg('route-msg','Select at least one stop.','err');return;}
+  copyAddresses();
+  window.open('https://www.routexl.com','_blank');
   showMsg('route-msg','RouteXL opened — paste your addresses in.','ok');
 }
-function copyAddresses(){
-  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select stops first.','err');return;}
-  navigator.clipboard.writeText(s.map(p=>p.name+'\n'+p.addr+(p.city?', '+p.city:'')).join('\n\n'))
-    .then(()=>showMsg('route-msg',s.length+' addresses copied.','ok'));
+function copyAddresses() {
+  const items=getRouteItems();
+  if(!items.length){showMsg('route-msg','Select stops first.','err');return;}
+  navigator.clipboard.writeText(items.map(i=>i.name+'\n'+i.addr+(i.city?', '+i.city:'')).join('\n\n'))
+    .then(()=>showMsg('route-msg',items.length+' addresses copied.','ok'));
 }
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
-function getJSON(){return JSON.stringify({version:3,exported:new Date().toISOString(),prospects},null,2);}
-function today(){return new Date().toISOString().slice(0,10);}
-function dl(content,type,filename){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=filename;a.click();}
-function downloadJSON(){dl(getJSON(),'application/json','vs_prospects_'+today()+'.json');showMsg('export-msg','JSON backup downloaded.','ok');}
-function copyJSON(){navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok'));}
-function exportXLSX(){
-  if(typeof XLSX === 'undefined'){
-    showMsg('export-msg','Excel library not loaded — check your internet connection.','err');
-    return;
-  }
+function getJSON(){ return JSON.stringify({version:4,exported:new Date().toISOString(),prospects,canvassStops},null,2); }
+function today()  { return new Date().toISOString().slice(0,10); }
+function dl(content,type,filename){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type})); a.download=filename; a.click(); }
+function downloadJSON(){ dl(getJSON(),'application/json','vs_backup_'+today()+'.json'); showMsg('export-msg','JSON backup downloaded.','ok'); }
+function copyJSON() { navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok')); }
 
-  const closeDate = new Date();
-  closeDate.setDate(closeDate.getDate()+30);
-  const closeDateStr = (closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
-
-  // Headers match Copper Opportunity field names exactly.
-  // No Company column (avoids unwanted company record creation).
-  // Phone, email, address folded into Description — not separate columns.
-  const owner = document.getElementById('export-owner').value;
-
-  const headers = [
-    'Name',
-    'Pipeline',
-    'Status',
-    'Stage',
-    'Source',
-    'Close Date',
-    'Owner',
-    'Primary Contact',
-    'Description',
-    'CURRENT POS',
-  ];
-
-  const dataRows = prospects.map(p => {
-    const fullAddr = [p.addr, p.city].filter(Boolean).join(', ');
-    const descParts = [];
-    if(p.notes)   descParts.push(p.notes);
-    if(fullAddr)  descParts.push('Address: ' + fullAddr);
-    if(p.phone)   descParts.push('Phone: '   + p.phone);
-    if(p.email)   descParts.push('Email: '   + p.email);
-    return [
-      p.name,
-      'Sales',
-      p.status  || 'Open',
-      'Qualified',
-      'Cold Call',
-      closeDateStr,
-      owner,                   // Copper record owner — Aaron Neece or Jacob Bilton
-      p.owner   || '',         // Primary Contact — main contact at the restaurant
-      descParts.join('\n'),   // real line breaks inside the cell — no CSV truncation
-      p.current || '',
-    ];
+function exportXLSX() {
+  if(typeof XLSX==='undefined'){ showMsg('export-msg','Excel library not loaded — check internet connection.','err'); return; }
+  const closeDate=new Date(); closeDate.setDate(closeDate.getDate()+30);
+  const closeDateStr=(closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
+  const owner=document.getElementById('export-owner').value;
+  const headers=['Name','Pipeline','Status','Stage','Source','Close Date','Owner','Primary Contact','Description','CURRENT POS'];
+  const dataRows=prospects.map(p=>{
+    const fullAddr=[p.addr,p.city].filter(Boolean).join(', ');
+    const descParts=[];
+    if(p.notes)  descParts.push(p.notes);
+    if(fullAddr) descParts.push('Address: '+fullAddr);
+    if(p.phone)  descParts.push('Phone: '+p.phone);
+    if(p.email)  descParts.push('Email: '+p.email);
+    return [p.name,'Sales',p.status||'Open','Qualified','Cold Call',closeDateStr,owner,p.owner||'',descParts.join('\n'),p.current||''];
   });
+  const ws=XLSX.utils.aoa_to_sheet([headers,...dataRows]);
+  ws['!cols']=[{wch:30},{wch:10},{wch:10},{wch:12},{wch:10},{wch:12},{wch:16},{wch:20},{wch:50},{wch:22}];
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  for(let r=1;r<=range.e.r;r++){ const ca=XLSX.utils.encode_cell({r,c:8}); if(ws[ca]){if(!ws[ca].s)ws[ca].s={};ws[ca].s.alignment={wrapText:true};} }
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Leads');
+  XLSX.writeFile(wb,'copper_import_'+today()+'.xlsx');
+  showMsg('export-msg',prospects.length+' leads exported — ready to import into Copper.','ok');
+}
 
-  const wsData = [headers, ...dataRows];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+function exportCanvassSummary() {
+  if(typeof XLSX==='undefined'){ showMsg('export-msg','Excel library not loaded.','err'); return; }
+  const todayStr=new Date().toLocaleDateString();
+  const todayStops=canvassStops.filter(c=>c.date===todayStr);
+  if(!todayStops.length){ showMsg('export-msg',"No canvass stops logged today yet.",'err'); return; }
 
-  // Column widths
-  ws['!cols'] = [
-    {wch:30}, // Name
-    {wch:10}, // Pipeline
-    {wch:10}, // Status
-    {wch:12}, // Stage
-    {wch:10}, // Source
-    {wch:12}, // Close Date
-    {wch:16}, // Owner
-    {wch:20}, // Primary Contact
-    {wch:50}, // Description
-    {wch:22}, // CURRENT POS
+  const headers=['Business Name','Address','City','Phone','Status','Notes','Time Added'];
+  const rows=todayStops.map(c=>[
+    c.name, c.addr||'', c.city||'', c.phone||'', c.status, c.notes||'',
+    c.added?new Date(c.added).toLocaleTimeString():''
+  ]);
+
+  // Summary stats at top
+  const summary=[
+    ['DAILY CANVASS SUMMARY — '+todayStr],
+    ['Total stops today:', todayStops.length],
+    ['Converted to lead:', todayStops.filter(c=>c.status==='Converted').length],
+    ['Come back later:',   todayStops.filter(c=>c.status==='Come back later').length],
+    ['Not interested:',    todayStops.filter(c=>c.status==='Not interested').length],
+    ['No answer / closed:',todayStops.filter(c=>c.status==='No answer / closed').length],
+    ['Decision maker unavailable:', todayStops.filter(c=>c.status==='Decision maker unavailable').length],
+    [],
+    headers,
+    ...rows
   ];
 
-  // Wrap text in Description column (col index 7) so line breaks render in Excel
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for(let r = 1; r <= range.e.r; r++){
-    const cellAddr = XLSX.utils.encode_cell({r, c:8});
-    if(ws[cellAddr]){
-      if(!ws[cellAddr].s) ws[cellAddr].s = {};
-      ws[cellAddr].s.alignment = { wrapText: true };
-    }
-  }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Prospects');
-  XLSX.writeFile(wb, 'copper_import_'+today()+'.xlsx');
-  showMsg('export-msg', prospects.length+' prospects exported to Excel — ready to import into Copper.', 'ok');
+  const ws=XLSX.utils.aoa_to_sheet(summary);
+  ws['!cols']=[{wch:30},{wch:25},{wch:15},{wch:15},{wch:28},{wch:40},{wch:15}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Daily Summary');
+  XLSX.writeFile(wb,'canvass_summary_'+today()+'.xlsx');
+  showMsg('export-msg',"Today's canvass summary downloaded — "+todayStops.length+' stops.','ok');
 }
-function importJSON(){const t=document.getElementById('import-text').value.trim();if(!t){showMsg('import-msg','Paste exported JSON first.','err');return;}processImport(t,'import-msg');}
-function importFile(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>processImport(e.target.result,'import-msg');r.readAsText(f);}
-function processImport(text,msgId){
+
+function importJSON(){ const t=document.getElementById('import-text').value.trim(); if(!t){showMsg('import-msg','Paste exported JSON first.','err');return;} processImport(t,'import-msg'); }
+function importFile(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>processImport(e.target.result,'import-msg'); r.readAsText(f); }
+function processImport(text,msgId) {
   try{
     const data=JSON.parse(text);
-    const inc=data.prospects||data;
-    if(!Array.isArray(inc))throw new Error();
-    let a=0,u=0;
-    inc.forEach(p=>{if(!p.id||!p.name)return;const i=prospects.findIndex(x=>x.id===p.id);if(i===-1){prospects.push(p);a++;}else{prospects[i]={...prospects[i],...p};u++;}});
-    save();updateStats();renderList();
+    const incP=data.prospects||[]; const incC=data.canvassStops||[];
+    if(!Array.isArray(incP))throw new Error();
+    let pa=0,pu=0,ca=0,cu=0;
+    incP.forEach(p=>{ if(!p.id||!p.name)return; const i=prospects.findIndex(x=>x.id===p.id); if(i===-1){prospects.push(p);pa++;}else{prospects[i]={...prospects[i],...p};pu++;} });
+    incC.forEach(c=>{ if(!c.id||!c.name)return; const i=canvassStops.findIndex(x=>x.id===c.id); if(i===-1){canvassStops.push(c);ca++;}else{canvassStops[i]={...canvassStops[i],...c};cu++;} });
+    save(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
     document.getElementById('import-text').value='';
-    showMsg(msgId,`Done — ${a} added, ${u} updated. Total: ${prospects.length}.`,'ok');
-  }catch(e){showMsg(msgId,'Could not parse — make sure you pasted the full exported JSON.','err');}
+    showMsg(msgId,`Done — ${pa+ca} added, ${pu+cu} updated.`,'ok');
+  }catch(e){ showMsg(msgId,'Could not parse — make sure you pasted the full exported JSON.','err'); }
 }
-function clearAll(){
+
+function clearAll() {
   if(!confirm('Clear all local browser data?\n\nYour Google Drive file will NOT be deleted.'))return;
-  prospects=[];routeSelected.clear();localSave();updateStats();renderList();
+  prospects=[]; canvassStops=[]; routeSelected.clear(); localSave(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
   showMsg('clear-msg','Local data cleared.','ok');
 }
 
 // ── POS HELPERS ───────────────────────────────────────────────────────────────
-function getPosValue(){const v=document.getElementById('p-current').value;return v==='other'?document.getElementById('p-current-other').value.trim():v;}
-function togglePosOther(v){const el=document.getElementById('p-current-other');el.style.display=v==='other'?'block':'none';if(v==='other')el.focus();}
-
-// ── UTILS ─────────────────────────────────────────────────────────────────────
-function showMsg(id,text,type){const el=document.getElementById(id);if(!el)return;el.textContent=text;el.className='msg '+(type||'ok');setTimeout(()=>{el.textContent='';},4500);}
+function getPosValue(){ const v=document.getElementById('p-current').value; return v==='other'?document.getElementById('p-current-other').value.trim():v; }
+function togglePosOther(v){ const el=document.getElementById('p-current-other'); el.style.display=v==='other'?'block':'none'; if(v==='other')el.focus(); }
+function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showMsg(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='msg '+(type||'ok'); setTimeout(()=>{el.textContent='';},4500); }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-localLoad();
-updateStats();
+localLoad(); updateStats(); updateCanvassStats(); renderCanvass();
 setStatus('','Not connected to Google Drive — click Connect to sync across devices');
 
 // ── PASSWORD GATE ─────────────────────────────────────────────────────────────
-// Hash the stored password so it's not plain text in source code.
-// SHA-256 of "VSpos2024!" — change this hash to change the password.
-// To generate a new hash: https://emn178.github.io/online-tools/sha256.html
-const PW_HASH = '94dcede0744f89d80b0477331f20dcb83f0ef204ac608867f737cff546065d2e';
-
-async function hashString(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
+const PW_HASH='94dcede0744f89d80b0477331f20dcb83f0ef204ac608867f737cff546065d2e';
+async function hashString(str){ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 async function checkPassword() {
-  const val = document.getElementById('gate-pw').value;
-  const hash = await hashString(val);
-  if (hash === PW_HASH) {
-    document.getElementById('gate').classList.add('hidden');
-    document.getElementById('app-container').style.display = '';
-    sessionStorage.setItem('vs_auth', '1');
+  const val=document.getElementById('gate-pw').value; if(!val)return;
+  const hash=await hashString(val);
+  if(hash===PW_HASH){
+    setTimeout(()=>{ document.getElementById('gate').classList.add('hidden'); document.getElementById('app-container').style.display=''; sessionStorage.setItem('vs_auth','1'); },100);
   } else {
-    document.getElementById('gate-err').textContent = 'Incorrect password — try again.';
-    document.getElementById('gate-pw').value = '';
-    document.getElementById('gate-pw').focus();
-    setTimeout(()=>{ document.getElementById('gate-err').textContent=''; }, 3000);
+    document.getElementById('gate-err').textContent='Incorrect password — try again.';
+    document.getElementById('gate-pw').value=''; document.getElementById('gate-pw').focus();
+    setTimeout(()=>{document.getElementById('gate-err').textContent='';},3000);
   }
 }
-
-// If already authenticated this session, skip the gate
-if (sessionStorage.getItem('vs_auth') === '1') {
-  document.getElementById('gate').classList.add('hidden');
-  document.getElementById('app-container').style.display = '';
-}
-
+if(sessionStorage.getItem('vs_auth')==='1'){ document.getElementById('gate').classList.add('hidden'); document.getElementById('app-container').style.display=''; }
 </script>
 </body>
 </html>
