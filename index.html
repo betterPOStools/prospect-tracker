@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Prospect Tracker — Value Systems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#ededea;
+  --text:#1a1a18;--text2:#6b6b66;--text3:#9a9a94;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);--border3:rgba(0,0,0,0.35);
+  --blue-bg:#e6f1fb;--blue-text:#185fa5;
+  --yellow-bg:#faeeda;--yellow-text:#854f0b;
+  --green-bg:#eaf3de;--green-text:#3b6d11;
+  --red-bg:#fcebeb;--red-text:#a32d2d;
+  --accent:#1a1a18;--radius:8px;--radius-lg:12px;
+  --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+}
+[data-theme="dark"] {
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+  --text:#e8e8e2;--text2:#9a9a94;--text3:#6b6b66;
+  --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.18);--border3:rgba(255,255,255,0.28);
+  --blue-bg:#0c447c;--blue-text:#b5d4f4;
+  --yellow-bg:#633806;--yellow-text:#fac775;
+  --green-bg:#27500a;--green-text:#c0dd97;
+  --red-bg:#791f1f;--red-text:#f7c1c1;
+  --accent:#e8e8e2;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh;padding:24px 16px 48px;transition:background .2s,color .2s}
+.container{max-width:760px;margin:0 auto}
+
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px}
+.header-title h1{font-size:20px;font-weight:500;color:var(--text);margin-bottom:3px}
+.header-title p{font-size:13px;color:var(--text2)}
+
+/* DRIVE BAR */
+#drive-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);margin-bottom:14px;font-size:12px;color:var(--text2);transition:border-color .2s}
+#drive-bar.connected{border-color:rgba(59,109,17,0.4)}
+#drive-bar.error{border-color:rgba(163,45,45,0.4)}
+.drive-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text3);transition:background .3s}
+#drive-bar.connected .drive-dot{background:#3b6d11}
+#drive-bar.syncing .drive-dot{background:#854f0b;animation:blink 1s ease-in-out infinite}
+#drive-bar.error .drive-dot{background:#a32d2d}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#drive-label{flex:1}
+.drive-btn{background:none;border:none;font-family:var(--font);font-size:12px;color:var(--blue-text);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px}
+.drive-btn:hover{opacity:.75}
+
+.shell{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden}
+.tabs{display:flex;border-bottom:0.5px solid var(--border);overflow-x:auto;background:var(--bg)}
+.tab{padding:12px 16px;font-size:13px;font-family:var(--font);cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;transition:color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500}
+.panel{display:none;padding:20px}
+.panel.active{display:block}
+
+input[type=text],input[type=tel],input[type=email],select,textarea{height:38px;padding:0 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--font);width:100%;transition:border-color .12s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--border3)}
+textarea{height:80px;padding:9px 11px;resize:vertical}
+.row{display:flex;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.row input,.row select{flex:1;min-width:120px}
+
+.btn{height:38px;padding:0 15px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);font-size:13px;font-family:var(--font);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:background .12s;text-decoration:none}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.btn.primary:hover{opacity:.82}
+.btn.danger{color:var(--red-text);border-color:rgba(163,45,45,0.3)}
+.btn.danger:hover{background:var(--red-bg)}
+.btn.sm{height:30px;font-size:12px;padding:0 11px}
+.theme-btn{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:7px 12px;font-size:13px;font-family:var(--font);color:var(--text2);cursor:pointer}
+.theme-btn:hover{background:var(--bg3)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:11px 10px;text-align:center}
+.stat-n{font-size:22px;font-weight:500;color:var(--text)}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;margin-bottom:9px}
+.card:hover{border-color:var(--border2)}
+.pname{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.pdetail{font-size:12px;color:var(--text2);margin-bottom:2px}
+.pactions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge.new{background:var(--blue-bg);color:var(--blue-text)}
+.badge.contacted{background:var(--yellow-bg);color:var(--yellow-text)}
+.badge.demo{background:var(--green-bg);color:var(--green-text)}
+.badge.pass{background:var(--bg2);color:var(--text2)}
+
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-row select,.filter-row input{flex:1;min-width:110px}
+
+.sync-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.sync-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:5px}
+.sync-desc{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6}
+.sync-box.danger{border-color:rgba(163,45,45,0.35)}
+.sync-title.danger{color:var(--red-text)}
+
+.route-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer}
+.route-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:var(--accent)}
+.route-name{flex:1;color:var(--text);font-weight:500}
+.route-addr{color:var(--text2);font-size:12px;text-align:right}
+
+.msg{font-size:12px;min-height:18px;margin-top:7px}
+.msg.ok{color:var(--green-text)}
+.msg.err{color:var(--red-text)}
+.empty{text-align:center;padding:36px;color:var(--text2);font-size:13px}
+hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
+.tip{background:var(--bg2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2);line-height:1.6;margin-top:12px}
+.tip strong,.note strong{color:var(--text);font-weight:500}
+.note{font-size:12px;color:var(--text2);line-height:1.7;margin-top:6px}
+.source-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.src{background:var(--bg2);border-radius:var(--radius);padding:13px;border:0.5px solid var(--border)}
+.src-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.src-desc{font-size:12px;color:var(--text2);margin-bottom:9px;line-height:1.55}
+
+@media(max-width:520px){
+  body{padding:12px 8px 40px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .source-grid{grid-template-columns:1fr}
+  .panel{padding:14px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-title">
+      <h1>Restaurant Prospect Tracker</h1>
+      <p>Value Systems — auto-syncs to Google Drive</p>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
+  </div>
+
+  <!-- DRIVE STATUS BAR -->
+  <div id="drive-bar">
+    <div class="drive-dot"></div>
+    <span id="drive-label">Not connected to Google Drive</span>
+    <button class="drive-btn" id="drive-btn" onclick="driveAction()">Connect</button>
+  </div>
+
+  <div class="shell">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('add')">Add Lead</button>
+      <button class="tab" onclick="switchTab('list')">My List <span id="count-badge"></span></button>
+      <button class="tab" onclick="switchTab('route')">Route</button>
+      <button class="tab" onclick="switchTab('sync')">Export / Import</button>
+      <button class="tab" onclick="switchTab('sources')">Free Sources</button>
+    </div>
+
+    <!-- ADD -->
+    <div id="tab-add" class="panel active">
+      <div class="row">
+        <input type="text" id="p-name" placeholder="Restaurant name *" style="flex:2;min-width:180px">
+        <select id="p-status" style="max-width:160px">
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="demo">Demo Booked</option>
+          <option value="pass">Pass</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="text" id="p-addr" placeholder="Street address">
+        <input type="text" id="p-city" placeholder="City, ST" style="max-width:180px">
+      </div>
+      <div class="row">
+        <input type="tel" id="p-phone" placeholder="Phone number">
+        <input type="text" id="p-email" placeholder="Email (if found)">
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px">
+          <select id="p-current" onchange="togglePosOther(this.value)">
+            <option value="">Current POS system…</option>
+            <option value="Toast">Toast</option>
+            <option value="Square for Restaurants">Square for Restaurants</option>
+            <option value="Clover">Clover</option>
+            <option value="Lightspeed">Lightspeed</option>
+            <option value="TouchBistro">TouchBistro</option>
+            <option value="Revel Systems">Revel Systems</option>
+            <option value="Aloha (NCR)">Aloha (NCR)</option>
+            <option value="Micros (Oracle)">Micros (Oracle)</option>
+            <option value="Heartland">Heartland</option>
+            <option value="SpotOn">SpotOn</option>
+            <option value="Shift4 (Harbortouch)">Shift4 (Harbortouch)</option>
+            <option value="PAX">PAX</option>
+            <option value="None / Unknown">None / Unknown</option>
+            <option value="other">Other…</option>
+          </select>
+          <input type="text" id="p-current-other" placeholder="Specify POS system…" style="display:none">
+        </div>
+        <input type="text" id="p-owner" placeholder="Owner / manager name">
+      </div>
+      <div class="row">
+        <input type="text" id="p-notes" placeholder="Notes">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn primary" onclick="addProspect()">+ Add to List</button>
+        <button class="btn" onclick="clearForm()">Clear</button>
+      </div>
+      <div id="add-msg" class="msg ok"></div>
+    </div>
+
+    <!-- LIST -->
+    <div id="tab-list" class="panel">
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="s-new">0</div><div class="stat-l">New</div></div>
+        <div class="stat"><div class="stat-n" id="s-contacted">0</div><div class="stat-l">Contacted</div></div>
+        <div class="stat"><div class="stat-n" id="s-demo">0</div><div class="stat-l">Demos</div></div>
+      </div>
+      <div class="filter-row">
+        <select id="filter-status" onchange="renderList()">
+          <option value="all">All statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="demo">Demo Booked</option>
+          <option value="pass">Pass</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Search name…" oninput="renderList()">
+      </div>
+      <div id="prospect-list"></div>
+    </div>
+
+    <!-- ROUTE -->
+    <div id="tab-route" class="panel">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Check the stops you want to hit, then send to a route planner.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn sm" onclick="selectRouteAll()">Select all new</button>
+        <button class="btn sm" onclick="clearRouteSelect()">Clear</button>
+        <span id="route-count" style="font-size:12px;color:var(--text2)"></span>
+      </div>
+      <div id="route-list" style="margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" onclick="openGoogleMaps()">Google Maps ↗</button>
+        <button class="btn" onclick="openRouteXL()">RouteXL (free, 20 stops) ↗</button>
+        <button class="btn" onclick="copyAddresses()">Copy addresses</button>
+      </div>
+      <div id="route-msg" class="msg ok" style="margin-top:8px"></div>
+    </div>
+
+    <!-- EXPORT / IMPORT -->
+    <div id="tab-sync" class="panel">
+      <div class="sync-box">
+        <div class="sync-title">Export for Copper CRM</div>
+        <div class="sync-desc">Download a CSV to import directly into Copper, or grab a JSON backup. Google Drive handles device-to-device sync automatically — use these for CRM imports and manual backups.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="exportCSV()">Download CSV for Copper</button>
+          <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
+          <button class="btn" onclick="copyJSON()">Copy JSON</button>
+        </div>
+        <div id="export-msg" class="msg ok"></div>
+      </div>
+      <div class="sync-box">
+        <div class="sync-title">Import</div>
+        <div class="sync-desc">Paste a JSON export or load a .json file. Merges records in without deleting existing ones.</div>
+        <textarea id="import-text" placeholder="Paste exported JSON here…" style="font-family:var(--mono);font-size:11px"></textarea>
+        <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center">
+          <button class="btn primary" onclick="importJSON()">Import from text</button>
+          <label class="btn" style="cursor:pointer">Choose .json file <input type="file" accept=".json" onchange="importFile(this)" style="display:none"></label>
+        </div>
+        <div id="import-msg" class="msg ok"></div>
+      </div>
+      <div class="sync-box danger">
+        <div class="sync-title danger">Danger zone</div>
+        <div class="sync-desc">Clears local browser data only. Does <strong>not</strong> delete your Google Drive file.</div>
+        <button class="btn danger" onclick="clearAll()">Clear local data</button>
+        <div id="clear-msg" class="msg err"></div>
+      </div>
+      <hr>
+      <p class="note"><strong>Copper import tip:</strong> In Copper go to People → Import → CSV. Map Name, Phone, Email, and Notes → Description. Import once per canvassing batch.</p>
+    </div>
+
+    <!-- SOURCES -->
+    <div id="tab-sources" class="panel">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Free tools for finding restaurant leads. No credit card needed.</p>
+      <div class="source-grid">
+        <div class="src"><div class="src-title">Google Maps</div><div class="src-desc">Name, address, phone, website. Best free source for bulk searching by neighborhood.</div><a href="https://maps.google.com" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">Outscraper (free tier)</div><div class="src-desc">150 free searches/month. Exports Google Maps data to a spreadsheet automatically.</div><a href="https://outscraper.com" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">Apollo.io (free tier)</div><div class="src-desc">50 free email credits/month. Find owner emails by business name or domain.</div><a href="https://app.apollo.io" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">Hunter.io (free tier)</div><div class="src-desc">25 free lookups/month. Enter a restaurant domain to find contact emails.</div><a href="https://hunter.io" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">Yelp Business Search</div><div class="src-desc">Filter by neighborhood and cuisine. Good backup when Google Maps is thin.</div><a href="https://www.yelp.com/search?find_desc=Restaurants" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">RouteXL</div><div class="src-desc">Free route optimizer, up to 20 stops. No account — just paste addresses.</div><a href="https://www.routexl.com" target="_blank" class="btn sm">Open ↗</a></div>
+      </div>
+      <div class="tip"><strong>Email tip:</strong> Check the restaurant website footer or /contact page. Facebook business pages often list owner email — about 30 seconds per lead.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Google Identity Services library -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CLIENT_ID  = '874681040584-kv8cd6krhn8dndut2458qe5ua9e6nssr.apps.googleusercontent.com';
+const SCOPES     = 'https://www.googleapis.com/auth/drive.file';
+const FILE_NAME  = 'vs_prospects.json';
+const DRIVE_API  = 'https://www.googleapis.com/drive/v3';
+const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let prospects     = [];
+let routeSelected = new Set();
+let accessToken   = null;
+let driveFileId   = null;
+let syncTimer     = null;
+let isSyncing     = false;
+
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
+function localLoad() {
+  try { prospects = JSON.parse(localStorage.getItem('vs_p3') || '[]'); } catch(e) { prospects = []; }
+  driveFileId = localStorage.getItem('vs_drive_fid') || null;
+}
+function localSave() {
+  localStorage.setItem('vs_p3', JSON.stringify(prospects));
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+(function(){ const t=localStorage.getItem('vs_theme'); if(t) document.documentElement.setAttribute('data-theme',t); })();
+function toggleTheme() {
+  const next = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('vs_theme', next);
+}
+
+// ── DRIVE STATUS ──────────────────────────────────────────────────────────────
+function setStatus(state, msg) {
+  const bar = document.getElementById('drive-bar');
+  const lbl = document.getElementById('drive-label');
+  const btn = document.getElementById('drive-btn');
+  bar.className = state ? 'id="drive-bar" '+state : '';
+  // reset classes properly
+  bar.setAttribute('class','');
+  if(state) bar.classList.add(state);
+  lbl.textContent = msg;
+  btn.textContent = (state==='connected'||state==='syncing') ? 'Disconnect' : (state==='error' ? 'Retry' : 'Connect');
+}
+
+// ── OAUTH ─────────────────────────────────────────────────────────────────────
+function driveAction() {
+  if (accessToken) { disconnect(); } else { connect(); }
+}
+
+function connect() {
+  if (typeof google === 'undefined') {
+    setStatus('error','Google script not loaded — check internet connection and reload.');
+    return;
+  }
+  setStatus('syncing','Waiting for Google sign-in…');
+  google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { setStatus('error','Sign-in failed: '+resp.error); return; }
+      accessToken = resp.access_token;
+      setStatus('syncing','Signed in — loading Drive data…');
+      await driveInit();
+    }
+  }).requestAccessToken();
+}
+
+function disconnect() {
+  if (accessToken && typeof google !== 'undefined') {
+    google.accounts.oauth2.revoke(accessToken, ()=>{});
+  }
+  accessToken = null;
+  localStorage.removeItem('vs_drive_fid');
+  setStatus('','Not connected to Google Drive');
+}
+
+// ── DRIVE API ─────────────────────────────────────────────────────────────────
+async function req(url, opts={}) {
+  const r = await fetch(url, {
+    ...opts,
+    headers: { 'Authorization':'Bearer '+accessToken, ...(opts.headers||{}) }
+  });
+  if (r.status===401) {
+    accessToken=null;
+    setStatus('error','Session expired — click Retry to sign in again.');
+    throw new Error('401');
+  }
+  return r;
+}
+
+async function findFile() {
+  const q = encodeURIComponent(`name='${FILE_NAME}' and trashed=false`);
+  const r = await req(`${DRIVE_API}/files?q=${q}&fields=files(id)&spaces=drive`);
+  const d = await r.json();
+  return (d.files && d.files.length) ? d.files[0].id : null;
+}
+
+async function readFile(id) {
+  const r = await req(`${DRIVE_API}/files/${id}?alt=media`);
+  return await r.json();
+}
+
+async function writeFile(id, data) {
+  const body = JSON.stringify({ version:3, updated:new Date().toISOString(), prospects:data });
+  if (id) {
+    await req(`${UPLOAD_API}/files/${id}?uploadType=media`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body
+    });
+    return id;
+  }
+  const meta = JSON.stringify({ name:FILE_NAME, mimeType:'application/json' });
+  const form = new FormData();
+  form.append('metadata', new Blob([meta],{type:'application/json'}));
+  form.append('file',     new Blob([body],{type:'application/json'}));
+  const r = await req(`${UPLOAD_API}/files?uploadType=multipart`, { method:'POST', body:form });
+  const d = await r.json();
+  return d.id;
+}
+
+async function driveInit() {
+  try {
+    // Try cached file ID first
+    if (driveFileId) {
+      try {
+        const data = await readFile(driveFileId);
+        mergeIn(data.prospects || []);
+      } catch(e) {
+        if (e.message==='401') return;
+        driveFileId = null; // stale, search below
+      }
+    }
+    if (!driveFileId) {
+      const found = await findFile();
+      if (found) {
+        driveFileId = found;
+        localStorage.setItem('vs_drive_fid', driveFileId);
+        const data = await readFile(driveFileId);
+        mergeIn(data.prospects || []);
+      } else {
+        // No file yet — create from local data
+        driveFileId = await writeFile(null, prospects);
+        localStorage.setItem('vs_drive_fid', driveFileId);
+      }
+    }
+    localSave();
+    updateStats();
+    renderList();
+    setStatus('connected', 'Google Drive synced — '+prospects.length+' prospects');
+  } catch(e) {
+    if (e.message!=='401') setStatus('error','Drive error: '+e.message);
+  }
+}
+
+function mergeIn(incoming) {
+  incoming.forEach(p => {
+    if (!p.id||!p.name) return;
+    const i = prospects.findIndex(x=>x.id===p.id);
+    if (i===-1) prospects.push(p);
+    else prospects[i] = {...prospects[i], ...p};
+  });
+}
+
+function scheduleSave() {
+  if (!accessToken) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    if (isSyncing) { scheduleSave(); return; }
+    isSyncing = true;
+    setStatus('syncing', 'Saving to Google Drive…');
+    try {
+      driveFileId = await writeFile(driveFileId, prospects);
+      localStorage.setItem('vs_drive_fid', driveFileId);
+      setStatus('connected','Saved to Drive — '+new Date().toLocaleTimeString());
+    } catch(e) {
+      if (e.message!=='401') setStatus('error','Save failed — '+e.message+'. Click Retry.');
+    }
+    isSyncing = false;
+  }, 1500);
+}
+
+// ── SAVE (local + drive) ──────────────────────────────────────────────────────
+function save() { localSave(); scheduleSave(); }
+
+// ── PROSPECT OPS ──────────────────────────────────────────────────────────────
+function addProspect() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) { showMsg('add-msg','Name is required.','err'); return; }
+  prospects.push({
+    id:      Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    name,
+    addr:    document.getElementById('p-addr').value.trim(),
+    city:    document.getElementById('p-city').value.trim(),
+    phone:   document.getElementById('p-phone').value.trim(),
+    email:   document.getElementById('p-email').value.trim(),
+    current: getPosValue(),
+    owner:   document.getElementById('p-owner').value.trim(),
+    notes:   document.getElementById('p-notes').value.trim(),
+    status:  document.getElementById('p-status').value,
+    added:   new Date().toLocaleDateString()
+  });
+  save(); updateStats(); clearForm();
+  showMsg('add-msg','Added — '+prospects.length+' prospects total.','ok');
+}
+
+function clearForm() {
+  ['p-name','p-addr','p-city','p-phone','p-email','p-current-other','p-owner','p-notes']
+    .forEach(id => document.getElementById(id).value='');
+  document.getElementById('p-current').value='';
+  document.getElementById('p-current-other').style.display='none';
+  document.getElementById('p-status').value='new';
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent     = prospects.length;
+  document.getElementById('s-new').textContent       = prospects.filter(p=>p.status==='new').length;
+  document.getElementById('s-contacted').textContent = prospects.filter(p=>p.status==='contacted').length;
+  document.getElementById('s-demo').textContent      = prospects.filter(p=>p.status==='demo').length;
+  document.getElementById('count-badge').textContent = prospects.length ? '('+prospects.length+')' : '';
+}
+
+function updateStatus(id,val) {
+  const p=prospects.find(x=>x.id===id); if(p){p.status=val;save();updateStats();}
+}
+
+function deleteProspect(id) {
+  prospects=prospects.filter(p=>p.id!==id);
+  routeSelected.delete(id);
+  save(); renderList(); updateStats();
+}
+
+// ── LIST ──────────────────────────────────────────────────────────────────────
+function renderList() {
+  const status = document.getElementById('filter-status').value;
+  const q      = (document.getElementById('filter-search').value||'').toLowerCase();
+  const list   = prospects.filter(p=>(status==='all'||p.status===status)&&p.name.toLowerCase().includes(q));
+  const el     = document.getElementById('prospect-list');
+  if (!list.length) { el.innerHTML='<div class="empty">No prospects yet. Add some on the Add Lead tab.</div>'; return; }
+  el.innerHTML = list.map(p=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div class="pname">${esc(p.name)}</div>
+          ${p.owner?`<div class="pdetail">👤 ${esc(p.owner)}</div>`:''}
+        </div>
+        <select onchange="updateStatus('${p.id}',this.value)" style="height:28px;font-size:12px;padding:0 7px;min-width:118px">
+          <option value="new"${p.status==='new'?' selected':''}>New</option>
+          <option value="contacted"${p.status==='contacted'?' selected':''}>Contacted</option>
+          <option value="demo"${p.status==='demo'?' selected':''}>Demo Booked</option>
+          <option value="pass"${p.status==='pass'?' selected':''}>Pass</option>
+        </select>
+      </div>
+      ${p.addr   ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(p.addr)}${p.city?', '+esc(p.city):''}</div>`:''}
+      ${p.phone  ?`<div class="pdetail">📞 ${esc(p.phone)}</div>`:''}
+      ${p.email  ?`<div class="pdetail">✉ ${esc(p.email)}</div>`:''}
+      ${p.current?`<div class="pdetail">POS: ${esc(p.current)}</div>`:''}
+      ${p.notes  ?`<div class="pdetail" style="font-style:italic;margin-top:4px">${esc(p.notes)}</div>`:''}
+      <div class="pactions">
+        ${p.phone?`<a href="tel:${esc(p.phone)}" class="btn sm">Call</a>`:''}
+        ${p.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(p.addr+(p.city?', '+p.city:''))}" target="_blank" class="btn sm">Map ↗</a>`:''}
+        <button class="btn sm danger" onclick="deleteProspect('${p.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  const order=['add','list','route','sync','sources'];
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',order[i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='list')renderList();
+  if(t==='route')renderRoute();
+  updateStats();
+}
+
+// ── ROUTE ─────────────────────────────────────────────────────────────────────
+function renderRoute() {
+  const list = prospects.filter(p=>p.addr&&p.status!=='pass');
+  const el   = document.getElementById('route-list');
+  if(!list.length){el.innerHTML='<div class="empty">Add prospects with addresses to plan a route.</div>';return;}
+  el.innerHTML = list.map(p=>`
+    <label class="route-row">
+      <input type="checkbox" ${routeSelected.has(p.id)?'checked':''} onchange="toggleRoute('${p.id}',this.checked)">
+      <span class="route-name">${esc(p.name)}</span>
+      <span class="route-addr">${esc(p.addr)}${p.city?', '+esc(p.city):''}</span>
+      <span class="badge ${p.status}">${p.status}</span>
+    </label>`).join('');
+  updateRouteCount();
+}
+function toggleRoute(id,val){val?routeSelected.add(id):routeSelected.delete(id);updateRouteCount();}
+function selectRouteAll(){prospects.filter(p=>p.addr&&p.status==='new').forEach(p=>routeSelected.add(p.id));renderRoute();}
+function clearRouteSelect(){routeSelected.clear();renderRoute();}
+function updateRouteCount(){document.getElementById('route-count').textContent=routeSelected.size?routeSelected.size+' selected':'';}
+function getRouteSel(){return prospects.filter(p=>routeSelected.has(p.id)&&p.addr);}
+function openGoogleMaps(){
+  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select at least one stop with an address.','err');return;}
+  window.open('https://www.google.com/maps/dir/'+s.map(p=>encodeURIComponent(p.addr+(p.city?', '+p.city:''))).join('/'),'_blank');
+  showMsg('route-msg','Opened '+s.length+' stops in Google Maps.','ok');
+}
+function openRouteXL(){
+  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select at least one stop.','err');return;}
+  copyAddresses(); window.open('https://www.routexl.com','_blank');
+  showMsg('route-msg','RouteXL opened — paste your addresses in.','ok');
+}
+function copyAddresses(){
+  const s=getRouteSel(); if(!s.length){showMsg('route-msg','Select stops first.','err');return;}
+  navigator.clipboard.writeText(s.map(p=>p.name+'\n'+p.addr+(p.city?', '+p.city:'')).join('\n\n'))
+    .then(()=>showMsg('route-msg',s.length+' addresses copied.','ok'));
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+function getJSON(){return JSON.stringify({version:3,exported:new Date().toISOString(),prospects},null,2);}
+function today(){return new Date().toISOString().slice(0,10);}
+function dl(content,type,filename){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=filename;a.click();}
+function downloadJSON(){dl(getJSON(),'application/json','vs_prospects_'+today()+'.json');showMsg('export-msg','JSON backup downloaded.','ok');}
+function copyJSON(){navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok'));}
+function exportCSV(){
+  const rows=[['Name','Owner','Address','City','Phone','Email','Current POS','Status','Notes','Added']];
+  prospects.forEach(p=>rows.push([p.name,p.owner||'',p.addr||'',p.city||'',p.phone||'',p.email||'',p.current||'',p.status,p.notes||'',p.added||'']));
+  dl(rows.map(r=>r.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')).join('\n'),'text/csv','vs_prospects_'+today()+'.csv');
+  showMsg('export-msg','CSV downloaded — ready to import into Copper.','ok');
+}
+function importJSON(){const t=document.getElementById('import-text').value.trim();if(!t){showMsg('import-msg','Paste exported JSON first.','err');return;}processImport(t,'import-msg');}
+function importFile(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>processImport(e.target.result,'import-msg');r.readAsText(f);}
+function processImport(text,msgId){
+  try{
+    const data=JSON.parse(text);
+    const inc=data.prospects||data;
+    if(!Array.isArray(inc))throw new Error();
+    let a=0,u=0;
+    inc.forEach(p=>{if(!p.id||!p.name)return;const i=prospects.findIndex(x=>x.id===p.id);if(i===-1){prospects.push(p);a++;}else{prospects[i]={...prospects[i],...p};u++;}});
+    save();updateStats();renderList();
+    document.getElementById('import-text').value='';
+    showMsg(msgId,`Done — ${a} added, ${u} updated. Total: ${prospects.length}.`,'ok');
+  }catch(e){showMsg(msgId,'Could not parse — make sure you pasted the full exported JSON.','err');}
+}
+function clearAll(){
+  if(!confirm('Clear all local browser data?\n\nYour Google Drive file will NOT be deleted.'))return;
+  prospects=[];routeSelected.clear();localSave();updateStats();renderList();
+  showMsg('clear-msg','Local data cleared.','ok');
+}
+
+// ── POS HELPERS ───────────────────────────────────────────────────────────────
+function getPosValue(){const v=document.getElementById('p-current').value;return v==='other'?document.getElementById('p-current-other').value.trim():v;}
+function togglePosOther(v){const el=document.getElementById('p-current-other');el.style.display=v==='other'?'block':'none';if(v==='other')el.focus();}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function showMsg(id,text,type){const el=document.getElementById(id);if(!el)return;el.textContent=text;el.className='msg '+(type||'ok');setTimeout(()=>{el.textContent='';},4500);}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+localLoad();
+updateStats();
+setStatus('','Not connected to Google Drive — click Connect to sync across devices');
+</script>
+</body>
+</html>
