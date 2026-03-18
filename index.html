@@ -542,8 +542,12 @@ function renderList() {
   const list   = prospects.filter(p=>(status==='all'||p.status===status)&&p.name.toLowerCase().includes(q));
   const el     = document.getElementById('prospect-list');
   if (!list.length) { el.innerHTML='<div class="empty">No prospects yet. Add some on the Add Lead tab.</div>'; return; }
-  el.innerHTML = list.map(p=>`
-    <div class="card">
+  el.innerHTML = list.map(p => renderCard(p)).join('');
+}
+
+function renderCard(p) {
+  return `
+    <div class="card" id="card-${p.id}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div>
           <div class="pname">${esc(p.name)}</div>
@@ -564,9 +568,91 @@ function renderList() {
       <div class="pactions">
         ${p.phone?`<a href="tel:${esc(p.phone)}" class="btn sm">Call</a>`:''}
         ${p.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(p.addr+(p.city?', '+p.city:''))}" target="_blank" class="btn sm">Map ↗</a>`:''}
+        <button class="btn sm" onclick="openEdit('${p.id}')">Edit</button>
         <button class="btn sm danger" onclick="deleteProspect('${p.id}')">Remove</button>
       </div>
-    </div>`).join('');
+    </div>`;
+}
+
+function openEdit(id) {
+  const p = prospects.find(x=>x.id===id);
+  if (!p) return;
+  const card = document.getElementById('card-'+id);
+  const posOptions = ['','Toast','Square for Restaurants','Clover','Lightspeed','TouchBistro',
+    'Revel Systems','Aloha (NCR)','Micros (Oracle)','Heartland','SpotOn',
+    'Shift4 (Harbortouch)','PAX','None / Unknown'];
+  const posSelect = posOptions.map(o =>
+    `<option value="${o}"${p.current===o?' selected':''}>${o||'Current POS system…'}</option>`
+  ).join('') + `<option value="__other__"${!posOptions.includes(p.current)&&p.current?' selected':''}>Other…</option>`;
+  const isOther = p.current && !posOptions.includes(p.current);
+
+  card.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="e-name-${id}" value="${esc(p.name)}" placeholder="Restaurant name *" style="flex:2;min-width:160px">
+        <select id="e-status-${id}" style="min-width:118px;height:38px;font-size:13px;padding:0 8px">
+          <option value="Open"${p.status==='Open'?' selected':''}>Open</option>
+          <option value="Won"${p.status==='Won'?' selected':''}>Won</option>
+          <option value="Lost"${p.status==='Lost'?' selected':''}>Lost</option>
+          <option value="Abandoned"${p.status==='Abandoned'?' selected':''}>Abandoned</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="e-addr-${id}" value="${esc(p.addr||'')}" placeholder="Street address" style="flex:2;min-width:160px">
+        <input type="text" id="e-city-${id}" value="${esc(p.city||'')}" placeholder="City, ST" style="max-width:160px">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="tel"  id="e-phone-${id}" value="${esc(p.phone||'')}" placeholder="Phone number">
+        <input type="text" id="e-email-${id}" value="${esc(p.email||'')}" placeholder="Email">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <select id="e-pos-${id}" onchange="toggleEditOther('${id}',this.value)" style="height:38px;font-size:13px;padding:0 8px">${posSelect}</select>
+        <input type="text" id="e-pos-other-${id}" value="${isOther?esc(p.current):''}" placeholder="Specify POS system…" style="display:${isOther?'block':'none'}">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="e-owner-${id}" value="${esc(p.owner||'')}" placeholder="Main contact name">
+      </div>
+      <input type="text" id="e-notes-${id}" value="${esc(p.notes||'')}" placeholder="Notes">
+      <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+        <button class="btn primary sm" onclick="saveEdit('${id}')">Save</button>
+        <button class="btn sm" onclick="cancelEdit('${id}')">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function toggleEditOther(id, val) {
+  const el = document.getElementById('e-pos-other-'+id);
+  el.style.display = val==='__other__' ? 'block' : 'none';
+  if(val==='__other__') el.focus();
+}
+
+function saveEdit(id) {
+  const p = prospects.find(x=>x.id===id);
+  if (!p) return;
+  const posVal = document.getElementById('e-pos-'+id).value;
+  p.name    = document.getElementById('e-name-'+id).value.trim()  || p.name;
+  p.status  = document.getElementById('e-status-'+id).value;
+  p.addr    = document.getElementById('e-addr-'+id).value.trim();
+  p.city    = document.getElementById('e-city-'+id).value.trim();
+  p.phone   = document.getElementById('e-phone-'+id).value.trim();
+  p.email   = document.getElementById('e-email-'+id).value.trim();
+  p.current = posVal==='__other__'
+    ? document.getElementById('e-pos-other-'+id).value.trim()
+    : posVal;
+  p.owner   = document.getElementById('e-owner-'+id).value.trim();
+  p.notes   = document.getElementById('e-notes-'+id).value.trim();
+  save();
+  updateStats();
+  // Replace just this card without re-rendering the whole list
+  const card = document.getElementById('card-'+id);
+  card.outerHTML = renderCard(p);
+}
+
+function cancelEdit(id) {
+  const p = prospects.find(x=>x.id===id);
+  if (!p) return;
+  const card = document.getElementById('card-'+id);
+  card.outerHTML = renderCard(p);
 }
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
