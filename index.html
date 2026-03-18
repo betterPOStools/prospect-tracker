@@ -247,7 +247,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <div id="tab-sync" class="panel">
       <div class="sync-box">
         <div class="sync-title">Export for Copper CRM</div>
-        <div class="sync-desc">10-column Copper-ready CSV. Address, phone, and email are folded into the Description field — Copper won't try to auto-map them to the contact record. In Copper go to <strong>Opportunities → Import → CSV</strong>. You'll manually enter contact details after opening each opportunity.</div>
+        <div class="sync-desc">9-column Copper-ready CSV. No Company field — won't create unwanted company records on import. Address, phone, and email are folded into Description so Copper won't auto-map them to the contact record. In Copper go to <strong>Opportunities → Import → CSV</strong>.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn primary" onclick="exportCSV()">Download CSV for Copper</button>
           <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
@@ -631,7 +631,6 @@ function exportCSV(){
     'Source',
     'Close Date',
     'Primary Contact',
-    'Company',
     'Description',
     'CURRENT POS',
   ];
@@ -654,7 +653,6 @@ function exportCSV(){
       'Cold Call',
       closeDateStr,
       p.owner  ||'',
-      p.name,
       description,
       p.current||'',
     ]);
