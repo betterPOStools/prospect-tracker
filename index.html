@@ -237,6 +237,34 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   </div>
 </div>
 
+<!-- BUILD A RUN MODAL -->
+<div id="buildrun-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title">Build a Run</div>
+    <div id="buildrun-anchor" style="font-size:13px;color:var(--text2);margin-bottom:12px"></div>
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Additional stops nearby</div>
+          <div style="font-size:12px;color:var(--text2)" id="buildrun-pool-note"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+          <input type="range" id="buildrun-slider" min="1" max="20" value="8" step="1"
+            oninput="buildRunUpdateCount()"
+            style="width:100px">
+          <span id="buildrun-count" style="font-size:18px;font-weight:500;color:var(--text);min-width:24px;text-align:center">8</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Stops sorted by proximity to your anchor — closest first, score used as tiebreaker.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" onclick="confirmBuildRun()">Load to Today's Canvass</button>
+      <button class="btn" onclick="closeBuildRunModal()">Cancel</button>
+    </div>
+    <div id="buildrun-msg" class="msg ok" style="margin-top:8px"></div>
+  </div>
+</div>
+
 <div class="container" id="app-container">
 
   <div class="header">
@@ -1031,7 +1059,10 @@ function renderCanvassFollowup(){
   el.innerHTML = list.map(c=>{
     const daysAgo = Math.floor((new Date()-new Date(c.added))/(1000*60*60*24));
     const age = daysAgo===0?'Today':daysAgo===1?'Yesterday':daysAgo+' days ago';
-    return renderCanvassCard(c, age);
+    const card = renderCanvassCard(c, age);
+    const btn  = '<div style="padding:0 12px 10px"><button class="btn sm primary" style="width:100%" '+
+      'onclick="openBuildRun(\'' + c.id + '\')">&#128506; Build a Run from here</button></div>';
+    return card.slice(0,-6) + btn + card.slice(-6);
   }).join('');
 }
 
@@ -3225,6 +3256,191 @@ function populateDbExportFilter(){
     const filtered = sel.value==='all' ? dbRecords : dbRecords.filter(r=>r.ar===sel.value);
     countEl.textContent = filtered.length+' records';
   }
+}
+
+// ── BUILD A RUN ───────────────────────────────────────────────────────────────
+// Anchor = a Follow Up canvass stop the user needs to revisit.
+// Fill the rest of the day with nearby stops from all three pools:
+//   1. Unworked database records
+//   2. Other Follow Up canvass stops nearby
+//   3. "Not visited yet" canvass stops nearby
+// Sorted by proximity (closest first), score used as tiebreaker.
+
+let buildRunAnchorId = null;  // canvass stop ID
+let buildRunPool     = [];    // pre-computed nearby candidates
+
+function openBuildRun(canvassId){
+  const anchor = canvassStops.find(x=>x.id===canvassId);
+  if(!anchor){ showMsg('canvass-add-msg','Stop not found.','err'); return; }
+
+  // Get anchor coordinates — from DB record if available, else geocode not possible
+  const dbRec = anchor.fromDb ? dbRecords.find(x=>x.id===anchor.fromDb) : null;
+  const anchorLat = dbRec ? dbRec.lt : null;
+  const anchorLng = dbRec ? dbRec.lg : null;
+
+  buildRunAnchorId = canvassId;
+  const todayStr   = new Date().toLocaleDateString();
+
+  // ── Build candidate pool ──────────────────────────────────────────────────
+  const pool = [];
+  const existingTodayNames = new Set(
+    canvassStops
+      .filter(c=>c.date===todayStr && CANVASS_ACTIVE.includes(c.status))
+      .map(c=>c.name.toLowerCase())
+  );
+
+  // Pool 1: Unworked database records (not already in today's canvass)
+  dbRecords
+    .filter(r=>r.st==='unworked' && r.lt && r.lg && !existingTodayNames.has(r.n.toLowerCase()))
+    .forEach(r=>{
+      const dist = anchorLat ? haversine(anchorLat, anchorLng, r.lt, r.lg) : 999;
+      pool.push({ type:'db', id:r.id, name:r.n, addr:r.a, phone:r.ph, email:r.em,
+                  website:r.web, menu:r.mn, notes:r.cn?r.cn:'',
+                  score:r.sc, priority:r.pr, dist, lat:r.lt, lng:r.lg,
+                  fromDb:r.id });
+    });
+
+  // Pool 2: Other Follow Up canvass stops (not today, not the anchor itself)
+  canvassStops
+    .filter(c=>
+      c.id !== canvassId &&
+      FOLLOWUP_STATUSES.includes(c.status) &&
+      !existingTodayNames.has(c.name.toLowerCase())
+    )
+    .forEach(c=>{
+      const dbR = c.fromDb ? dbRecords.find(x=>x.id===c.fromDb) : null;
+      const lat = dbR ? dbR.lt : null;
+      const lng = dbR ? dbR.lg : null;
+      const dist = (anchorLat && lat) ? haversine(anchorLat, anchorLng, lat, lng) : 999;
+      pool.push({ type:'followup', id:c.id, name:c.name, addr:c.addr||'',
+                  phone:c.phone||'', email:c.email||'', website:c.website||'',
+                  menu:c.menu||'', notes:c.notes||'',
+                  score:c.score||50, priority:c.priority||'Warm',
+                  dist, lat, lng, fromDb:c.fromDb||null, canvassId:c.id });
+    });
+
+  // Pool 3: "Not visited yet" canvass stops
+  canvassStops
+    .filter(c=>
+      c.status==='Not visited yet' &&
+      c.id !== canvassId &&
+      !existingTodayNames.has(c.name.toLowerCase())
+    )
+    .forEach(c=>{
+      const dbR = c.fromDb ? dbRecords.find(x=>x.id===c.fromDb) : null;
+      const lat = dbR ? dbR.lt : null;
+      const lng = dbR ? dbR.lg : null;
+      const dist = (anchorLat && lat) ? haversine(anchorLat, anchorLng, lat, lng) : 999;
+      pool.push({ type:'notvisited', id:c.id, name:c.name, addr:c.addr||'',
+                  phone:c.phone||'', email:c.email||'', website:c.website||'',
+                  menu:c.menu||'', notes:c.notes||'',
+                  score:c.score||50, priority:c.priority||'Warm',
+                  dist, lat, lng, fromDb:c.fromDb||null, canvassId:c.id });
+    });
+
+  // Sort: proximity first, score as tiebreaker (60/40 blend)
+  pool.sort((a,b)=>{
+    const rankA = a.dist * 10 - a.score * 0.3;
+    const rankB = b.dist * 10 - b.score * 0.3;
+    return rankA - rankB;
+  });
+
+  buildRunPool = pool;
+
+  // ── Update modal ──────────────────────────────────────────────────────────
+  const typeLabels = { db:'unworked DB', followup:'follow-up', notvisited:'not visited' };
+  const dbCount  = pool.filter(x=>x.type==='db').length;
+  const fuCount  = pool.filter(x=>x.type==='followup').length;
+  const nvCount  = pool.filter(x=>x.type==='notvisited').length;
+
+  document.getElementById('buildrun-anchor').innerHTML =
+    '<strong>Anchor:</strong> '+esc(anchor.name)+
+    (anchor.addr?'<br><span style="font-size:11px;color:var(--text3)">'+esc(anchor.addr)+'</span>':'')+
+    (!anchorLat?'<br><span style="color:var(--yellow-text);font-size:11px">⚠ No coordinates — distance sorting unavailable for this stop</span>':'');
+
+  document.getElementById('buildrun-pool-note').textContent =
+    pool.length+' stops available nearby — '+dbCount+' unworked, '+fuCount+' follow-up, '+nvCount+' not visited';
+
+  // Cap slider at available pool size
+  const slider = document.getElementById('buildrun-slider');
+  slider.max   = Math.min(20, pool.length);
+  slider.value = Math.min(8, pool.length);
+  buildRunUpdateCount();
+
+  document.getElementById('buildrun-msg').textContent = '';
+  document.getElementById('buildrun-modal').style.display = 'flex';
+}
+
+function buildRunUpdateCount(){
+  const n = parseInt(document.getElementById('buildrun-slider').value);
+  document.getElementById('buildrun-count').textContent = n;
+}
+
+function closeBuildRunModal(){
+  document.getElementById('buildrun-modal').style.display = 'none';
+  buildRunAnchorId = null;
+  buildRunPool = [];
+}
+
+function confirmBuildRun(){
+  const anchor = canvassStops.find(x=>x.id===buildRunAnchorId);
+  if(!anchor){ closeBuildRunModal(); return; }
+
+  const n = parseInt(document.getElementById('buildrun-slider').value);
+  const todayStr = new Date().toLocaleDateString();
+  const toAdd = buildRunPool.slice(0, n);
+
+  let loaded = 0;
+  const existingNames = new Set(canvassStops.map(c=>c.name.toLowerCase()));
+
+  // Make sure the anchor itself is in today's canvass
+  if(!canvassStops.find(c=>c.id===buildRunAnchorId&&c.date===todayStr)){
+    anchor.date = todayStr;
+  }
+
+  toAdd.forEach(candidate=>{
+    if(existingNames.has(candidate.name.toLowerCase())) return;
+
+    if(candidate.type==='db'){
+      // New stop from database
+      const newStop = {
+        id:uid(), name:candidate.name, addr:candidate.addr,
+        phone:candidate.phone, email:candidate.email,
+        website:candidate.website, menu:candidate.menu,
+        notes:candidate.notes,
+        openTime:'', closeTime:'',
+        status:'Not visited yet',
+        date:todayStr,
+        added:new Date().toISOString(),
+        fromDb:candidate.fromDb,
+        score:candidate.score, priority:candidate.priority,
+      };
+      canvassStops.push(newStop);
+      // Mark DB record as in_canvass
+      const dbR = dbRecords.find(x=>x.id===candidate.fromDb);
+      if(dbR) dbR.st = 'in_canvass';
+      loaded++;
+    } else {
+      // Follow Up or Not Visited canvass stop — just update date to today
+      const existing = canvassStops.find(x=>x.id===candidate.canvassId);
+      if(existing){
+        existing.date = todayStr;
+        loaded++;
+      }
+    }
+  });
+
+  save();
+  dbLocalSave();
+  updateCanvassStats();
+  updateDbStats();
+  closeBuildRunModal();
+
+  // Switch to Today tab
+  switchCanvassTab('today');
+  showMsg('canvass-add-msg',
+    'Run built — anchor + '+loaded+' nearby stops loaded to today\'s canvass.',
+    'ok');
 }
 </script>
 </body>
