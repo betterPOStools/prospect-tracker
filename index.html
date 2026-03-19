@@ -61,11 +61,12 @@ body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:
 .panel.active{display:block}
 
 /* FORMS */
-input[type=text],input[type=tel],input[type=email],select,textarea{height:38px;padding:0 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--font);width:100%;transition:border-color .12s;outline:none}
+input[type=text],input[type=tel],input[type=email],input[type=url],input[type=time],select,textarea{height:38px;padding:0 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--font);width:100%;transition:border-color .12s;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--border3)}
 textarea{height:72px;padding:9px 11px;resize:vertical}
 .row{display:flex;gap:8px;margin-bottom:9px;flex-wrap:wrap}
 .row input,.row select{flex:1;min-width:120px}
+.field-label{font-size:11px;color:var(--text3);margin-bottom:3px}
 
 /* BUTTONS */
 .btn{height:38px;padding:0 15px;border:0.5px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);font-size:13px;font-family:var(--font);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:background .12s;text-decoration:none}
@@ -74,6 +75,8 @@ textarea{height:72px;padding:9px 11px;resize:vertical}
 .btn.primary:hover{opacity:.82}
 .btn.success{background:var(--green-text);color:#fff;border-color:var(--green-text)}
 .btn.success:hover{opacity:.85}
+.btn.warning{background:var(--yellow-text);color:#fff;border-color:var(--yellow-text)}
+.btn.warning:hover{opacity:.85}
 .btn.danger{color:var(--red-text);border-color:rgba(163,45,45,0.3)}
 .btn.danger:hover{background:var(--red-bg)}
 .btn.sm{height:30px;font-size:12px;padding:0 11px}
@@ -89,9 +92,11 @@ textarea{height:72px;padding:9px 11px;resize:vertical}
 /* CARDS */
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 15px;margin-bottom:9px}
 .card:hover{border-color:var(--border2)}
-.card.archived{opacity:.6}
+.card.archived{opacity:.55}
 .pname{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
 .pdetail{font-size:12px;color:var(--text2);margin-bottom:2px}
+.pdetail a{color:var(--blue-text);text-decoration:none}
+.pdetail a:hover{text-decoration:underline}
 .pactions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
 
 /* BADGES */
@@ -102,8 +107,11 @@ textarea{height:72px;padding:9px 11px;resize:vertical}
 .badge.Abandoned{background:var(--bg2);color:var(--text2)}
 .badge.canvass{background:var(--purple-bg);color:var(--purple-text)}
 .badge.converted{background:var(--green-bg);color:var(--green-text)}
+.hours-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;border:0.5px solid var(--border2);color:var(--text2);background:var(--bg2)}
+.hours-chip.closed{background:var(--red-bg);color:var(--red-text);border-color:transparent}
+.hours-chip.open-now{background:var(--green-bg);color:var(--green-text);border-color:transparent}
 
-/* SECTION HEADERS IN ROUTE */
+/* SECTION HEADERS */
 .route-section-hdr{font-size:12px;font-weight:500;color:var(--text2);padding:8px 0 4px;border-bottom:0.5px solid var(--border);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
 
 /* FILTER */
@@ -121,7 +129,7 @@ textarea{height:72px;padding:9px 11px;resize:vertical}
 .route-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);font-size:13px;cursor:pointer}
 .route-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;accent-color:var(--accent)}
 .route-name{flex:1;color:var(--text);font-weight:500}
-.route-addr{color:var(--text2);font-size:12px;text-align:right}
+.route-meta{color:var(--text2);font-size:12px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -141,16 +149,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 .src{background:var(--bg2);border-radius:var(--radius);padding:13px;border:0.5px solid var(--border)}
 .src-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
 .src-desc{font-size:12px;color:var(--text2);margin-bottom:9px;line-height:1.55}
-
-/* PASSWORD GATE */
-#gate{position:fixed;inset:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;z-index:9999}
-#gate.hidden{display:none}
-.gate-box{background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius-lg);padding:36px 32px;width:100%;max-width:340px;text-align:center}
-.gate-logo{font-size:18px;font-weight:500;color:var(--text);margin-bottom:4px}
-.gate-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
-.gate-box input[type=password]{text-align:center;letter-spacing:0.15em;font-size:15px;margin-bottom:10px}
-.gate-box button{width:100%;height:40px;font-size:14px}
-.gate-err{font-size:12px;color:var(--red-text);margin-top:8px;min-height:16px}
+.section-divider{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px;padding-bottom:4px;border-bottom:0.5px solid var(--border)}
 
 @media(max-width:520px){
   body{padding:12px 8px 40px}
@@ -161,20 +160,6 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 </style>
 </head>
 <body>
-
-<!-- PASSWORD GATE -->
-<div id="gate">
-  <div class="gate-box">
-    <div class="gate-logo">Restaurant Prospect Tracker</div>
-    <div class="gate-sub">Value Systems — enter password to continue</div>
-    <form id="gate-form" action="#" onsubmit="checkPassword(); return false;" autocomplete="on">
-      <input type="text" name="username" value="valuesystems" autocomplete="username" style="display:none">
-      <input type="password" id="gate-pw" name="password" placeholder="Password" autocomplete="current-password">
-      <button type="submit" class="btn primary" style="width:100%;margin-top:10px">Unlock</button>
-    </form>
-    <div class="gate-err" id="gate-err"></div>
-  </div>
-</div>
 
 <!-- CONVERT TO LEAD MODAL -->
 <div id="convert-modal" class="modal-overlay" style="display:none">
@@ -213,7 +198,46 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   </div>
 </div>
 
-<div class="container" id="app-container" style="display:none">
+<!-- DEMOTE TO CANVASS MODAL -->
+<div id="demote-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Move Back to Canvass</div>
+    <input type="hidden" id="demote-lead-id">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">This lead will be moved back to your canvass list as an active stop. All data is preserved.</p>
+    <div style="margin-bottom:9px">
+      <select id="demote-status">
+        <option value="Come back later">Come back later</option>
+        <option value="Decision maker unavailable">Decision maker unavailable</option>
+        <option value="Not visited yet">Not visited yet</option>
+        <option value="No answer / closed">No answer / closed</option>
+        <option value="Not interested">Not interested</option>
+      </select>
+    </div>
+    <input type="text" id="demote-notes" placeholder="Reason / notes (optional)" style="margin-bottom:16px">
+    <div style="display:flex;gap:8px">
+      <button class="btn warning" onclick="confirmDemote()">Move to Canvass</button>
+      <button class="btn" onclick="closeDemoteModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- END DAY MODAL -->
+<div id="endday-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">End Day Summary</div>
+    <div id="endday-recap" style="margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7"></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+      Today's stops will age into <strong>Follow Up</strong> or <strong>All Active</strong> automatically tomorrow based on their current status. The queue will be cleared.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" onclick="confirmEndDay(true)">Download Summary + End Day</button>
+      <button class="btn" onclick="confirmEndDay(false)">End Day (no download)</button>
+      <button class="btn" onclick="closeEndDayModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="app-container">
 
   <div class="header">
     <div class="header-title">
@@ -232,6 +256,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 
   <div class="shell">
     <div class="tabs">
+      <button class="tab" onclick="switchTab('db')">Database <span id="db-count-badge"></span></button>
       <button class="tab active" onclick="switchTab('canvass')">Canvass</button>
       <button class="tab" onclick="switchTab('list')">My Leads <span id="count-badge"></span></button>
       <button class="tab" onclick="switchTab('route')">Route</button>
@@ -239,13 +264,245 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <button class="tab" onclick="switchTab('sources')">Free Sources</button>
     </div>
 
+
+    <!-- ── DATABASE TAB ── -->
+    <div id="tab-db" class="panel">
+
+      <!-- Import bar -->
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text)">Import Outscraper Data</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">Upload your Outscraper XLSX — scores, deduplicates, and clusters automatically</div>
+          </div>
+          <label class="btn primary" style="cursor:pointer;margin-left:auto">
+            Import XLSX <input type="file" accept=".xlsx,.csv" id="db-import-file" onchange="importOutscraper(this)" style="display:none">
+          </label>
+        </div>
+        <div id="db-import-msg" class="msg ok" style="margin-top:6px"></div>
+      </div>
+
+      <!-- Chain Blocklist Manager -->
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text)">Chain Blocklist</div>
+            <div style="font-size:12px;color:var(--text2)">Businesses matching these terms are skipped automatically on import</div>
+          </div>
+          <button class="btn sm" onclick="toggleBlocklistManager()" style="margin-left:auto" id="blocklist-toggle-btn">Manage ▾</button>
+        </div>
+        <div id="blocklist-manager" style="display:none"></div>
+      </div>
+
+      <!-- Snapshot / Rollback Manager -->
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text)">Database Snapshots</div>
+            <div style="font-size:12px;color:var(--text2)">Auto-saved before every import · Restore any point instantly</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn sm primary" onclick="takeSnapshot('manual')">Save Snapshot</button>
+            <button class="btn sm" onclick="toggleSnapshots()" id="snapshots-toggle-btn">History ▾</button>
+          </div>
+        </div>
+        <div id="snapshots-panel" style="display:none;margin-top:12px">
+          <div id="snapshots-list"></div>
+        </div>
+        <div id="snapshot-msg" class="msg ok" style="margin-top:6px"></div>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat"><div class="stat-n" id="db-s-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" id="db-s-hot">0</div><div class="stat-l">Hot</div></div>
+        <div class="stat"><div class="stat-n" id="db-s-warm">0</div><div class="stat-l">Warm</div></div>
+        <div class="stat"><div class="stat-n" id="db-s-unworked">0</div><div class="stat-l">Unworked</div></div>
+        <div class="stat"><div class="stat-n" id="db-s-worked">0</div><div class="stat-l">Worked</div></div>
+      </div>
+
+      <!-- Tabs: Browse | Zones | Week Planner -->
+      <div style="display:flex;border-bottom:0.5px solid var(--border);margin-bottom:12px">
+        <button class="tab active" id="dbt-browse" onclick="switchDbTab('browse')" style="font-size:12px;padding:8px 12px">Browse</button>
+        <button class="tab" id="dbt-zones" onclick="switchDbTab('zones')" style="font-size:12px;padding:8px 12px">Zones</button>
+        <button class="tab" id="dbt-week" onclick="switchDbTab('week')" style="font-size:12px;padding:8px 12px">Week Planner</button>
+      </div>
+
+      <!-- BROWSE panel -->
+      <div id="dbp-browse">
+        <div class="filter-row" style="flex-wrap:wrap;gap:6px">
+          <select id="db-filter-priority" onchange="renderDb()" style="min-width:100px">
+            <option value="all">All priorities</option>
+            <option value="Hot">Hot</option>
+            <option value="Warm">Warm</option>
+            <option value="Cold">Cold</option>
+          </select>
+          <select id="db-filter-status" onchange="renderDb()" style="min-width:120px">
+            <option value="all">All statuses</option>
+            <option value="unworked">Unworked</option>
+            <option value="in_canvass">In canvass</option>
+            <option value="canvassed">Canvassed</option>
+            <option value="converted">Converted</option>
+            <option value="lead">Lead</option>
+          </select>
+          <select id="db-filter-area" onchange="renderDb()" style="min-width:140px">
+            <option value="all">All areas</option>
+          </select>
+          <select id="db-filter-zip" onchange="renderDb()" style="min-width:90px">
+            <option value="all">All ZIPs</option>
+          </select>
+          <select id="db-filter-zone" onchange="renderDb()" style="min-width:130px">
+            <option value="all">All zones</option>
+          </select>
+          <input type="text" id="db-filter-search" placeholder="Search name…" oninput="renderDb()" style="flex:2;min-width:140px">
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <button class="btn sm" onclick="dbSelectAll()">Select all filtered</button>
+          <button class="btn sm" onclick="dbClearSel()">Clear selection</button>
+          <span id="db-sel-count" style="font-size:12px;color:var(--text2)"></span>
+          <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn sm primary" onclick="dbLoadToCanvass('today')">→ Today's Canvass</button>
+            <select id="db-load-day" style="height:30px;font-size:12px;width:auto">
+              <option value="">Assign to day…</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+            </select>
+            <button class="btn sm" onclick="dbAssignDay()">Assign</button>
+          </div>
+        </div>
+        <div id="db-list" style="max-height:460px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--radius-lg)"></div>
+      </div>
+
+      <!-- ZONES panel -->
+      <div id="dbp-zones" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+          <p style="font-size:13px;color:var(--text2);flex:1">Auto-named zones based on ZIP + proximity. Rename any zone by clicking its name.</p>
+          <select id="zone-filter-area" onchange="renderZones()" style="height:30px;font-size:12px;min-width:140px">
+            <option value="all">All areas</option>
+          </select>
+        </div>
+        <!-- Export all zones -->
+        <div style="display:flex;gap:8px;margin-top:10px;margin-bottom:4px;flex-wrap:wrap">
+          <button class="btn sm primary" onclick="exportAllZonesCSV()">Export all zones → My Maps CSV</button>
+          <button class="btn sm" onclick="exportAllZonesKMZ()">Export all zones → KMZ (3 priority layers)</button>
+          <span style="font-size:12px;color:var(--text2);line-height:30px">One file, all stops — import once into Google My Maps</span>
+        </div>
+        <div id="zones-export-msg" class="msg ok" style="margin-bottom:8px"></div>
+        <div id="zone-list"></div>
+      </div>
+
+      <!-- WEEK PLANNER panel -->
+      <div id="dbp-week" style="display:none">
+
+        <!-- Stops per day control -->
+        <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text)">Stops per day</div>
+              <div style="font-size:12px;color:var(--text2)">Hot leads prioritized — min 10, sweet spot 10–15</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+              <input type="range" id="stops-per-day" min="5" max="30" value="12" step="1"
+                oninput="document.getElementById('stops-per-day-val').textContent=this.value"
+                style="width:120px">
+              <span id="stops-per-day-val" style="font-size:18px;font-weight:500;color:var(--text);min-width:28px;text-align:center">12</span>
+              <span style="font-size:12px;color:var(--text2)">stops</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <button class="btn sm primary" onclick="autoFillWeek()">Auto-fill whole week</button>
+          <button class="btn sm primary" onclick="autoFillToday()">Auto-fill today</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="autofill-day-select" style="height:30px;font-size:12px;min-width:110px">
+              <option value="">Pick a day…</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+            </select>
+            <button class="btn sm" onclick="autoFillDay(document.getElementById('autofill-day-select').value)">Auto-fill day</button>
+          </div>
+          <button class="btn sm danger" onclick="clearWeekPlan()" style="margin-left:auto">Clear week</button>
+        </div>
+
+        <div id="week-planner"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="loadWeekToCanvass()">Load today's plan → Canvass</button>
+        </div>
+        <div id="week-msg" class="msg ok" style="margin-top:6px"></div>
+      </div>
+
+    </div>
+
     <!-- ── CANVASS TAB ── -->
     <div id="tab-canvass" class="panel active">
-      <!-- Quick add -->
-      <div style="margin-bottom:16px">
+
+      <!-- Stats bar -->
+      <div class="stats" style="margin-bottom:12px">
+        <div class="stat"><div class="stat-n" id="cs-today">0</div><div class="stat-l">Today</div></div>
+        <div class="stat"><div class="stat-n" id="cs-followup">0</div><div class="stat-l">Follow Up</div></div>
+        <div class="stat"><div class="stat-n" id="cs-pending">0</div><div class="stat-l">All Active</div></div>
+        <div class="stat"><div class="stat-n" id="cs-converted">0</div><div class="stat-l">Converted</div></div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div style="display:flex;border-bottom:0.5px solid var(--border);margin-bottom:14px">
+        <button class="tab active" id="cvt-today"    onclick="switchCanvassTab('today')"   style="font-size:12px;padding:8px 12px">Today <span id="cvb-today"></span></button>
+        <button class="tab"        id="cvt-followup" onclick="switchCanvassTab('followup')" style="font-size:12px;padding:8px 12px">Follow Up <span id="cvb-followup"></span></button>
+        <button class="tab"        id="cvt-active"   onclick="switchCanvassTab('active')"   style="font-size:12px;padding:8px 12px">All Active <span id="cvb-active"></span></button>
+        <button class="tab"        id="cvt-add"      onclick="switchCanvassTab('add')"      style="font-size:12px;padding:8px 12px">+ Add Stop</button>
+        <button class="tab"        id="cvt-archived" onclick="switchCanvassTab('archived')" style="font-size:12px;padding:8px 12px">Archived</button>
+      </div>
+
+      <!-- TODAY panel -->
+      <div id="cvp-today">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="canvass-search-today" placeholder="Search today's stops…" oninput="renderCanvass()" style="flex:1;min-width:140px">
+          <button class="btn sm" onclick="exportCanvassSummary()">Daily Summary ↓</button>
+          <button class="btn sm primary" onclick="endDay()">End Day ✓</button>
+          <button class="btn sm danger" onclick="clearQueue()">Clear Queue</button>
+        </div>
+        <div id="canvass-list"></div>
+        <div id="canvass-add-msg" class="msg ok" style="margin-top:6px"></div>
+      </div>
+
+      <!-- FOLLOW UP panel -->
+      <div id="cvp-followup" style="display:none">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Stops from previous visits that need a return trip — Come back later and Decision maker unavailable.</p>
+        <div style="margin-bottom:10px">
+          <input type="text" id="canvass-search-followup" placeholder="Search follow-up stops…" oninput="renderCanvassFollowup()" style="width:100%">
+        </div>
+        <div id="canvass-followup-list"></div>
+      </div>
+
+      <!-- ALL ACTIVE panel -->
+      <div id="cvp-active" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <select id="canvass-filter-active-status" onchange="renderCanvassActive()" style="min-width:160px">
+            <option value="all">All active statuses</option>
+            <option value="Not visited yet">Not visited yet</option>
+            <option value="No answer / closed">No answer / closed</option>
+            <option value="Not interested">Not interested</option>
+            <option value="Come back later">Come back later</option>
+            <option value="Decision maker unavailable">Decision maker unavailable</option>
+          </select>
+          <input type="text" id="canvass-search-active" placeholder="Search…" oninput="renderCanvassActive()" style="flex:1;min-width:120px">
+        </div>
+        <div id="canvass-active-list"></div>
+      </div>
+
+      <!-- ADD STOP panel -->
+      <div id="cvp-add" style="display:none">
         <div class="row">
           <input type="text" id="c-name" placeholder="Business name *" style="flex:2;min-width:180px">
-          <select id="c-status" style="max-width:180px">
+          <select id="c-status" style="max-width:190px">
             <option value="Not visited yet">Not visited yet</option>
             <option value="No answer / closed">No answer / closed</option>
             <option value="Not interested">Not interested</option>
@@ -254,52 +511,54 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
           </select>
         </div>
         <div class="row">
-          <input type="text" id="c-addr" placeholder="Street address">
-          <input type="text" id="c-city" placeholder="City, ST" style="max-width:180px">
+          <input type="text" id="c-addr" placeholder="Full address (paste from Google Maps)">
         </div>
         <div class="row">
-          <input type="tel" id="c-phone" placeholder="Phone number">
+          <input type="tel"  id="c-phone" placeholder="Phone number">
           <input type="text" id="c-notes" placeholder="Notes / first impression">
+        </div>
+        <div class="row">
+          <div style="flex:1;min-width:140px">
+            <div class="field-label">Opens</div>
+            <input type="time" id="c-open">
+          </div>
+          <div style="flex:1;min-width:140px">
+            <div class="field-label">Closes</div>
+            <input type="time" id="c-close">
+          </div>
+          <div style="flex:2;min-width:180px">
+            <div class="field-label">Website</div>
+            <input type="url" id="c-website" placeholder="https://…">
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1;min-width:180px">
+            <div class="field-label">Menu link</div>
+            <input type="url" id="c-menu" placeholder="https://…">
+          </div>
         </div>
         <div class="row" style="margin-top:4px">
           <button class="btn primary" onclick="addCanvass()">+ Add Stop</button>
           <button class="btn" onclick="clearCanvassForm()">Clear</button>
         </div>
-        <div id="canvass-add-msg" class="msg ok"></div>
+        <div id="canvass-add-form-msg" class="msg ok"></div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat"><div class="stat-n" id="cs-total">0</div><div class="stat-l">Total</div></div>
-        <div class="stat"><div class="stat-n" id="cs-pending">0</div><div class="stat-l">Pending</div></div>
-        <div class="stat"><div class="stat-n" id="cs-converted">0</div><div class="stat-l">Converted</div></div>
-        <div class="stat"><div class="stat-n" id="cs-today">0</div><div class="stat-l">Today</div></div>
+      <!-- ARCHIVED panel -->
+      <div id="cvp-archived" style="display:none">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Converted leads and closed stops.</p>
+        <div style="margin-bottom:10px">
+          <input type="text" id="canvass-search-archived" placeholder="Search archived…" oninput="renderCanvassArchived()" style="width:100%">
+        </div>
+        <div id="canvass-archived-list"></div>
       </div>
 
-      <!-- Filter -->
-      <div class="filter-row">
-        <select id="canvass-filter-status" onchange="renderCanvass()">
-          <option value="all">All stops</option>
-          <option value="active">Active only</option>
-          <option value="Not visited yet">Not visited yet</option>
-          <option value="No answer / closed">No answer / closed</option>
-          <option value="Not interested">Not interested</option>
-          <option value="Come back later">Come back later</option>
-          <option value="Decision maker unavailable">Decision maker unavailable</option>
-          <option value="Converted">Converted (archived)</option>
-        </select>
-        <input type="text" id="canvass-filter-search" placeholder="Search name…" oninput="renderCanvass()">
-        <button class="btn sm" onclick="exportCanvassSummary()">Daily Summary ↓</button>
-      </div>
-
-      <div id="canvass-list"></div>
     </div>
 
     <!-- ── LEADS TAB ── -->
     <div id="tab-list" class="panel">
-      <!-- Add lead form -->
       <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border)">
-        <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px">Add a lead manually</div>
+        <div class="section-divider">Add a lead manually</div>
         <div class="row">
           <input type="text" id="p-name" placeholder="Restaurant name *" style="flex:2;min-width:180px">
           <select id="p-status" style="max-width:160px">
@@ -309,12 +568,12 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
             <option value="Abandoned">Abandoned</option>
           </select>
         </div>
+        <!-- Single address field -->
         <div class="row">
-          <input type="text" id="p-addr" placeholder="Street address">
-          <input type="text" id="p-city" placeholder="City, ST" style="max-width:180px">
+          <input type="text" id="p-addr" placeholder="Full address (paste from Google Maps)">
         </div>
         <div class="row">
-          <input type="tel" id="p-phone" placeholder="Phone number">
+          <input type="tel"  id="p-phone" placeholder="Phone number">
           <input type="text" id="p-email" placeholder="Email (if found)">
         </div>
         <div class="row">
@@ -341,6 +600,10 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
           <input type="text" id="p-owner" placeholder="Main contact name">
         </div>
         <div class="row">
+          <input type="url"  id="p-website" placeholder="Website (https://…)">
+          <input type="url"  id="p-menu"    placeholder="Menu link (https://…)">
+        </div>
+        <div class="row">
           <input type="text" id="p-notes" placeholder="Notes">
         </div>
         <div class="row" style="margin-top:4px">
@@ -350,7 +613,6 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         <div id="add-msg" class="msg ok"></div>
       </div>
 
-      <!-- Lead stats -->
       <div class="stats">
         <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
         <div class="stat"><div class="stat-n" id="s-open">0</div><div class="stat-l">Open</div></div>
@@ -373,14 +635,13 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 
     <!-- ── ROUTE TAB ── -->
     <div id="tab-route" class="panel">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Select stops from canvass and/or leads, then build a route.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Select stops from canvass and/or leads. Closed businesses are flagged automatically based on their hours.</p>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
         <button class="btn sm" onclick="selectRouteCanvass()">All canvass stops</button>
         <button class="btn sm" onclick="selectRouteLeads()">All open leads</button>
         <button class="btn sm" onclick="clearRouteSelect()">Clear</button>
         <span id="route-count" style="font-size:12px;color:var(--text2)"></span>
       </div>
-
       <div id="route-canvass-section">
         <div class="route-section-hdr">Canvass stops</div>
         <div id="route-canvass-list"></div>
@@ -389,7 +650,6 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         <div class="route-section-hdr">Leads</div>
         <div id="route-leads-list"></div>
       </div>
-
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
         <button class="btn primary" onclick="openGoogleMaps()">Google Maps ↗</button>
         <button class="btn" onclick="openRouteXL()">RouteXL (free, 20 stops) ↗</button>
@@ -402,7 +662,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <div id="tab-sync" class="panel">
       <div class="sync-box">
         <div class="sync-title">Export Leads for Copper CRM</div>
-        <div class="sync-desc">9-column Copper-ready Excel file. No Company field. Address, phone, and email folded into Description. In Copper go to <strong>Opportunities → Import → Excel</strong>.</div>
+        <div class="sync-desc">Downloads 3 CSV files named <strong>YourName-Date-Time-companies/people/opportunities.csv</strong> — columns match Copper's official import templates exactly. Import in order: companies first, people second, opportunities last.</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
           <span style="font-size:13px;color:var(--text2)">Export as:</span>
           <select id="export-owner" style="height:34px;font-size:13px;width:auto;flex:none">
@@ -411,12 +671,36 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
           </select>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn primary" onclick="exportXLSX()">Download Excel for Copper</button>
-          <button class="btn" onclick="exportCanvassSummary()">Daily Canvass Summary</button>
+          <button class="btn primary" onclick="exportCSVs()">Download Leads CSVs</button>
           <button class="btn" onclick="downloadJSON()">Download JSON backup</button>
           <button class="btn" onclick="copyJSON()">Copy JSON</button>
         </div>
         <div id="export-msg" class="msg ok"></div>
+      </div>
+
+      <div class="sync-box">
+        <div class="sync-title">Export Territory Database → Copper CRM</div>
+        <div class="sync-desc">Seeds your entire prospecting territory into Copper as <strong>Company records</strong> — one per restaurant. No opportunities created. Once companies exist in Copper, all future People and Opportunity imports link to them automatically. Blocklisted chains are excluded. Filter by area to export one city at a time.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+          <select id="db-export-area" style="height:34px;font-size:13px;min-width:160px" onchange="populateDbExportFilter()">
+            <option value="all">All areas</option>
+          </select>
+          <span style="font-size:12px;color:var(--text2);line-height:34px" id="db-export-count"></span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="exportDatabaseCompanies()">Download Companies CSV</button>
+        </div>
+        <div id="db-export-msg" class="msg ok"></div>
+      </div>
+
+      <div class="sync-box">
+        <div class="sync-title">Export Canvass for Copper CRM</div>
+        <div class="sync-desc">Downloads 3 CSV files for the <strong>Prospecting</strong> pipeline in Copper — same column structure as the leads export. Import in order: companies → people → opportunities. Stage maps to each stop's current canvass status.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="exportCanvassCSVs()">Download Canvass CSVs</button>
+          <button class="btn" onclick="exportCanvassSummary()">Daily Canvass Summary</button>
+        </div>
+        <div id="canvass-export-msg" class="msg ok"></div>
       </div>
 
       <div class="sync-box">
@@ -437,14 +721,14 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
         <div id="clear-msg" class="msg err"></div>
       </div>
       <hr>
-      <p class="note"><strong>Copper import tip:</strong> In Copper go to Opportunities → Import → Excel. Map Name, Pipeline, Status, Stage, Source, Close Date, Owner, Primary Contact, Description, CURRENT POS.</p>
+      <p class="note"><strong>Copper import order:</strong> (1) Go to Companies → Import → CSV → upload the <em>-companies.csv</em> file. (2) Go to People → Import → CSV → upload <em>-people.csv</em>. (3) Go to Opportunities → Import → CSV → upload <em>-opportunities.csv</em>. Column headers auto-map — minimal manual matching needed.</p>
     </div>
 
     <!-- ── FREE SOURCES TAB ── -->
     <div id="tab-sources" class="panel">
       <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Free tools for finding restaurant leads. No credit card needed.</p>
       <div class="source-grid">
-        <div class="src"><div class="src-title">Google Maps</div><div class="src-desc">Name, address, phone, website. Best free source for bulk searching by neighborhood.</div><a href="https://maps.google.com" target="_blank" class="btn sm">Open ↗</a></div>
+        <div class="src"><div class="src-title">Google Maps</div><div class="src-desc">Name, address, phone, website. Best free source — copy the full address in one click.</div><a href="https://maps.google.com" target="_blank" class="btn sm">Open ↗</a></div>
         <div class="src"><div class="src-title">Outscraper (free tier)</div><div class="src-desc">150 free searches/month. Exports Google Maps data to a spreadsheet automatically.</div><a href="https://outscraper.com" target="_blank" class="btn sm">Open ↗</a></div>
         <div class="src"><div class="src-title">Apollo.io (free tier)</div><div class="src-desc">50 free email credits/month. Find owner emails by business name or domain.</div><a href="https://app.apollo.io" target="_blank" class="btn sm">Open ↗</a></div>
         <div class="src"><div class="src-title">Hunter.io (free tier)</div><div class="src-desc">25 free lookups/month. Enter a restaurant domain to find contact emails.</div><a href="https://hunter.io" target="_blank" class="btn sm">Open ↗</a></div>
@@ -454,8 +738,8 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <div class="tip"><strong>Email tip:</strong> Check the restaurant website footer or /contact page. Facebook business pages often list owner email — about 30 seconds per lead.</div>
     </div>
 
-  </div><!-- /shell -->
-</div><!-- /app-container -->
+  </div>
+</div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -468,81 +752,111 @@ const DRIVE_API  = 'https://www.googleapis.com/drive/v3';
 const UPLOAD_API = 'https://www.googleapis.com/upload/drive/v3';
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let prospects     = [];   // leads
-let canvassStops  = [];   // canvass
-let routeSelected = new Set();
-let accessToken   = null;
-let driveFileId   = null;
-let syncTimer     = null;
-let isSyncing     = false;
+let prospects    = [];
+let canvassStops = [];
+let routeSelected= new Set();
+let accessToken  = null;
+let driveFileId  = null;
+let syncTimer    = null;
+let isSyncing    = false;
+
+// Database state (declared here so available across all functions)
+let dbRecords    = [];
+let dbClusters   = [];
+let dbAreas      = [];   // list of import area names
+let dbBlocklist  = [];   // chain/brand names to skip on import
+let dbSelected   = new Set();
+let dbCurrentTab = 'browse';
 
 // ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
 function localLoad() {
-  try { prospects    = JSON.parse(localStorage.getItem('vs_p3')  || '[]'); } catch(e){ prospects=[]; }
-  try { canvassStops = JSON.parse(localStorage.getItem('vs_c1')  || '[]'); } catch(e){ canvassStops=[]; }
+  try{ prospects    = JSON.parse(localStorage.getItem('vs_p3') || '[]'); }catch(e){ prospects=[]; }
+  try{ canvassStops = JSON.parse(localStorage.getItem('vs_c1') || '[]'); }catch(e){ canvassStops=[]; }
   driveFileId = localStorage.getItem('vs_drive_fid') || null;
+  if(typeof dbLocalLoad==='function') dbLocalLoad();
 }
 function localSave() {
   localStorage.setItem('vs_p3', JSON.stringify(prospects));
   localStorage.setItem('vs_c1', JSON.stringify(canvassStops));
+  if(typeof dbLocalSave==='function') dbLocalSave();
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────────
 (function(){ const t=localStorage.getItem('vs_theme'); if(t) document.documentElement.setAttribute('data-theme',t); })();
-function toggleTheme() {
-  const next = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('vs_theme', next);
+function toggleTheme(){
+  const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('vs_theme',next);
 }
 
 // ── DRIVE STATUS ──────────────────────────────────────────────────────────────
-function setStatus(state, msg) {
-  const bar = document.getElementById('drive-bar');
-  const lbl = document.getElementById('drive-label');
-  const btn = document.getElementById('drive-btn');
+function setStatus(state,msg){
+  const bar=document.getElementById('drive-bar');
+  const lbl=document.getElementById('drive-label');
+  const btn=document.getElementById('drive-btn');
   bar.setAttribute('class','');
   if(state) bar.classList.add(state);
-  lbl.textContent = msg;
-  btn.textContent = (state==='connected'||state==='syncing') ? 'Disconnect' : (state==='error' ? 'Retry' : 'Connect');
+  lbl.textContent=msg;
+  btn.textContent=(state==='connected'||state==='syncing')?'Disconnect':(state==='error'?'Retry':'Connect');
 }
+function driveAction(){ accessToken?disconnect():connect(); }
 
-function driveAction() { accessToken ? disconnect() : connect(); }
-
-function connect() {
+function connect(){
   if(typeof google==='undefined'){ setStatus('error','Google script not loaded — check internet connection.'); return; }
   setStatus('syncing','Waiting for Google sign-in…');
   google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID, scope: SCOPES,
-    callback: async (resp) => {
+    client_id:CLIENT_ID, scope:SCOPES,
+    callback:async(resp)=>{
       if(resp.error){ setStatus('error','Sign-in failed: '+resp.error); return; }
-      accessToken = resp.access_token;
+      accessToken=resp.access_token;
+      // Persist token for auto-reconnect attempts
+      localStorage.setItem('vs_at_exp', Date.now() + (resp.expires_in||3599)*1000);
       setStatus('syncing','Signed in — loading Drive data…');
       await driveInit();
     }
   }).requestAccessToken();
 }
 
-function disconnect() {
-  if(accessToken && typeof google!=='undefined') google.accounts.oauth2.revoke(accessToken,()=>{});
-  accessToken=null; localStorage.removeItem('vs_drive_fid');
+function disconnect(){
+  if(accessToken&&typeof google!=='undefined') google.accounts.oauth2.revoke(accessToken,()=>{});
+  accessToken=null;
+  localStorage.removeItem('vs_drive_fid');
+  localStorage.removeItem('vs_at_exp');
   setStatus('','Not connected to Google Drive');
 }
 
+// Silent reconnect on page load using prompt:'none' (no popup if not already signed in)
+function trySilentConnect(){
+  if(typeof google==='undefined') return;
+  const exp=parseInt(localStorage.getItem('vs_at_exp')||'0');
+  if(Date.now() < exp - 60000) return; // still valid
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID, scope:SCOPES,
+    prompt:'none',
+    callback:async(resp)=>{
+      if(resp.error) return; // silently fail — user can manually connect
+      accessToken=resp.access_token;
+      localStorage.setItem('vs_at_exp', Date.now()+(resp.expires_in||3599)*1000);
+      await driveInit();
+    }
+  }).requestAccessToken();
+}
+
 // ── DRIVE API ─────────────────────────────────────────────────────────────────
-async function req(url,opts={}) {
-  const r = await fetch(url,{...opts,headers:{'Authorization':'Bearer '+accessToken,...(opts.headers||{})}});
+async function req(url,opts={}){
+  const r=await fetch(url,{...opts,headers:{'Authorization':'Bearer '+accessToken,...(opts.headers||{})}});
   if(r.status===401){ accessToken=null; setStatus('error','Session expired — click Retry.'); throw new Error('401'); }
   return r;
 }
-async function findFile() {
+async function findFile(){
   const q=encodeURIComponent(`name='${FILE_NAME}' and trashed=false`);
   const r=await req(`${DRIVE_API}/files?q=${q}&fields=files(id)&spaces=drive`);
   const d=await r.json();
   return (d.files&&d.files.length)?d.files[0].id:null;
 }
-async function readFile(id) { const r=await req(`${DRIVE_API}/files/${id}?alt=media`); return await r.json(); }
-async function writeFile(id,data) {
-  const body=JSON.stringify({version:4,updated:new Date().toISOString(),prospects:data.prospects,canvassStops:data.canvassStops});
+async function readFile(id){ const r=await req(`${DRIVE_API}/files/${id}?alt=media`); return await r.json(); }
+async function writeFile(id,data){
+  const body=JSON.stringify({version:5,updated:new Date().toISOString(),prospects:data.prospects,canvassStops:data.canvassStops});
   if(id){ await req(`${UPLOAD_API}/files/${id}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body}); return id; }
   const meta=JSON.stringify({name:FILE_NAME,mimeType:'application/json'});
   const form=new FormData();
@@ -552,25 +866,25 @@ async function writeFile(id,data) {
   return (await r.json()).id;
 }
 
-async function driveInit() {
-  try {
+async function driveInit(){
+  try{
     let loaded=false;
     if(driveFileId){ try{ const d=await readFile(driveFileId); mergeData(d); loaded=true; }catch(e){ if(e.message==='401')return; driveFileId=null; } }
-    if(!loaded){ const fid=await findFile(); if(fid){ driveFileId=fid; localStorage.setItem('vs_drive_fid',driveFileId); const d=await readFile(driveFileId); mergeData(d); } else { driveFileId=await writeFile(null,{prospects,canvassStops}); localStorage.setItem('vs_drive_fid',driveFileId); } }
+    if(!loaded){ const fid=await findFile(); if(fid){ driveFileId=fid; localStorage.setItem('vs_drive_fid',driveFileId); const d=await readFile(driveFileId); mergeData(d); }else{ driveFileId=await writeFile(null,{prospects,canvassStops}); localStorage.setItem('vs_drive_fid',driveFileId); } }
     localSave(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
     setStatus('connected','Google Drive synced — '+prospects.length+' leads, '+canvassStops.length+' canvass stops');
-  } catch(e){ if(e.message!=='401') setStatus('error','Drive error: '+e.message); }
+  }catch(e){ if(e.message!=='401') setStatus('error','Drive error: '+e.message); }
 }
 
-function mergeData(d) {
+function mergeData(d){
   if(Array.isArray(d.prospects))    mergeArr(prospects,    d.prospects);
   if(Array.isArray(d.canvassStops)) mergeArr(canvassStops, d.canvassStops);
 }
-function mergeArr(local,incoming) {
+function mergeArr(local,incoming){
   incoming.forEach(p=>{ if(!p.id||!p.name)return; const i=local.findIndex(x=>x.id===p.id); if(i===-1)local.push(p); else local[i]={...local[i],...p}; });
 }
 
-function scheduleSave() {
+function scheduleSave(){
   if(!accessToken) return;
   clearTimeout(syncTimer);
   syncTimer=setTimeout(async()=>{
@@ -582,84 +896,206 @@ function scheduleSave() {
   },1500);
 }
 
-function save() { localSave(); scheduleSave(); }
-function uid()  { return Date.now()+'_'+Math.random().toString(36).slice(2,6); }
+function save(){ localSave(); scheduleSave(); }
+function uid() { return Date.now()+'_'+Math.random().toString(36).slice(2,6); }
+
+// ── HOURS HELPERS ─────────────────────────────────────────────────────────────
+function hoursChip(openTime, closeTime){
+  if(!openTime && !closeTime) return '';
+  const label=(openTime||'?')+' – '+(closeTime||'?');
+  if(!openTime||!closeTime) return `<span class="hours-chip">🕐 ${label}</span>`;
+  const now=new Date();
+  const cur=now.getHours()*60+now.getMinutes();
+  const [oh,om]=openTime.split(':').map(Number);
+  const [ch,cm]=closeTime.split(':').map(Number);
+  const open=oh*60+om, close=ch*60+cm;
+  const isOpen=cur>=open&&cur<close;
+  return `<span class="hours-chip ${isOpen?'open-now':'closed'}">${isOpen?'Open':'Closed'} · ${label}</span>`;
+}
+
+function isClosedNow(openTime,closeTime){
+  if(!openTime||!closeTime) return false;
+  const now=new Date(); const cur=now.getHours()*60+now.getMinutes();
+  const [oh,om]=openTime.split(':').map(Number);
+  const [ch,cm]=closeTime.split(':').map(Number);
+  return !(cur>=(oh*60+om)&&cur<(ch*60+cm));
+}
 
 // ── CANVASS ───────────────────────────────────────────────────────────────────
-const CANVASS_ACTIVE_STATUSES = ['Not visited yet','No answer / closed','Not interested','Come back later','Decision maker unavailable'];
+const CANVASS_ACTIVE = ['Not visited yet','No answer / closed','Not interested','Come back later','Decision maker unavailable'];
 
-function addCanvass() {
+function addCanvass(){
   const name=document.getElementById('c-name').value.trim();
   if(!name){showMsg('canvass-add-msg','Business name is required.','err');return;}
   canvassStops.push({
     id:uid(), name,
-    addr:  document.getElementById('c-addr').value.trim(),
-    city:  document.getElementById('c-city').value.trim(),
-    phone: document.getElementById('c-phone').value.trim(),
-    notes: document.getElementById('c-notes').value.trim(),
-    status:document.getElementById('c-status').value,
-    date:  new Date().toLocaleDateString(),
-    added: new Date().toISOString(),
+    addr:   document.getElementById('c-addr').value.trim(),
+    phone:  document.getElementById('c-phone').value.trim(),
+    notes:  document.getElementById('c-notes').value.trim(),
+    openTime: document.getElementById('c-open').value,
+    closeTime:document.getElementById('c-close').value,
+    website:document.getElementById('c-website').value.trim(),
+    menu:   document.getElementById('c-menu').value.trim(),
+    status: document.getElementById('c-status').value,
+    date:   new Date().toLocaleDateString(),
+    added:  new Date().toISOString(),
   });
-  save(); updateCanvassStats(); clearCanvassForm(); renderCanvass();
-  showMsg('canvass-add-msg','Stop added — '+canvassStops.length+' total.','ok');
+  save(); updateCanvassStats(); clearCanvassForm();
+  showMsg('canvass-add-form-msg','Stop added — '+canvassStops.length+' total.','ok');
+  switchCanvassTab('today');
 }
 
-function clearCanvassForm() {
-  ['c-name','c-addr','c-city','c-phone','c-notes'].forEach(id=>document.getElementById(id).value='');
+function clearCanvassForm(){
+  ['c-name','c-addr','c-phone','c-notes','c-website','c-menu'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-open').value='';
+  document.getElementById('c-close').value='';
   document.getElementById('c-status').value='Not visited yet';
 }
 
-function updateCanvassStats() {
-  const today=new Date().toLocaleDateString();
-  document.getElementById('cs-total').textContent    = canvassStops.length;
-  document.getElementById('cs-pending').textContent  = canvassStops.filter(c=>CANVASS_ACTIVE_STATUSES.includes(c.status)).length;
-  document.getElementById('cs-converted').textContent= canvassStops.filter(c=>c.status==='Converted').length;
-  document.getElementById('cs-today').textContent    = canvassStops.filter(c=>c.date===today).length;
+function updateCanvassStats(){
+  const todayStr=new Date().toLocaleDateString();
+  document.getElementById('cs-today').textContent     =canvassStops.filter(c=>c.date===todayStr&&CANVASS_ACTIVE.includes(c.status)).length;
+  document.getElementById('cs-followup').textContent  =canvassStops.filter(c=>c.date!==todayStr&&FOLLOWUP_STATUSES.includes(c.status)).length;
+  document.getElementById('cs-pending').textContent   =canvassStops.filter(c=>CANVASS_ACTIVE.includes(c.status)).length;
+  document.getElementById('cs-converted').textContent =canvassStops.filter(c=>c.status==='Converted').length;
+  if(typeof updateCanvassBadges==='function') updateCanvassBadges();
 }
 
-function renderCanvass() {
-  const fStatus=document.getElementById('canvass-filter-status').value;
-  const q=(document.getElementById('canvass-filter-search').value||'').toLowerCase();
-  let list=canvassStops.filter(c=>{
-    if(q&&!c.name.toLowerCase().includes(q))return false;
-    if(fStatus==='all')return true;
-    if(fStatus==='active')return CANVASS_ACTIVE_STATUSES.includes(c.status);
-    if(fStatus==='Converted')return c.status==='Converted';
-    return c.status===fStatus;
+// ── CANVASS SUB-TAB STATE ────────────────────────────────────────────────────
+let canvassCurrentTab = 'today';
+
+const FOLLOWUP_STATUSES = ['Come back later','Decision maker unavailable'];
+const ARCHIVED_STATUSES = ['Converted','Not interested'];
+
+function switchCanvassTab(t){
+  canvassCurrentTab = t;
+  ['today','followup','active','add','archived'].forEach(n=>{
+    document.getElementById('cvt-'+n).classList.toggle('active', n===t);
+    document.getElementById('cvp-'+n).style.display = n===t ? 'block' : 'none';
   });
-  // Most recent first
-  list=[...list].sort((a,b)=>new Date(b.added)-new Date(a.added));
-  const el=document.getElementById('canvass-list');
-  if(!list.length){el.innerHTML='<div class="empty">No canvass stops yet. Add your first stop above.</div>';return;}
-  el.innerHTML=list.map(c=>renderCanvassCard(c)).join('');
+  if(t==='today')    renderCanvass();
+  if(t==='followup') renderCanvassFollowup();
+  if(t==='active')   renderCanvassActive();
+  if(t==='archived') renderCanvassArchived();
 }
 
-function renderCanvassCard(c) {
+function getCanvassBadgeCounts(){
+  const todayStr = new Date().toLocaleDateString();
+  const todayCnt    = canvassStops.filter(c=>c.date===todayStr && CANVASS_ACTIVE.includes(c.status)).length;
+  const followupCnt = canvassStops.filter(c=>c.date!==todayStr && FOLLOWUP_STATUSES.includes(c.status)).length;
+  const activeCnt   = canvassStops.filter(c=>CANVASS_ACTIVE.includes(c.status)).length;
+  return {todayCnt, followupCnt, activeCnt};
+}
+
+function updateCanvassBadges(){
+  const {todayCnt,followupCnt,activeCnt} = getCanvassBadgeCounts();
+  document.getElementById('cvb-today').textContent    = todayCnt    ? '('+todayCnt+')'    : '';
+  document.getElementById('cvb-followup').textContent = followupCnt ? '('+followupCnt+')' : '';
+  document.getElementById('cvb-active').textContent   = activeCnt   ? '('+activeCnt+')'   : '';
+}
+
+// ── TODAY ─────────────────────────────────────────────────────────────────────
+function renderCanvass(){
+  const todayStr = new Date().toLocaleDateString();
+  const q = (document.getElementById('canvass-search-today')||{value:''}).value.toLowerCase();
+  let list = canvassStops.filter(c=>
+    c.date===todayStr &&
+    CANVASS_ACTIVE.includes(c.status) &&
+    (!q || c.name.toLowerCase().includes(q))
+  ).sort((a,b)=>new Date(a.added)-new Date(b.added));
+
+  const el = document.getElementById('canvass-list');
+  if(!list.length){
+    el.innerHTML='<div class="empty">No stops loaded for today yet — go to the <strong>Database</strong> tab to load your canvass list, or use <strong>+ Add Stop</strong> to add manually.</div>';
+    return;
+  }
+  el.innerHTML = list.map(c=>renderCanvassCard(c)).join('');
+}
+
+// ── FOLLOW UP ─────────────────────────────────────────────────────────────────
+function renderCanvassFollowup(){
+  const todayStr = new Date().toLocaleDateString();
+  const q = (document.getElementById('canvass-search-followup')||{value:''}).value.toLowerCase();
+  // Previous days with come-back or DM-unavailable status, sorted oldest first
+  let list = canvassStops.filter(c=>
+    c.date !== todayStr &&
+    FOLLOWUP_STATUSES.includes(c.status) &&
+    (!q || c.name.toLowerCase().includes(q))
+  ).sort((a,b)=>new Date(a.added)-new Date(b.added));
+
+  const el = document.getElementById('canvass-followup-list');
+  if(!list.length){
+    el.innerHTML='<div class="empty">No follow-up stops yet. Stops marked "Come back later" or "Decision maker unavailable" from previous days appear here automatically.</div>';
+    return;
+  }
+  el.innerHTML = list.map(c=>{
+    const daysAgo = Math.floor((new Date()-new Date(c.added))/(1000*60*60*24));
+    const age = daysAgo===0?'Today':daysAgo===1?'Yesterday':daysAgo+' days ago';
+    return renderCanvassCard(c, age);
+  }).join('');
+}
+
+// ── ALL ACTIVE ────────────────────────────────────────────────────────────────
+function renderCanvassActive(){
+  const statusFilter = (document.getElementById('canvass-filter-active-status')||{value:'all'}).value;
+  const q = (document.getElementById('canvass-search-active')||{value:''}).value.toLowerCase();
+  let list = canvassStops.filter(c=>
+    CANVASS_ACTIVE.includes(c.status) &&
+    (statusFilter==='all' || c.status===statusFilter) &&
+    (!q || c.name.toLowerCase().includes(q))
+  ).sort((a,b)=>new Date(b.added)-new Date(a.added));
+
+  const el = document.getElementById('canvass-active-list');
+  if(!list.length){
+    el.innerHTML='<div class="empty">No active canvass stops.</div>';
+    return;
+  }
+  el.innerHTML = list.map(c=>renderCanvassCard(c)).join('');
+}
+
+// ── ARCHIVED ──────────────────────────────────────────────────────────────────
+function renderCanvassArchived(){
+  const q = (document.getElementById('canvass-search-archived')||{value:''}).value.toLowerCase();
+  let list = canvassStops.filter(c=>
+    (c.status==='Converted' || c.status==='Not interested') &&
+    (!q || c.name.toLowerCase().includes(q))
+  ).sort((a,b)=>new Date(b.added)-new Date(a.added));
+
+  const el = document.getElementById('canvass-archived-list');
+  if(!list.length){
+    el.innerHTML='<div class="empty">No archived stops yet.</div>';
+    return;
+  }
+  el.innerHTML = list.map(c=>renderCanvassCard(c)).join('');
+}
+
+function renderCanvassCard(c, ageLabel){
   const isConverted=c.status==='Converted';
-  const statusColor=isConverted?'converted':
-    c.status==='Not interested'?'Lost':
-    c.status==='Come back later'?'contacted':'canvass';
   return `
     <div class="card${isConverted?' archived':''}" id="ccard-${c.id}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
         <div>
           <div class="pname">${esc(c.name)}</div>
-          ${c.date?`<div class="pdetail" style="font-size:11px;color:var(--text3)">${c.date}</div>`:''}
+          ${c.date?`<div class="pdetail" style="font-size:11px;color:var(--text3)">${c.date}${ageLabel?' · <span style="color:var(--yellow-text)">'+ageLabel+'</span>':''}</div>`:''}
         </div>
-        ${isConverted
-          ? `<span class="badge converted">Converted</span>`
-          : `<select onchange="updateCanvassStatus('${c.id}',this.value)" style="height:28px;font-size:12px;padding:0 7px;min-width:170px">
-              ${CANVASS_ACTIVE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
-             </select>`
-        }
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${hoursChip(c.openTime,c.closeTime)}
+          ${isConverted
+            ?`<span class="badge converted">Converted</span>`
+            :`<select onchange="updateCanvassStatus('${c.id}',this.value)" style="height:28px;font-size:12px;padding:0 7px;min-width:170px">
+                ${CANVASS_ACTIVE.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
+              </select>`
+          }
+        </div>
       </div>
-      ${c.addr ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(c.addr)}${c.city?', '+esc(c.city):''}</div>`:''}
-      ${c.phone?`<div class="pdetail">📞 ${esc(c.phone)}</div>`:''}
-      ${c.notes?`<div class="pdetail" style="font-style:italic;margin-top:4px">${esc(c.notes)}</div>`:''}
+      ${c.addr  ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(c.addr)}</div>`:''}
+      ${c.phone ?`<div class="pdetail">📞 ${esc(c.phone)}</div>`:''}
+      ${c.website?`<div class="pdetail">🌐 <a href="${esc(c.website)}" target="_blank">${esc(c.website)}</a></div>`:''}
+      ${c.menu  ?`<div class="pdetail">🍽 <a href="${esc(c.menu)}" target="_blank">View menu</a></div>`:''}
+      ${c.notes ?`<div class="pdetail" style="font-style:italic;margin-top:4px">${esc(c.notes)}</div>`:''}
       <div class="pactions">
         ${c.phone&&!isConverted?`<a href="tel:${esc(c.phone)}" class="btn sm">Call</a>`:''}
-        ${c.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(c.addr+(c.city?', '+c.city:''))}" target="_blank" class="btn sm">Map ↗</a>`:''}
+        ${c.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(c.addr)}" target="_blank" class="btn sm">Map ↗</a>`:''}
         ${!isConverted?`<button class="btn sm" onclick="openCanvassEdit('${c.id}')">Edit</button>`:''}
         ${!isConverted?`<button class="btn sm success" onclick="openConvertModal('${c.id}')">Convert to Lead</button>`:''}
         <button class="btn sm danger" onclick="deleteCanvass('${c.id}')">Remove</button>
@@ -667,17 +1103,16 @@ function renderCanvassCard(c) {
     </div>`;
 }
 
-function updateCanvassStatus(id,val) {
-  const c=canvassStops.find(x=>x.id===id); if(c){c.status=val;save();updateCanvassStats();}
+function updateCanvassStatus(id,val){
+  const c=canvassStops.find(x=>x.id===id); if(c){c.status=val;save();updateCanvassStats();syncDbStatus(id,val);}
 }
-
-function deleteCanvass(id) {
+function deleteCanvass(id){
   canvassStops=canvassStops.filter(c=>c.id!==id);
   routeSelected.delete('c_'+id);
   save(); renderCanvass(); updateCanvassStats();
 }
 
-function openCanvassEdit(id) {
+function openCanvassEdit(id){
   const c=canvassStops.find(x=>x.id===id); if(!c)return;
   const card=document.getElementById('ccard-'+id);
   card.innerHTML=`
@@ -685,17 +1120,26 @@ function openCanvassEdit(id) {
       <div class="row">
         <input type="text" id="ce-name-${id}" value="${esc(c.name)}" placeholder="Business name *" style="flex:2">
         <select id="ce-status-${id}" style="height:38px;font-size:13px;padding:0 8px;min-width:170px">
-          ${CANVASS_ACTIVE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
+          ${CANVASS_ACTIVE.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
       </div>
-      <div class="row">
-        <input type="text" id="ce-addr-${id}" value="${esc(c.addr||'')}" placeholder="Street address" style="flex:2">
-        <input type="text" id="ce-city-${id}" value="${esc(c.city||'')}" placeholder="City, ST" style="max-width:160px">
-      </div>
+      <input type="text" id="ce-addr-${id}" value="${esc(c.addr||'')}" placeholder="Full address">
       <div class="row">
         <input type="tel"  id="ce-phone-${id}" value="${esc(c.phone||'')}" placeholder="Phone">
         <input type="text" id="ce-notes-${id}" value="${esc(c.notes||'')}" placeholder="Notes">
       </div>
+      <div class="row">
+        <div style="flex:1">
+          <div class="field-label">Opens</div>
+          <input type="time" id="ce-open-${id}" value="${c.openTime||''}">
+        </div>
+        <div style="flex:1">
+          <div class="field-label">Closes</div>
+          <input type="time" id="ce-close-${id}" value="${c.closeTime||''}">
+        </div>
+      </div>
+      <input type="url" id="ce-website-${id}" value="${esc(c.website||'')}" placeholder="Website (https://…)">
+      <input type="url" id="ce-menu-${id}" value="${esc(c.menu||'')}" placeholder="Menu link (https://…)">
       <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn primary sm" onclick="saveCanvassEdit('${id}')">Save</button>
         <button class="btn sm" onclick="renderCanvass()">Cancel</button>
@@ -703,21 +1147,23 @@ function openCanvassEdit(id) {
     </div>`;
 }
 
-function saveCanvassEdit(id) {
+function saveCanvassEdit(id){
   const c=canvassStops.find(x=>x.id===id); if(!c)return;
-  c.name  =document.getElementById('ce-name-'+id).value.trim()||c.name;
-  c.status=document.getElementById('ce-status-'+id).value;
-  c.addr  =document.getElementById('ce-addr-'+id).value.trim();
-  c.city  =document.getElementById('ce-city-'+id).value.trim();
-  c.phone =document.getElementById('ce-phone-'+id).value.trim();
-  c.notes =document.getElementById('ce-notes-'+id).value.trim();
+  c.name     =document.getElementById('ce-name-'+id).value.trim()||c.name;
+  c.status   =document.getElementById('ce-status-'+id).value;
+  c.addr     =document.getElementById('ce-addr-'+id).value.trim();
+  c.phone    =document.getElementById('ce-phone-'+id).value.trim();
+  c.notes    =document.getElementById('ce-notes-'+id).value.trim();
+  c.openTime =document.getElementById('ce-open-'+id).value;
+  c.closeTime=document.getElementById('ce-close-'+id).value;
+  c.website  =document.getElementById('ce-website-'+id).value.trim();
+  c.menu     =document.getElementById('ce-menu-'+id).value.trim();
   save(); updateCanvassStats();
-  const card=document.getElementById('ccard-'+id);
-  card.outerHTML=renderCanvassCard(c);
+  document.getElementById('ccard-'+id).outerHTML=renderCanvassCard(c);
 }
 
-// ── CONVERT TO LEAD MODAL ─────────────────────────────────────────────────────
-function openConvertModal(canvassId) {
+// ── CONVERT TO LEAD ───────────────────────────────────────────────────────────
+function openConvertModal(canvassId){
   document.getElementById('modal-canvass-id').value=canvassId;
   document.getElementById('m-email').value='';
   document.getElementById('m-owner').value='';
@@ -725,46 +1171,75 @@ function openConvertModal(canvassId) {
   document.getElementById('m-pos-other').style.display='none';
   document.getElementById('convert-modal').style.display='flex';
 }
-function closeModal() { document.getElementById('convert-modal').style.display='none'; }
+function closeModal(){ document.getElementById('convert-modal').style.display='none'; }
 function toggleModalOther(v){ const el=document.getElementById('m-pos-other'); el.style.display=v==='other'?'block':'none'; if(v==='other')el.focus(); }
 
-function confirmConvert() {
+function confirmConvert(){
   const canvassId=document.getElementById('modal-canvass-id').value;
   const c=canvassStops.find(x=>x.id===canvassId); if(!c)return;
   const posVal=document.getElementById('m-pos').value;
   const current=posVal==='other'?document.getElementById('m-pos-other').value.trim():posVal;
-
-  // Create lead from canvass data + modal extras
   prospects.push({
-    id:uid(), name:c.name, addr:c.addr, city:c.city, phone:c.phone,
+    id:uid(), name:c.name, addr:c.addr, phone:c.phone,
     email:document.getElementById('m-email').value.trim(),
     current, owner:document.getElementById('m-owner').value.trim(),
+    website:c.website||'', menu:c.menu||'',
     notes:c.notes, status:'Open',
     added:new Date().toLocaleDateString(),
     fromCanvass:canvassId,
   });
-
-  // Archive canvass stop
-  c.status='Converted';
-  c.convertedDate=new Date().toLocaleDateString();
-
+  c.status='Converted'; c.convertedDate=new Date().toLocaleDateString();
   save(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
   closeModal();
   showMsg('canvass-add-msg',`${c.name} converted to lead.`,'ok');
+  updateCanvassBadges();
+}
+
+// ── DEMOTE LEAD TO CANVASS ────────────────────────────────────────────────────
+function openDemoteModal(leadId){
+  document.getElementById('demote-lead-id').value=leadId;
+  document.getElementById('demote-notes').value='';
+  document.getElementById('demote-status').value='Come back later';
+  document.getElementById('demote-modal').style.display='flex';
+}
+function closeDemoteModal(){ document.getElementById('demote-modal').style.display='none'; }
+
+function confirmDemote(){
+  const leadId=document.getElementById('demote-lead-id').value;
+  const p=prospects.find(x=>x.id===leadId); if(!p)return;
+  const reason=document.getElementById('demote-notes').value.trim();
+  const status=document.getElementById('demote-status').value;
+  // Re-add to canvass, preserving all data
+  canvassStops.push({
+    id:uid(), name:p.name, addr:p.addr||'', phone:p.phone||'',
+    notes:(reason?reason+' — ':'')+('Previously a lead'+(p.notes?' — '+p.notes:'')),
+    website:p.website||'', menu:p.menu||'',
+    openTime:'', closeTime:'',
+    status, date:new Date().toLocaleDateString(),
+    added:new Date().toISOString(),
+    fromLead:leadId,
+  });
+  // Remove from leads
+  prospects=prospects.filter(x=>x.id!==leadId);
+  routeSelected.delete('p_'+leadId);
+  save(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
+  closeDemoteModal();
+  showMsg('add-msg',`${p.name} moved back to canvass.`,'ok');
 }
 
 // ── LEADS ─────────────────────────────────────────────────────────────────────
-function addProspect() {
+function addProspect(){
   const name=document.getElementById('p-name').value.trim();
   if(!name){showMsg('add-msg','Name is required.','err');return;}
   prospects.push({
     id:uid(), name,
     addr:   document.getElementById('p-addr').value.trim(),
-    city:   document.getElementById('p-city').value.trim(),
     phone:  document.getElementById('p-phone').value.trim(),
     email:  document.getElementById('p-email').value.trim(),
     current:getPosValue(),
     owner:  document.getElementById('p-owner').value.trim(),
+    website:document.getElementById('p-website').value.trim(),
+    menu:   document.getElementById('p-menu').value.trim(),
     notes:  document.getElementById('p-notes').value.trim(),
     status: document.getElementById('p-status').value||'Open',
     added:  new Date().toLocaleDateString(),
@@ -773,25 +1248,25 @@ function addProspect() {
   showMsg('add-msg','Added — '+prospects.length+' leads total.','ok');
 }
 
-function clearForm() {
-  ['p-name','p-addr','p-city','p-phone','p-email','p-current-other','p-owner','p-notes'].forEach(id=>document.getElementById(id).value='');
+function clearForm(){
+  ['p-name','p-addr','p-phone','p-email','p-current-other','p-owner','p-website','p-menu','p-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('p-current').value='';
   document.getElementById('p-current-other').style.display='none';
   document.getElementById('p-status').value='Open';
 }
 
-function updateStats() {
-  document.getElementById('s-total').textContent = prospects.length;
-  document.getElementById('s-open').textContent  = prospects.filter(p=>p.status==='Open').length;
-  document.getElementById('s-won').textContent   = prospects.filter(p=>p.status==='Won').length;
-  document.getElementById('s-lost').textContent  = prospects.filter(p=>p.status==='Lost').length;
+function updateStats(){
+  document.getElementById('s-total').textContent=prospects.length;
+  document.getElementById('s-open').textContent =prospects.filter(p=>p.status==='Open').length;
+  document.getElementById('s-won').textContent  =prospects.filter(p=>p.status==='Won').length;
+  document.getElementById('s-lost').textContent =prospects.filter(p=>p.status==='Lost').length;
   document.getElementById('count-badge').textContent=prospects.length?'('+prospects.length+')':'';
 }
 
-function updateStatus(id,val) { const p=prospects.find(x=>x.id===id); if(p){p.status=val;save();updateStats();} }
-function deleteProspect(id)   { prospects=prospects.filter(p=>p.id!==id); routeSelected.delete('p_'+id); save();renderList();updateStats(); }
+function updateStatus(id,val){ const p=prospects.find(x=>x.id===id); if(p){p.status=val;save();updateStats();} }
+function deleteProspect(id){ prospects=prospects.filter(p=>p.id!==id); routeSelected.delete('p_'+id); save();renderList();updateStats(); }
 
-function renderList() {
+function renderList(){
   const status=document.getElementById('filter-status').value;
   const q=(document.getElementById('filter-search').value||'').toLowerCase();
   const list=prospects.filter(p=>(status==='all'||p.status===status)&&p.name.toLowerCase().includes(q));
@@ -800,7 +1275,7 @@ function renderList() {
   el.innerHTML=list.map(p=>renderCard(p)).join('');
 }
 
-function renderCard(p) {
+function renderCard(p){
   return `
     <div class="card" id="card-${p.id}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
@@ -815,30 +1290,33 @@ function renderCard(p) {
           <option value="Abandoned"${p.status==='Abandoned'?' selected':''}>Abandoned</option>
         </select>
       </div>
-      ${p.addr   ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(p.addr)}${p.city?', '+esc(p.city):''}</div>`:''}
+      ${p.addr   ?`<div class="pdetail" style="margin-top:6px">📍 ${esc(p.addr)}</div>`:''}
       ${p.phone  ?`<div class="pdetail">📞 ${esc(p.phone)}</div>`:''}
       ${p.email  ?`<div class="pdetail">✉ ${esc(p.email)}</div>`:''}
       ${p.current?`<div class="pdetail">POS: ${esc(p.current)}</div>`:''}
+      ${p.website?`<div class="pdetail">🌐 <a href="${esc(p.website)}" target="_blank">${esc(p.website)}</a></div>`:''}
+      ${p.menu   ?`<div class="pdetail">🍽 <a href="${esc(p.menu)}" target="_blank">View menu</a></div>`:''}
       ${p.notes  ?`<div class="pdetail" style="font-style:italic;margin-top:4px">${esc(p.notes)}</div>`:''}
       <div class="pactions">
         ${p.phone?`<a href="tel:${esc(p.phone)}" class="btn sm">Call</a>`:''}
-        ${p.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(p.addr+(p.city?', '+p.city:''))}" target="_blank" class="btn sm">Map ↗</a>`:''}
+        ${p.addr ?`<a href="https://maps.google.com?q=${encodeURIComponent(p.addr)}" target="_blank" class="btn sm">Map ↗</a>`:''}
         <button class="btn sm" onclick="openEdit('${p.id}')">Edit</button>
+        <button class="btn sm warning" onclick="openDemoteModal('${p.id}')">↩ Canvass</button>
         <button class="btn sm danger" onclick="deleteProspect('${p.id}')">Remove</button>
       </div>
     </div>`;
 }
 
-function openEdit(id) {
+function openEdit(id){
   const p=prospects.find(x=>x.id===id); if(!p)return;
   const card=document.getElementById('card-'+id);
-  const posOptions=['','Toast','Square for Restaurants','Clover','Lightspeed','TouchBistro','Revel Systems','Aloha (NCR)','Micros (Oracle)','Heartland','SpotOn','Shift4 (Harbortouch)','PAX','None / Unknown'];
-  const isOther=p.current&&!posOptions.includes(p.current);
-  const posSelect=posOptions.map(o=>`<option value="${o}"${p.current===o?' selected':''}>${o||'Current POS system…'}</option>`).join('')+`<option value="__other__"${isOther?' selected':''}>Other…</option>`;
+  const posOpts=['','Toast','Square for Restaurants','Clover','Lightspeed','TouchBistro','Revel Systems','Aloha (NCR)','Micros (Oracle)','Heartland','SpotOn','Shift4 (Harbortouch)','PAX','None / Unknown'];
+  const isOther=p.current&&!posOpts.includes(p.current);
+  const posSelect=posOpts.map(o=>`<option value="${o}"${p.current===o?' selected':''}>${o||'Current POS system…'}</option>`).join('')+`<option value="__other__"${isOther?' selected':''}>Other…</option>`;
   card.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:8px">
       <div class="row">
-        <input type="text" id="e-name-${id}" value="${esc(p.name)}" placeholder="Restaurant name *" style="flex:2;min-width:160px">
+        <input type="text" id="e-name-${id}" value="${esc(p.name)}" placeholder="Restaurant name *" style="flex:2">
         <select id="e-status-${id}" style="min-width:118px;height:38px;font-size:13px;padding:0 8px">
           <option value="Open"${p.status==='Open'?' selected':''}>Open</option>
           <option value="Won"${p.status==='Won'?' selected':''}>Won</option>
@@ -846,10 +1324,7 @@ function openEdit(id) {
           <option value="Abandoned"${p.status==='Abandoned'?' selected':''}>Abandoned</option>
         </select>
       </div>
-      <div class="row">
-        <input type="text" id="e-addr-${id}" value="${esc(p.addr||'')}" placeholder="Street address" style="flex:2">
-        <input type="text" id="e-city-${id}" value="${esc(p.city||'')}" placeholder="City, ST" style="max-width:160px">
-      </div>
+      <input type="text" id="e-addr-${id}" value="${esc(p.addr||'')}" placeholder="Full address">
       <div class="row">
         <input type="tel"  id="e-phone-${id}" value="${esc(p.phone||'')}" placeholder="Phone">
         <input type="text" id="e-email-${id}" value="${esc(p.email||'')}" placeholder="Email">
@@ -858,8 +1333,10 @@ function openEdit(id) {
         <select id="e-pos-${id}" onchange="toggleEditOther('${id}',this.value)" style="height:38px;font-size:13px;padding:0 8px">${posSelect}</select>
         <input type="text" id="e-pos-other-${id}" value="${isOther?esc(p.current):''}" placeholder="Specify POS…" style="display:${isOther?'block':'none'}">
       </div>
-      <input type="text" id="e-owner-${id}" value="${esc(p.owner||'')}" placeholder="Main contact name">
-      <input type="text" id="e-notes-${id}" value="${esc(p.notes||'')}" placeholder="Notes">
+      <input type="text" id="e-owner-${id}"   value="${esc(p.owner||'')}"   placeholder="Main contact name">
+      <input type="url"  id="e-website-${id}" value="${esc(p.website||'')}" placeholder="Website (https://…)">
+      <input type="url"  id="e-menu-${id}"    value="${esc(p.menu||'')}"    placeholder="Menu link (https://…)">
+      <input type="text" id="e-notes-${id}"   value="${esc(p.notes||'')}"   placeholder="Notes">
       <div style="display:flex;gap:8px;margin-top:4px">
         <button class="btn primary sm" onclick="saveEdit('${id}')">Save</button>
         <button class="btn sm" onclick="cancelEdit('${id}')">Cancel</button>
@@ -869,164 +1346,349 @@ function openEdit(id) {
 
 function toggleEditOther(id,val){ const el=document.getElementById('e-pos-other-'+id); el.style.display=val==='__other__'?'block':'none'; if(val==='__other__')el.focus(); }
 
-function saveEdit(id) {
+function saveEdit(id){
   const p=prospects.find(x=>x.id===id); if(!p)return;
   const posVal=document.getElementById('e-pos-'+id).value;
   p.name   =document.getElementById('e-name-'+id).value.trim()||p.name;
   p.status =document.getElementById('e-status-'+id).value;
   p.addr   =document.getElementById('e-addr-'+id).value.trim();
-  p.city   =document.getElementById('e-city-'+id).value.trim();
   p.phone  =document.getElementById('e-phone-'+id).value.trim();
   p.email  =document.getElementById('e-email-'+id).value.trim();
   p.current=posVal==='__other__'?document.getElementById('e-pos-other-'+id).value.trim():posVal;
   p.owner  =document.getElementById('e-owner-'+id).value.trim();
+  p.website=document.getElementById('e-website-'+id).value.trim();
+  p.menu   =document.getElementById('e-menu-'+id).value.trim();
   p.notes  =document.getElementById('e-notes-'+id).value.trim();
   save(); updateStats();
   document.getElementById('card-'+id).outerHTML=renderCard(p);
 }
-
-function cancelEdit(id) { const p=prospects.find(x=>x.id===id); if(!p)return; document.getElementById('card-'+id).outerHTML=renderCard(p); }
+function cancelEdit(id){ const p=prospects.find(x=>x.id===id); if(!p)return; document.getElementById('card-'+id).outerHTML=renderCard(p); }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
-function switchTab(t) {
-  const order=['canvass','list','route','sync','sources'];
+function switchTab(t){
+  const order=['db','canvass','list','route','sync','sources'];
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',order[i]===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   if(t==='list'){ renderList(); updateStats(); }
-  if(t==='canvass'){ renderCanvass(); updateCanvassStats(); }
+  if(t==='canvass'){ updateCanvassStats(); switchCanvassTab(canvassCurrentTab||'today'); }
   if(t==='route') renderRoute();
+  if(t==='db'){ renderDb(); updateDbStats(); renderZones(); renderWeekPlanner(); }
+  if(t==='sync'){ populateDbExportFilter(); }
 }
 
 // ── ROUTE ─────────────────────────────────────────────────────────────────────
-function renderRoute() {
-  // Canvass stops (active only, with address)
-  const cList=canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE_STATUSES.includes(c.status));
+function renderRoute(){
+  const now=new Date();
+  // Canvass stops — active, with address; flag if closed
+  const cList=canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE.includes(c.status));
   const elC=document.getElementById('route-canvass-list');
-  elC.innerHTML=cList.length ? cList.map(c=>`
-    <label class="route-row">
+  elC.innerHTML=cList.length?cList.map(c=>{
+    const closed=isClosedNow(c.openTime,c.closeTime);
+    return `<label class="route-row${closed?' '+'':''}">
       <input type="checkbox" ${routeSelected.has('c_'+c.id)?'checked':''} onchange="toggleRoute('c_${c.id}',this.checked)">
-      <span class="route-name">${esc(c.name)}</span>
-      <span class="route-addr">${esc(c.addr)}${c.city?', '+esc(c.city):''}</span>
-      <span class="badge canvass" style="flex-shrink:0">${esc(c.status)}</span>
-    </label>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No active canvass stops with addresses.</div>';
+      <span class="route-name" style="${closed?'color:var(--text3)':''}">${esc(c.name)}${closed?' ⚠':''}  </span>
+      <span class="route-meta">
+        <span>${esc(c.addr)}</span>
+        ${hoursChip(c.openTime,c.closeTime)}
+      </span>
+    </label>`;
+  }).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No active canvass stops with addresses.</div>';
 
-  // Leads (Open only, with address)
+  // Leads — Open, with address
   const pList=prospects.filter(p=>p.addr&&p.status==='Open');
   const elP=document.getElementById('route-leads-list');
-  elP.innerHTML=pList.length ? pList.map(p=>`
+  elP.innerHTML=pList.length?pList.map(p=>`
     <label class="route-row">
       <input type="checkbox" ${routeSelected.has('p_'+p.id)?'checked':''} onchange="toggleRoute('p_${p.id}',this.checked)">
       <span class="route-name">${esc(p.name)}</span>
-      <span class="route-addr">${esc(p.addr)}${p.city?', '+esc(p.city):''}</span>
-      <span class="badge Open" style="flex-shrink:0">Lead</span>
-    </label>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:8px 0">No open leads with addresses.</div>';
+      <span class="route-meta"><span>${esc(p.addr)}</span><span class="badge Open">Lead</span></span>
+    </label>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">No open leads with addresses.</div>';
 
   updateRouteCount();
 }
 
 function toggleRoute(key,val){ val?routeSelected.add(key):routeSelected.delete(key); updateRouteCount(); }
 function updateRouteCount(){ document.getElementById('route-count').textContent=routeSelected.size?routeSelected.size+' selected':''; }
-function selectRouteCanvass(){ canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE_STATUSES.includes(c.status)).forEach(c=>routeSelected.add('c_'+c.id)); renderRoute(); }
+function selectRouteCanvass(){ canvassStops.filter(c=>c.addr&&CANVASS_ACTIVE.includes(c.status)).forEach(c=>routeSelected.add('c_'+c.id)); renderRoute(); }
 function selectRouteLeads()  { prospects.filter(p=>p.addr&&p.status==='Open').forEach(p=>routeSelected.add('p_'+p.id)); renderRoute(); }
 function clearRouteSelect()  { routeSelected.clear(); renderRoute(); }
 
-function getRouteItems() {
+function getRouteItems(){
   const items=[];
   routeSelected.forEach(key=>{
-    if(key.startsWith('c_')){ const c=canvassStops.find(x=>x.id===key.slice(2)); if(c&&c.addr)items.push({name:c.name,addr:c.addr,city:c.city||''}); }
-    else{ const p=prospects.find(x=>x.id===key.slice(2)); if(p&&p.addr)items.push({name:p.name,addr:p.addr,city:p.city||''}); }
+    if(key.startsWith('c_')){ const c=canvassStops.find(x=>x.id===key.slice(2)); if(c&&c.addr)items.push({name:c.name,addr:c.addr}); }
+    else{ const p=prospects.find(x=>x.id===key.slice(2)); if(p&&p.addr)items.push({name:p.name,addr:p.addr}); }
   });
   return items;
 }
 
-function openGoogleMaps() {
+function openGoogleMaps(){
   const items=getRouteItems();
   if(!items.length){showMsg('route-msg','Select at least one stop with an address.','err');return;}
-  window.open('https://www.google.com/maps/dir/'+items.map(i=>encodeURIComponent(i.addr+(i.city?', '+i.city:''))).join('/'),'_blank');
+  window.open('https://www.google.com/maps/dir/'+items.map(i=>encodeURIComponent(i.addr)).join('/'),'_blank');
   showMsg('route-msg','Opened '+items.length+' stops in Google Maps.','ok');
 }
-function openRouteXL() {
+function openRouteXL(){
   const items=getRouteItems();
   if(!items.length){showMsg('route-msg','Select at least one stop.','err');return;}
   copyAddresses();
   window.open('https://www.routexl.com','_blank');
   showMsg('route-msg','RouteXL opened — paste your addresses in.','ok');
 }
-function copyAddresses() {
+function copyAddresses(){
   const items=getRouteItems();
   if(!items.length){showMsg('route-msg','Select stops first.','err');return;}
-  navigator.clipboard.writeText(items.map(i=>i.name+'\n'+i.addr+(i.city?', '+i.city:'')).join('\n\n'))
+  navigator.clipboard.writeText(items.map(i=>i.name+'\n'+i.addr).join('\n\n'))
     .then(()=>showMsg('route-msg',items.length+' addresses copied.','ok'));
 }
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
-function getJSON(){ return JSON.stringify({version:4,exported:new Date().toISOString(),prospects,canvassStops},null,2); }
+function getJSON(){ return JSON.stringify({version:5,exported:new Date().toISOString(),prospects,canvassStops},null,2); }
 function today()  { return new Date().toISOString().slice(0,10); }
+function stamp(prefix){
+  const now=new Date();
+  const ymd=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const hhmm=String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  const owner=document.getElementById('export-owner')?document.getElementById('export-owner').value:'AaronNeece';
+  const slug=owner.replace(/\s+/g,'');
+  return slug+'-'+ymd+'-'+hhmm+(prefix?'-'+prefix:'');
+}
 function dl(content,type,filename){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type})); a.download=filename; a.click(); }
-function downloadJSON(){ dl(getJSON(),'application/json','vs_backup_'+today()+'.json'); showMsg('export-msg','JSON backup downloaded.','ok'); }
-function copyJSON() { navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok')); }
+function downloadJSON(){ dl(getJSON(),'application/json',stamp('backup')+'.json'); showMsg('export-msg','JSON backup downloaded — '+stamp('backup')+'.json','ok'); }
+function copyJSON(){ navigator.clipboard.writeText(getJSON()).then(()=>showMsg('export-msg','Copied to clipboard.','ok')); }
 
-function exportXLSX() {
-  if(typeof XLSX==='undefined'){ showMsg('export-msg','Excel library not loaded — check internet connection.','err'); return; }
+function exportCSVs(){
+  const fileStamp   = stamp();  // AaronNeece-YYYY-MM-DD-HHMM
+  const exportOwner = document.getElementById('export-owner').value;
+
   const closeDate=new Date(); closeDate.setDate(closeDate.getDate()+30);
   const closeDateStr=(closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
-  const owner=document.getElementById('export-owner').value;
-  const headers=['Name','Pipeline','Status','Stage','Source','Close Date','Owner','Primary Contact','Description','CURRENT POS'];
-  const dataRows=prospects.map(p=>{
-    const fullAddr=[p.addr,p.city].filter(Boolean).join(', ');
-    const descParts=[];
-    if(p.notes)  descParts.push(p.notes);
-    if(fullAddr) descParts.push('Address: '+fullAddr);
-    if(p.phone)  descParts.push('Phone: '+p.phone);
-    if(p.email)  descParts.push('Email: '+p.email);
-    return [p.name,'Sales',p.status||'Open','Qualified','Cold Call',closeDateStr,owner,p.owner||'',descParts.join('\n'),p.current||''];
+
+  const csvRow=arr=>arr.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',');
+  function buildCSV(headers, rows){
+    return [csvRow(headers), ...rows.map(csvRow)].join('\n');
+  }
+
+  // ── 1. Companies ─────────────────────────────────────────────────────────
+  const compHeaders=[
+    'Name','Details','Street','City','State','Postal Code','Country',
+    'Contact Type','Owned By','Work Phone','Work Website',
+    'CURRENT POS SOFTWARE cf_343021','NOTES cf_525882'
+  ];
+  const compRows=prospects.map(p=>{
+    const details=[];
+    if(p.phone) details.push('Phone: '+p.phone);
+    if(p.email) details.push('Email: '+p.email);
+    return [
+      p.name,
+      details.join('\n'),
+      p.addr   ||'','','','',
+      'United States',
+      'Potential Customer',
+      exportOwner,
+      p.phone  ||'',
+      p.website||'',
+      p.current||'',
+      p.notes  ||'',
+    ];
   });
-  const ws=XLSX.utils.aoa_to_sheet([headers,...dataRows]);
-  ws['!cols']=[{wch:30},{wch:10},{wch:10},{wch:12},{wch:10},{wch:12},{wch:16},{wch:20},{wch:50},{wch:22}];
-  const range=XLSX.utils.decode_range(ws['!ref']);
-  for(let r=1;r<=range.e.r;r++){ const ca=XLSX.utils.encode_cell({r,c:8}); if(ws[ca]){if(!ws[ca].s)ws[ca].s={};ws[ca].s.alignment={wrapText:true};} }
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Leads');
-  XLSX.writeFile(wb,'copper_import_'+today()+'.xlsx');
-  showMsg('export-msg',prospects.length+' leads exported — ready to import into Copper.','ok');
+
+  // ── 2. People ─────────────────────────────────────────────────────────────
+  const peopleHeaders=[
+    'First Name','Last Name','Title','Company','Owned By',
+    'Street','City','State','Postal Code','Country','Contact Type',
+    'Work Phone','Mobile Phone','Work Email',
+    'MOBILE PHONE cf_434979'
+  ];
+  const peopleRows=[];
+  prospects.forEach(p=>{
+    if(!p.owner) return;
+    const parts=p.owner.trim().split(/\s+/);
+    peopleRows.push([
+      parts[0]||'', parts.slice(1).join(' ')||'',
+      '', p.name, exportOwner,
+      p.addr||'','','','',
+      'United States','Potential Customer',
+      p.phone||'','',p.email||'',
+      p.phone||'',
+    ]);
+  });
+
+  // ── 3. Opportunities ──────────────────────────────────────────────────────
+  const oppHeaders=[
+    'Name','Details','Company','Primary Person Contact',
+    'Status','Priority','Owner','Close Date',
+    'Pipeline','Stage','Source',
+    'CURRENT POS cf_343022'
+  ];
+  const oppRows=prospects.map(p=>{
+    const details=[];
+    if(p.notes)   details.push(p.notes);
+    if(p.addr)    details.push('Address: '+p.addr);
+    if(p.phone)   details.push('Phone: '+p.phone);
+    if(p.email)   details.push('Email: '+p.email);
+    if(p.website) details.push('Website: '+p.website);
+    if(p.menu)    details.push('Menu: '+p.menu);
+    return [
+      p.name, details.join(' | '),
+      p.name, p.owner||'',
+      p.status||'Open','None',
+      exportOwner, closeDateStr,
+      'Sales','Qualified','Cold Call',
+      p.current||'',
+    ];
+  });
+
+  // ── Download all three ────────────────────────────────────────────────────
+  dl(buildCSV(compHeaders,  compRows),  'text/csv', fileStamp+'-companies.csv');
+  setTimeout(()=>dl(buildCSV(peopleHeaders, peopleRows), 'text/csv', fileStamp+'-people.csv'),  300);
+  setTimeout(()=>dl(buildCSV(oppHeaders,    oppRows),    'text/csv', fileStamp+'-opportunities.csv'), 600);
+
+  showMsg('export-msg',
+    `3 CSV files downloading — import in order: companies → people → opportunities.`,
+    'ok');
 }
+function exportCanvassSummary(){
+  const now     = new Date();
+  const todayStr= now.toLocaleDateString();
 
-function exportCanvassSummary() {
-  if(typeof XLSX==='undefined'){ showMsg('export-msg','Excel library not loaded.','err'); return; }
-  const todayStr=new Date().toLocaleDateString();
   const todayStops=canvassStops.filter(c=>c.date===todayStr);
-  if(!todayStops.length){ showMsg('export-msg',"No canvass stops logged today yet.",'err'); return; }
+  if(!todayStops.length){ showMsg('canvass-add-msg','No canvass stops logged today yet.','err'); return; }
 
-  const headers=['Business Name','Address','City','Phone','Status','Notes','Time Added'];
-  const rows=todayStops.map(c=>[
-    c.name, c.addr||'', c.city||'', c.phone||'', c.status, c.notes||'',
-    c.added?new Date(c.added).toLocaleTimeString():''
-  ]);
+  const csvRow=arr=>arr.map(v=>'"'+(String(v||'')).replace(/"/g,'""')+'"').join(',');
 
-  // Summary stats at top
-  const summary=[
-    ['DAILY CANVASS SUMMARY — '+todayStr],
-    ['Total stops today:', todayStops.length],
-    ['Converted to lead:', todayStops.filter(c=>c.status==='Converted').length],
-    ['Come back later:',   todayStops.filter(c=>c.status==='Come back later').length],
-    ['Not interested:',    todayStops.filter(c=>c.status==='Not interested').length],
-    ['No answer / closed:',todayStops.filter(c=>c.status==='No answer / closed').length],
-    ['Decision maker unavailable:', todayStops.filter(c=>c.status==='Decision maker unavailable').length],
-    [],
-    headers,
-    ...rows
+  // Summary block at top (as comment rows)
+  const summaryLines=[
+    '# DAILY CANVASS SUMMARY — '+todayStr,
+    '# Exported by: '+(document.getElementById('export-owner')?document.getElementById('export-owner').value:'Aaron Neece'),
+    '# Total stops today: '+todayStops.length,
+    '# Converted to lead: '+todayStops.filter(c=>c.status==='Converted').length,
+    '# Come back later: '+todayStops.filter(c=>c.status==='Come back later').length,
+    '# Not interested: '+todayStops.filter(c=>c.status==='Not interested').length,
+    '# No answer / closed: '+todayStops.filter(c=>c.status==='No answer / closed').length,
+    '# Decision maker unavailable: '+todayStops.filter(c=>c.status==='Decision maker unavailable').length,
+    '',
   ];
 
-  const ws=XLSX.utils.aoa_to_sheet(summary);
-  ws['!cols']=[{wch:30},{wch:25},{wch:15},{wch:15},{wch:28},{wch:40},{wch:15}];
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Daily Summary');
-  XLSX.writeFile(wb,'canvass_summary_'+today()+'.xlsx');
-  showMsg('export-msg',"Today's canvass summary downloaded — "+todayStops.length+' stops.','ok');
+  const headers=['Business Name','Address','Phone','Hours','Status','Notes','Website','Menu','Time Added'];
+  const rows=todayStops.map(c=>[
+    c.name, c.addr||'', c.phone||'',
+    (c.openTime&&c.closeTime)?c.openTime+' - '+c.closeTime:'',
+    c.status, c.notes||'', c.website||'', c.menu||'',
+    c.added?new Date(c.added).toLocaleTimeString():'',
+  ]);
+
+  const csv=summaryLines.join('\n')+csvRow(headers)+'\n'+rows.map(csvRow).join('\n');
+  dl(csv,'text/csv', stamp('canvass-summary')+'.csv');
+  showMsg('canvass-add-msg',"Canvass summary downloaded — "+todayStops.length+' stops.','ok');
+}
+
+function exportCanvassCSVs(){
+  // Exports active canvass stops to Copper's Prospecting pipeline.
+  // Import order: 1-companies → 2-people → 3-opportunities
+  const now      = new Date();
+  const ymd      = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const hhmm     = String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  const exportOwner = document.getElementById('export-owner').value;
+  const nameSlug    = exportOwner.replace(/\s+/g,'');
+  const filePrefix  = nameSlug+'-'+ymd+'-'+hhmm+'-canvass';
+
+  // Only export active (non-converted) stops
+  const active = canvassStops.filter(c => CANVASS_ACTIVE.includes(c.status));
+  if(!active.length){
+    showMsg('canvass-export-msg','No active canvass stops to export.','err');
+    return;
+  }
+
+  // Map canvass status → Copper Stage name
+  const stageMap = {
+    'Not visited yet':              'Not Visited',
+    'No answer / closed':           'No Answer',
+    'Not interested':               'Not Interested',
+    'Come back later':              'Come Back Later',
+    'Decision maker unavailable':   'Decision Maker Unavailable',
+  };
+
+  const csvRow=arr=>arr.map(v=>'"'+(String(v||'')).replace(/"/g,'""')+'"').join(',');
+
+  // ── Companies ──────────────────────────────────────────────────────────────
+  const compHeaders=[
+    'Name','Details','Street','City','State','Postal Code','Country',
+    'Contact Type','Owned By','Work Phone','Work Website',
+    'CURRENT POS SOFTWARE cf_343021','NOTES cf_525882'
+  ];
+  const compRows = active.map(c=>[
+    c.name,
+    c.notes||'',
+    c.addr ||'','','','',
+    'United States',
+    'Potential Customer',
+    exportOwner,
+    c.phone  ||'',
+    c.website||'',
+    '',               // POS unknown at canvass stage
+    c.notes  ||'',
+  ]);
+
+  // ── People ─────────────────────────────────────────────────────────────────
+  // Canvass stops rarely have a named contact — skip People sheet if none
+  const peopleHeaders=[
+    'First Name','Last Name','Title','Company','Owned By',
+    'Street','City','State','Postal Code','Country','Contact Type',
+    'Work Phone','Mobile Phone','Work Email',
+    'MOBILE PHONE cf_434979'
+  ];
+  const peopleRows=[];
+  // (No owner field on canvass stops — leave sheet empty but include headers
+  //  so Copper import doesn't error if user tries to import it)
+
+  // ── Opportunities ──────────────────────────────────────────────────────────
+  const closeDate=new Date(); closeDate.setDate(closeDate.getDate()+30);
+  const closeDateStr=(closeDate.getMonth()+1)+'/'+closeDate.getDate()+'/'+closeDate.getFullYear();
+
+  const oppHeaders=[
+    'Name','Details','Company','Primary Person Contact',
+    'Status','Priority','Owner','Close Date',
+    'Pipeline','Stage','Source',
+    'CURRENT POS cf_343022'
+  ];
+  const oppRows = active.map(c=>{
+    const details=[];
+    if(c.notes)  details.push(c.notes);
+    if(c.addr)   details.push('Address: '+c.addr);
+    if(c.phone)  details.push('Phone: '+c.phone);
+    if(c.website)details.push('Website: '+c.website);
+    if(c.menu)   details.push('Menu: '+c.menu);
+    if(c.openTime&&c.closeTime) details.push('Hours: '+c.openTime+' - '+c.closeTime);
+    return [
+      c.name,
+      details.join('\n'),
+      c.name,          // Company
+      '',              // No contact yet
+      'Open',          // Status
+      'None',          // Priority
+      exportOwner,
+      closeDateStr,
+      'Prospecting',   // Pipeline
+      stageMap[c.status]||c.status,  // Stage
+      'Cold Call',     // Source
+      '',              // POS unknown at canvass stage
+    ];
+  });
+
+  dl([csvRow(compHeaders),  ...compRows.map(csvRow)].join('\n'),  'text/csv', filePrefix+'-companies.csv');
+  setTimeout(()=>dl([csvRow(peopleHeaders),...peopleRows.map(csvRow)].join('\n'),'text/csv',filePrefix+'-people.csv'),   300);
+  setTimeout(()=>dl([csvRow(oppHeaders),   ...oppRows.map(csvRow)].join('\n'),   'text/csv',filePrefix+'-opportunities.csv'),600);
+
+  showMsg('canvass-export-msg',
+    `Canvass exported: ${active.length} stops to Prospecting pipeline — import companies → people → opportunities.`,
+    'ok');
 }
 
 function importJSON(){ const t=document.getElementById('import-text').value.trim(); if(!t){showMsg('import-msg','Paste exported JSON first.','err');return;} processImport(t,'import-msg'); }
 function importFile(input){ const f=input.files[0]; if(!f)return; const r=new FileReader(); r.onload=e=>processImport(e.target.result,'import-msg'); r.readAsText(f); }
-function processImport(text,msgId) {
+function processImport(text,msgId){
   try{
     const data=JSON.parse(text);
     const incP=data.prospects||[]; const incC=data.canvassStops||[];
@@ -1040,7 +1702,7 @@ function processImport(text,msgId) {
   }catch(e){ showMsg(msgId,'Could not parse — make sure you pasted the full exported JSON.','err'); }
 }
 
-function clearAll() {
+function clearAll(){
   if(!confirm('Clear all local browser data?\n\nYour Google Drive file will NOT be deleted.'))return;
   prospects=[]; canvassStops=[]; routeSelected.clear(); localSave(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
   showMsg('clear-msg','Local data cleared.','ok');
@@ -1052,25 +1714,1518 @@ function togglePosOther(v){ const el=document.getElementById('p-current-other');
 function esc(s){ return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function showMsg(id,text,type){ const el=document.getElementById(id); if(!el)return; el.textContent=text; el.className='msg '+(type||'ok'); setTimeout(()=>{el.textContent='';},4500); }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-localLoad(); updateStats(); updateCanvassStats(); renderCanvass();
-setStatus('','Not connected to Google Drive — click Connect to sync across devices');
+// ── INIT MOVED TO END ──
 
-// ── PASSWORD GATE ─────────────────────────────────────────────────────────────
-const PW_HASH='94dcede0744f89d80b0477331f20dcb83f0ef204ac608867f737cff546065d2e';
-async function hashString(str){ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
-async function checkPassword() {
-  const val=document.getElementById('gate-pw').value; if(!val)return;
-  const hash=await hashString(val);
-  if(hash===PW_HASH){
-    setTimeout(()=>{ document.getElementById('gate').classList.add('hidden'); document.getElementById('app-container').style.display=''; sessionStorage.setItem('vs_auth','1'); },100);
-  } else {
-    document.getElementById('gate-err').textContent='Incorrect password — try again.';
-    document.getElementById('gate-pw').value=''; document.getElementById('gate-pw').focus();
-    setTimeout(()=>{document.getElementById('gate-err').textContent='';},3000);
+// ══════════════════════════════════════════════════════════════════════════════
+// ── TERRITORY DATABASE ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── DB STORAGE ────────────────────────────────────────────────────────────────
+function toggleBlocklistManager(){
+  const el  = document.getElementById('blocklist-manager');
+  const btn = document.getElementById('blocklist-toggle-btn');
+  const show = el.style.display==='none';
+  el.style.display = show ? 'block' : 'none';
+  btn.textContent  = show ? 'Manage ▴' : 'Manage ▾';
+  if(show) renderBlocklistManager();
+}
+
+function dbLocalLoad(){
+  try{ dbRecords  = JSON.parse(localStorage.getItem('vs_db')       || '[]'); }catch(e){ dbRecords=[]; }
+  try{ dbClusters = JSON.parse(localStorage.getItem('vs_dbc')      || '[]'); }catch(e){ dbClusters=[]; }
+  try{ dbAreas    = JSON.parse(localStorage.getItem('vs_db_areas')     || '[]'); }catch(e){ dbAreas=[]; }
+  try{ const bl=localStorage.getItem('vs_db_block'); dbBlocklist=bl?JSON.parse(bl):DEFAULT_BLOCKLIST.slice(); }catch(e){ dbBlocklist=DEFAULT_BLOCKLIST.slice(); }
+}
+function dbLocalSave(){
+  localStorage.setItem('vs_db',       JSON.stringify(dbRecords));
+  localStorage.setItem('vs_dbc',      JSON.stringify(dbClusters));
+  localStorage.setItem('vs_db_areas', JSON.stringify(dbAreas));
+  localStorage.setItem('vs_db_block', JSON.stringify(dbBlocklist));
+}
+
+// DB is saved via dbLocalSave() which is called from localSave()
+
+// ── DB STATS ──────────────────────────────────────────────────────────────────
+function updateDbStats(){
+  const t=dbRecords.length;
+  document.getElementById('db-s-total').textContent   = t;
+  document.getElementById('db-s-hot').textContent     = dbRecords.filter(r=>r.pr==='Hot').length;
+  document.getElementById('db-s-warm').textContent    = dbRecords.filter(r=>r.pr==='Warm').length;
+  document.getElementById('db-s-unworked').textContent= dbRecords.filter(r=>r.st==='unworked').length;
+  document.getElementById('db-s-worked').textContent  = dbRecords.filter(r=>r.st!=='unworked'&&r.st!=='in_canvass').length;
+  document.getElementById('db-count-badge').textContent = t ? '('+t+')' : '';
+}
+
+// ── DB SUB-TABS ───────────────────────────────────────────────────────────────
+function switchDbTab(t){
+  dbCurrentTab = t;
+  ['browse','zones','week'].forEach(n=>{
+    document.getElementById('dbt-'+n).classList.toggle('active', n===t);
+    document.getElementById('dbp-'+n).style.display = n===t ? 'block' : 'none';
+  });
+  if(t==='zones')  renderZones();
+  if(t==='week')   renderWeekPlanner();
+}
+
+// ── SCORING ───────────────────────────────────────────────────────────────────
+function calcScore(r){
+  let s=100;
+  if(r.ch) s-=15;                                // chain
+  if((r.rt||0)<3.0) s-=20; else if((r.rt||0)<4.0) s-=10;  // rating
+  if((r.rv||0)<20)  s-=20; else if((r.rv||0)<50)  s-=10;  // reviews
+  if(!r.em) s-=15;                               // no email
+  if(!r.web) s-=10;                              // no website
+  return Math.max(s,0);
+}
+function calcPriority(s){ return s>=80?'Hot':s>=50?'Warm':'Cold'; }
+
+// ── HAVERSINE ─────────────────────────────────────────────────────────────────
+function haversine(lat1,lng1,lat2,lng2){
+  const R=3958.8, dlat=(lat2-lat1)*Math.PI/180, dlng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dlat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dlng/2)**2;
+  return R*2*Math.asin(Math.sqrt(a));
+}
+
+// ── CLUSTERING ────────────────────────────────────────────────────────────────
+function buildClusters(records, radiusMiles=0.5){
+  const clusters=[];
+  // Group by ZIP first
+  const byZip={};
+  records.forEach(r=>{ (byZip[r.zi]||(byZip[r.zi]=[])).push(r); });
+
+  Object.entries(byZip).forEach(([zip,pts])=>{
+    // Sort by reviews desc so busy places anchor clusters
+    const sorted=[...pts].sort((a,b)=>(b.rv||0)-(a.rv||0));
+    const assigned=new Set();
+    sorted.forEach((anchor,i)=>{
+      if(assigned.has(anchor.id)) return;
+      const members=[anchor];
+      assigned.add(anchor.id);
+      sorted.forEach(pt=>{
+        if(assigned.has(pt.id)) return;
+        if(haversine(anchor.lt,anchor.lg,pt.lt,pt.lg)<=radiusMiles){
+          members.push(pt); assigned.add(pt.id);
+        }
+      });
+      // Centroid
+      const clat=members.reduce((s,m)=>s+m.lt,0)/members.length;
+      const clng=members.reduce((s,m)=>s+m.lg,0)/members.length;
+      // Auto-name: ZIP + dominant non-numeric road word
+      const wordCount={};
+      members.forEach(m=>{
+        (m.a||'').split(/[\s,]+/).forEach(w=>{
+          if(w.length>3&&!/^\d/.test(w)) wordCount[w]=(wordCount[w]||0)+1;
+        });
+      });
+      const topWord=Object.entries(wordCount).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+      const hot=members.filter(m=>m.pr==='Hot').length;
+      clusters.push({
+        id:   `zone_${zip}_${clusters.length}`,
+        nm:   topWord ? `${zip} — ${topWord}` : zip,
+        zi:   zip,
+        lt:   Math.round(clat*100000)/100000,
+        lg:   Math.round(clng*100000)/100000,
+        cnt:  members.length,
+        hot,
+        mb:   members.map(m=>m.id),
+      });
+    });
+  });
+  return clusters.sort((a,b)=>b.cnt-a.cnt);
+}
+
+// ── OUTSCRAPER IMPORT ─────────────────────────────────────────────────────────
+async function importOutscraper(input){
+  const file=input.files[0]; if(!file)return;
+
+  // Ask for area name before reading file
+  const areaName = prompt(
+    'Name this import area (e.g. "North Myrtle Beach", "Conway", "Myrtle Beach Strip"):\n\nThis groups the records so you can filter and schedule by area.',
+    ''
+  );
+  if(areaName===null) return; // user cancelled
+  const area = areaName.trim() || 'Unnamed Area';
+
+  // Auto-snapshot before import so user can always roll back
+  takeSnapshot('pre-import');
+  showMsg('db-import-msg','Reading file…','ok');
+
+  // Use SheetJS (load dynamically if needed)
+  if(typeof XLSX==='undefined'){
+    await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+  }
+
+  const buf = await file.arrayBuffer();
+  const wb  = XLSX.read(buf, {type:'array'});
+  const ws  = wb.Sheets[wb.SheetNames[0]];
+  const rows= XLSX.utils.sheet_to_json(ws, {defval:''});
+
+  if(!rows.length){ showMsg('db-import-msg','No data found in file.','err'); return; }
+
+  // Build lookup of existing DB records
+  const existingById={};
+  dbRecords.forEach(r=>{ existingById[r.id]=r; });
+  const existingByName={};
+  dbRecords.forEach(r=>{ existingByName[(r.n+'|'+r.zi).toLowerCase()]=r; });
+
+  let added=0, updated=0, dupes=0;
+  const newRecords=[];
+
+  // ── KEY FIX: deduplicate WITHIN this import file ──────────────────────────
+  // Outscraper returns the same place multiple times when it matches
+  // multiple search queries (e.g. "restaurants 29582" + "bars 29582").
+  // We track seen IDs and name+zip combos within this import batch.
+  const seenInImport = new Set();
+
+  rows.forEach(row=>{
+    const name = row.name || row['Business Name'] || '';
+    if(!name) return;
+
+    // Skip if name matches the chain blocklist
+    if(isBlocklisted(name)){ dupes++; return; } // reuse dupes counter as "skipped"
+
+
+    const lat     = parseFloat(row.latitude || row.lat || 0);
+    const lng     = parseFloat(row.longitude || row.lng || 0);
+    const zip     = String(row.postal_code || row.ZIP || '');
+    const placeId = row.place_id || row.google_id || '';
+
+    // Primary dedup key: place_id (Google's unique identifier)
+    // Fallback: normalized name + zip
+    const dedupKey = placeId
+      ? `pid_${placeId}`
+      : `nm_${name.toLowerCase().replace(/\W/g,'')}_${zip}`;
+
+    if(seenInImport.has(dedupKey)){
+      dupes++;
+      return; // skip duplicate within this file
+    }
+    seenInImport.add(dedupKey);
+
+    const id = placeId
+      ? `db_${placeId}`
+      : `db_${name.replace(/\W/g,'_')}_${zip}`;
+
+    const fresh = {
+      id, n:name,
+      ty:  row.subtypes || row.category || row.Type || '',
+      a:   row.address  || (row.street ? (row.street+', '+(row.city||'')+', '+(row.state_code||'')+' '+zip) : '') || row.Address || '',
+      ci:  row.city     || row.City  || '',
+      zi:  zip,
+      ph:  String(row.phone || row.Phone || ''),
+      web: row.website  || row.Website || '',
+      mn:  row.menu_link|| row['Menu Link'] || '',
+      em:  row.email    || row.Email || '',
+      es:  row['email.emails_validator.status'] || row['Email Status'] || '',
+      lt:  lat, lg:lng,
+      rt:  parseFloat(row.rating  || row['Google Rating'] || 0),
+      rv:  parseInt(row.reviews   || row['Review Count']  || 0),
+      ch:  row['chain_info.chain']==='True'||row['Is Chain']==='Yes'||false,
+      fb:  row.company_facebook || row.Facebook || '',
+      ig:  row.company_instagram|| row.Instagram|| '',
+      cn:  row.full_name || row['Contact Name'] || '',
+      ct:  row.title     || row['Contact Title']|| '',
+      hr:  row.working_hours_csv_compatible || '',
+      pi:  placeId,
+      ar:  area,   // ← area/subset tag
+      zo:  '',
+      da:  '',
+      st:  'unworked',
+    };
+
+    const freshScore   = calcScore(fresh);
+    const cleanedScore = parseInt(row['Lead Score'] || 0);
+    fresh.sc = Math.max(freshScore, cleanedScore);
+    fresh.pr = calcPriority(fresh.sc);
+
+    // Preserve worked status + zone if already in DB
+    const existing = existingById[id] || existingByName[(name+'|'+zip).toLowerCase()];
+    if(existing){
+      fresh.st = existing.st;
+      fresh.zo = existing.zo;
+      fresh.da = existing.da;
+      fresh.ar = existing.ar || area; // keep original area tag
+      updated++;
+    } else {
+      added++;
+    }
+
+    newRecords.push(fresh);
+  });
+
+  // Merge into DB: new records overwrite by id, keep records from other imports
+  const importedIds = new Set(newRecords.map(r=>r.id));
+  const kept = dbRecords.filter(r=>!importedIds.has(r.id));
+  dbRecords = [...kept, ...newRecords];
+
+  // Rebuild clusters
+  dbClusters = buildClusters(dbRecords);
+  const memberToZone={};
+  dbClusters.forEach(c=>c.mb.forEach(mid=>memberToZone[mid]=c.id));
+  dbRecords.forEach(r=>{ if(!r.zo||!existingById[r.id]?.zo) r.zo=memberToZone[r.id]||''; });
+
+  // Register area in area list
+  if(!dbAreas.includes(area)) dbAreas.push(area);
+  localStorage.setItem('vs_db_areas', JSON.stringify(dbAreas));
+
+  dbLocalSave();
+  updateDbStats();
+  populateDbFilters();
+  renderDb();
+  renderZones();
+
+  showMsg('db-import-msg',
+    `"${area}" imported — ${added} added, ${updated} updated, ${dupes} skipped (duplicates + blocklisted chains). ${dbRecords.length} total records.`,
+    'ok');
+
+  input.value='';
+}
+
+
+// ── DB FILTERS ────────────────────────────────────────────────────────────────
+function populateDbFilters(){
+  // Area
+  const areaSel=document.getElementById('db-filter-area');
+  if(areaSel){
+    const curArea=areaSel.value;
+    const areas=[...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].sort();
+    areaSel.innerHTML='<option value="all">All areas</option>'+
+      areas.map(a=>`<option value="${a}"${a===curArea?' selected':''}>${esc(a)}</option>`).join('');
+  }
+
+  // ZIP
+  const zipSel=document.getElementById('db-filter-zip');
+  const curZip=zipSel.value;
+  const zips=[...new Set(dbRecords.map(r=>r.zi).filter(Boolean))].sort();
+  zipSel.innerHTML='<option value="all">All ZIPs</option>'+zips.map(z=>`<option value="${z}"${z===curZip?' selected':''}>${z}</option>`).join('');
+
+  // Zones
+  const zoneSel=document.getElementById('db-filter-zone');
+  const curZone=zoneSel.value;
+  zoneSel.innerHTML='<option value="all">All zones</option>'+dbClusters.map(c=>`<option value="${c.id}"${c.id===curZone?' selected':''}>${esc(c.nm)} (${c.cnt})</option>`).join('');
+}
+
+function getDbFiltered(){
+  const pri  =document.getElementById('db-filter-priority').value;
+  const st   =document.getElementById('db-filter-status').value;
+  const area =(document.getElementById('db-filter-area')||{value:'all'}).value;
+  const zip  =document.getElementById('db-filter-zip').value;
+  const zone =document.getElementById('db-filter-zone').value;
+  const q    =(document.getElementById('db-filter-search').value||'').toLowerCase();
+  return dbRecords.filter(r=>
+    (pri==='all'||r.pr===pri)&&
+    (st==='all'||r.st===st)&&
+    (area==='all'||r.ar===area)&&
+    (zip==='all'||r.zi===zip)&&
+    (zone==='all'||r.zo===zone)&&
+    (!q||r.n.toLowerCase().includes(q)||(r.a||'').toLowerCase().includes(q))
+  ).sort((a,b)=>b.sc-a.sc);
+}
+
+// ── RENDER DB LIST ────────────────────────────────────────────────────────────
+function renderDb(){
+  if(!dbRecords.length){
+    document.getElementById('db-list').innerHTML='<div class="empty" style="padding:24px">No records yet — import an Outscraper XLSX to get started.</div>';
+    updateDbStats(); return;
+  }
+  populateDbFilters();
+  const filtered=getDbFiltered();
+  document.getElementById('db-sel-count').textContent=
+    dbSelected.size ? dbSelected.size+' selected' : filtered.length+' records';
+
+  const priorityColor={'Hot':'var(--red-text)','Warm':'var(--yellow-text)','Cold':'var(--text3)'};
+  const statusBadge={
+    'unworked':    '<span class="badge" style="background:var(--bg2);color:var(--text2)">Unworked</span>',
+    'in_canvass':  '<span class="badge canvass">In canvass</span>',
+    'canvassed':   '<span class="badge" style="background:var(--yellow-bg);color:var(--yellow-text)">Canvassed</span>',
+    'converted':   '<span class="badge converted">Converted</span>',
+    'lead':        '<span class="badge Open">Lead</span>',
+  };
+
+  const rows=filtered.map(r=>{
+    const ratingHtml=r.rt?'<span style="font-size:11px;color:var(--text3)">★'+r.rt+'</span>':'';
+    const phoneHtml =r.ph?'<span style="font-size:11px;color:var(--text3)">'+esc(r.ph)+'</span>':'';
+    const bg        =dbSelected.has(r.id)?'var(--bg2)':'transparent';
+    const chk       =dbSelected.has(r.id)?'checked':'';
+    const prColor   =priorityColor[r.pr]||'var(--text2)';
+    return (
+      '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:0.5px solid var(--border);font-size:13px;background:'+bg+'">' +
+      '<input type="checkbox" '+chk+' data-rid="'+r.id+'" onchange="dbToggleSelEl(this)" style="width:15px;height:15px;flex-shrink:0;accent-color:var(--accent)">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>' +
+        '<div style="font-size:11px;color:var(--text3)">'+esc(r.a)+'</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">' +
+        '<div style="display:flex;gap:5px;align-items:center">' +
+          '<span style="font-size:11px;font-weight:500;color:'+prColor+'">'+r.pr+' '+r.sc+'</span>' +
+          ratingHtml+(statusBadge[r.st]||'') +
+        '</div>' +
+        phoneHtml+
+      '</div></div>'
+    );
+  });
+  document.getElementById('db-list').innerHTML=rows.join('');
+}
+
+function dbToggleSel(id,val){
+  val ? dbSelected.add(id) : dbSelected.delete(id);
+  document.getElementById('db-sel-count').textContent = dbSelected.size+' selected';
+}
+function dbToggleSelEl(el){
+  const id=el.dataset.rid;
+  el.checked ? dbSelected.add(id) : dbSelected.delete(id);
+  document.getElementById('db-sel-count').textContent = dbSelected.size+' selected';
+}
+function dbSelectAll(){
+  getDbFiltered().forEach(r=>dbSelected.add(r.id));
+  renderDb();
+}
+function dbClearSel(){ dbSelected.clear(); renderDb(); }
+
+// ── LOAD SELECTED TO CANVASS ──────────────────────────────────────────────────
+function dbLoadToCanvass(mode){
+  const ids = dbSelected.size ? [...dbSelected] : getDbFiltered().map(r=>r.id);
+  if(!ids.length){ showMsg('db-import-msg','Select records first.','err'); return; }
+
+  let added=0;
+  const existingNames=new Set(canvassStops.map(c=>c.name.toLowerCase()));
+
+  ids.forEach(id=>{
+    const r=dbRecords.find(x=>x.id===id); if(!r)return;
+    if(existingNames.has(r.n.toLowerCase())) return; // already in canvass
+    canvassStops.push({
+      id:uid(), name:r.n, addr:r.a, phone:r.ph,
+      notes:r.cn ? (r.ct ? r.cn+' ('+r.ct+')' : r.cn) : '',
+      website:r.web, menu:r.mn,
+      openTime:'', closeTime:'',
+      status:'Not visited yet',
+      date:new Date().toLocaleDateString(),
+      added:new Date().toISOString(),
+      fromDb:r.id,
+      score:r.sc, priority:r.pr,
+      email:r.em,
+    });
+    r.st='in_canvass';
+    added++;
+  });
+
+  dbLocalSave(); localSave();
+  scheduleSave();
+  updateCanvassStats(); updateDbStats();
+  dbClearSel();
+  renderDb();
+  showMsg('db-import-msg',`${added} stops loaded to canvass.`,'ok');
+  // Switch to canvass tab to show result
+  setTimeout(()=>switchTab('canvass'),800);
+}
+
+function dbAssignDay(){
+  const day=document.getElementById('db-load-day').value;
+  if(!day){ showMsg('db-import-msg','Pick a day first.','err'); return; }
+  const ids=[...dbSelected];
+  if(!ids.length){ showMsg('db-import-msg','Select records first.','err'); return; }
+  ids.forEach(id=>{ const r=dbRecords.find(x=>x.id===id); if(r) r.da=day; });
+  dbLocalSave();
+  showMsg('db-import-msg',`${ids.length} stops assigned to ${day}.`,'ok');
+  dbClearSel(); renderDb();
+}
+
+// ── ZONES ─────────────────────────────────────────────────────────────────────
+function renderZones(){
+  if(!dbClusters.length){
+    document.getElementById('zone-list').innerHTML='<div class="empty">No zones yet — import Outscraper data to generate zones automatically.</div>';
+    return;
+  }
+
+  // Populate area filter in zones panel
+  const zoneAreaSel = document.getElementById('zone-filter-area');
+  if(zoneAreaSel){
+    const curA = zoneAreaSel.value;
+    const areas = [...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].sort();
+    zoneAreaSel.innerHTML = '<option value="all">All areas</option>' +
+      areas.map(a=>'<option value="'+a+'"'+(a===curA?' selected':'')+'>'+esc(a)+'</option>').join('');
+  }
+  const areaFilter = zoneAreaSel ? zoneAreaSel.value : 'all';
+
+  // Filter clusters to those that have members in the selected area
+  const visibleClusters = areaFilter === 'all' ? dbClusters : dbClusters.filter(c=>{
+    return c.mb.some(id=>{ const r=dbRecords.find(x=>x.id===id); return r&&r.ar===areaFilter; });
+  });
+
+  const workedMap={};
+  dbRecords.forEach(r=>{ if(!workedMap[r.zo]) workedMap[r.zo]={total:0,worked:0}; workedMap[r.zo].total++; if(r.st!=='unworked'&&r.st!=='in_canvass') workedMap[r.zo].worked++; });
+
+  if(!visibleClusters.length){
+    document.getElementById('zone-list').innerHTML='<div class="empty">No zones for this area.</div>';
+    return;
+  }
+
+  // Event delegation for zone buttons — avoids inline onclick quoting issues
+  const zoneListEl = document.getElementById('zone-list');
+  zoneListEl.onclick = function(e){
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const card = btn.closest('[data-zid]');
+    if(!card) return;
+    const zid = card.dataset.zid;
+    const action = btn.dataset.action;
+    if(action==='rename') editZoneName(zid);
+    else if(action==='browse') filterToZone(zid);
+    else if(action==='load') loadZoneToCanvass(zid);
+    else if(action==='assign') assignZoneToDay(zid);
+    else if(action==='mymaps') exportZoneCSV(zid);
+  };
+
+  zoneListEl.innerHTML = visibleClusters.map(c=>{
+    const w=workedMap[c.id]||{total:c.cnt,worked:0};
+    const pct=w.total?Math.round(w.worked/w.total*100):0;
+    // Get area tags for this cluster
+    const clusterAreas=[...new Set(c.mb.map(id=>{ const r=dbRecords.find(x=>x.id===id); return r&&r.ar?r.ar:''; }).filter(Boolean))].join(', ');
+    return (
+      '<div class="card" style="margin-bottom:8px;cursor:default" data-zid="'+c.id+'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+          '<div style="flex:1">' +
+            '<div style="display:flex;align-items:center;gap:8px">' +
+              '<div class="pname" id="zone-name-'+c.id+'">'+esc(c.nm)+'</div>' +
+              '<button class="btn sm" data-action="rename" style="height:22px;font-size:11px;padding:0 7px">Rename</button>' +
+            '</div>' +
+            '<div class="pdetail">'+c.cnt+' stops · '+c.hot+' hot · ZIP '+c.zi+(clusterAreas?' · '+clusterAreas:'')+'</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0">' +
+            '<div style="font-size:13px;font-weight:500;color:var(--text)">'+pct+'% worked</div>' +
+            '<div style="font-size:11px;color:var(--text3)">'+w.worked+'/'+w.total+'</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top:8px;background:var(--bg3);border-radius:4px;height:6px;overflow:hidden">' +
+          '<div style="height:100%;width:'+pct+'%;background:var(--green-text);border-radius:4px;transition:width .3s"></div>' +
+        '</div>' +
+        '<div class="pactions" style="margin-top:8px">' +
+          '<button class="btn sm" data-action="browse">Browse stops ↗</button>' +
+          '<button class="btn sm primary" data-action="load">Load to canvass</button>' +
+          '<button class="btn sm" data-action="assign">Assign to day</button>' +
+          '<button class="btn sm" data-action="mymaps">My Maps ↓</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function editZoneName(zoneId){
+  const c=dbClusters.find(x=>x.id===zoneId); if(!c)return;
+  const newName=prompt('Rename zone:',c.nm);
+  if(newName&&newName.trim()){
+    c.nm=newName.trim();
+    dbLocalSave();
+    renderZones();
+    populateDbFilters();
   }
 }
-if(sessionStorage.getItem('vs_auth')==='1'){ document.getElementById('gate').classList.add('hidden'); document.getElementById('app-container').style.display=''; }
+
+function filterToZone(zoneId){
+  document.getElementById('db-filter-zone').value=zoneId;
+  switchDbTab('browse');
+  renderDb();
+}
+
+function loadZoneToCanvass(zoneId){
+  const c=dbClusters.find(x=>x.id===zoneId); if(!c)return;
+  c.mb.forEach(id=>dbSelected.add(id));
+  dbLoadToCanvass('today');
+}
+
+function assignZoneToDay(zoneId){
+  const day=prompt('Assign this zone to which day? (Monday/Tuesday/Wednesday/Thursday/Friday)');
+  if(!day)return;
+  const c=dbClusters.find(x=>x.id===zoneId); if(!c)return;
+  c.mb.forEach(id=>{ const r=dbRecords.find(x=>x.id===id); if(r) r.da=day; });
+  dbLocalSave(); renderZones();
+  showMsg('db-import-msg',`Zone "${c.nm}" assigned to ${day}.`,'ok');
+}
+
+// ── WEEK PLANNER ──────────────────────────────────────────────────────────────
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+// ── CHAIN BLOCKLIST ───────────────────────────────────────────────────────────
+// Names are matched as substrings (case-insensitive) against business names.
+// Edit via Manage Blocklist in the Database tab — changes persist in localStorage.
+const DEFAULT_BLOCKLIST = [
+  // Fast food
+  "mcdonald's","mcdonalds","wendy's","wendys","arby's","arbys",
+  "burger king","taco bell","chick-fil-a","chickfila","subway",
+  "domino's","dominoes","pizza hut","little caesars","papa john's",
+  "sonic drive","hardee's","hardees","bojangles","cook out","cookout",
+  "zaxby's","zaxbys","raising cane","popeyes","popeye's","kfc",
+  "dairy queen","steak 'n shake","five guys","whataburger","jack in the box",
+  "carl's jr","carls jr","del taco","wingstop","jersey mike",
+  "jimmy john","firehouse sub","potbelly","schlotzsky",
+  // Casual chains
+  "applebee's","applebees","chili's","chilis","denny's","dennys",
+  "ihop","olive garden","outback steakhouse","longhorn steakhouse",
+  "red lobster","texas roadhouse","golden corral","cracker barrel",
+  "waffle house","bob evans","perkins","shari's",
+  "ruby tuesday","fridays","tgi friday","buffalo wild wings","bdubs",
+  "hooters","red robin","steak 'n shake","o'charley's","ocharleys",
+  "joe's crab","joe's seafood","captain d's","captain ds","long john silver",
+  // Pizza chains
+  "papa murphy","papa murphys","pizza inn","cicis","cici's","godfather",
+  // Coffee/cafe chains
+  "starbucks","dunkin","panera","einstein bagel","caribou coffee",
+  // Hotel / resort / grocery food
+  "marriott","hilton","holiday inn","hampton inn","doubletree",
+  "walmart deli","publix deli","kroger",
+  // Gas station food
+  "sheetz","wawa","buccee's","buc-ee's","pilot flying j",
+];
+
+function isBlocklisted(name){
+  const lower = name.toLowerCase();
+  return dbBlocklist.some(term=>lower.includes(term.toLowerCase()));
+}
+
+function saveBlocklist(){
+  localStorage.setItem('vs_db_block', JSON.stringify(dbBlocklist));
+}
+
+function renderBlocklistManager(){
+  const el = document.getElementById('blocklist-manager');
+  if(!el) return;
+  el.innerHTML =
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+dbBlocklist.length+' terms — any business whose name contains a term is skipped on import. Case-insensitive partial match.</div>'+
+    '<div style="display:flex;gap:6px;margin-bottom:8px">'+
+      '<input type="text" id="blocklist-add-input" placeholder="Add term (e.g. Subway)" style="flex:1;font-size:13px">'+
+      '<button class="btn sm primary" onclick="blocklistAdd()">Add</button>'+
+      '<button class="btn sm" onclick="blocklistReset()">Reset to defaults</button>'+
+    '</div>'+
+    '<div style="max-height:200px;overflow-y:auto;border:0.5px solid var(--border);border-radius:var(--radius-lg)">'+
+    dbBlocklist.map((term,i)=>
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:0.5px solid var(--border);font-size:13px">'+
+        '<span>'+esc(term)+'</span>'+
+        '<button onclick="blocklistRemove('+i+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px">✕</button>'+
+      '</div>'
+    ).join('')+
+    '</div>';
+}
+
+function blocklistAdd(){
+  const input = document.getElementById('blocklist-add-input');
+  const val = (input.value||'').trim().toLowerCase();
+  if(!val) return;
+  if(dbBlocklist.includes(val)){ showMsg('db-import-msg','"'+val+'" is already in the blocklist.','err'); return; }
+  dbBlocklist.push(val);
+  saveBlocklist();
+  input.value='';
+  renderBlocklistManager();
+  showMsg('db-import-msg','"'+val+'" added to blocklist.','ok');
+}
+
+function blocklistRemove(idx){
+  dbBlocklist.splice(idx,1);
+  saveBlocklist();
+  renderBlocklistManager();
+}
+
+function blocklistReset(){
+  if(!confirm('Reset blocklist to defaults? Your custom additions will be lost.')) return;
+  dbBlocklist = DEFAULT_BLOCKLIST.slice();
+  saveBlocklist();
+  renderBlocklistManager();
+  showMsg('db-import-msg','Blocklist reset to defaults ('+dbBlocklist.length+' terms).','ok');
+}
+
+// ── STOPS PER DAY SETTING ────────────────────────────────────────────────────
+function getStopsPerDay(){
+  const el=document.getElementById('stops-per-day');
+  return el ? parseInt(el.value)||12 : 12;
+}
+
+// ── CORE: two-phase assignment ────────────────────────────────────────────────
+// Phase 1: Use score to pick the best anchor zone (Hot leads dominate)
+// Phase 2: Once anchor is found, include ALL stops within the zone radius
+//          sorted by score — no stop skipped just because it scored low.
+//          Geography is the primary filter once the zone is chosen.
+function autoAssignDay(day, n, clearFirst){
+  if(!dbRecords.length){ showMsg('week-msg','Import data first.','err'); return 0; }
+
+  const target = n || getStopsPerDay();
+
+  if(clearFirst) dbRecords.forEach(r=>{ if(r.da===day) r.da=''; });
+
+  const alreadyAssigned = dbRecords.filter(r=>r.da===day).length;
+  const needed = Math.max(0, target - alreadyAssigned);
+  if(needed <= 0){
+    showMsg('week-msg', day+' already has '+alreadyAssigned+' stops (target: '+target+').','ok');
+    return 0;
+  }
+
+  const areaEl    = document.getElementById('db-filter-area');
+  const areaFilter= areaEl ? areaEl.value : 'all';
+
+  const pool = dbRecords.filter(r=>
+    r.st==='unworked' && !r.da &&
+    r.lt && r.lg &&
+    (areaFilter==='all' || r.ar===areaFilter)
+  );
+
+  if(!pool.length){
+    showMsg('week-msg','No unworked stops available for '+day+'.','err');
+    return 0;
+  }
+
+  // ── PHASE 1: find the best anchor ────────────────────────────────────────
+  // Score each stop for anchor candidacy: Hot=30, Warm=10, score bonus
+  // Then find which stop has the most high-value neighbors within 0.75mi
+  const ZONE_RADIUS = 0.75; // miles — tight enough to stay on foot/quick drive
+
+  const anchorScores = pool.map(r=>{
+    const baseScore = (r.pr==='Hot'?30:r.pr==='Warm'?10:2) + r.sc * 0.3;
+    // Bonus for each nearby Hot stop — rewards dense Hot clusters
+    const hotNeighbors = pool.filter(n=>
+      n.id!==r.id &&
+      n.pr==='Hot' &&
+      haversine(r.lt,r.lg,n.lt,n.lg)<=ZONE_RADIUS
+    ).length;
+    return { r, anchorVal: baseScore + hotNeighbors * 8 };
+  }).sort((a,b)=>b.anchorVal-a.anchorVal);
+
+  const anchor = anchorScores[0].r;
+
+  // ── PHASE 2: gather ALL stops within radius of anchor ─────────────────────
+  // Sort by score so Hot leads hit first, but include everything in the zone.
+  // Stops outside the radius are only added if we still need to fill the day.
+  const inZone = pool
+    .filter(r=> haversine(anchor.lt,anchor.lg,r.lt,r.lg) <= ZONE_RADIUS)
+    .sort((a,b)=>{
+      // Within the zone: sort by score DESC so you hit best stops first
+      // but score difference is soft — a 65 that's 0.1mi away beats a 100
+      // that's 0.7mi away once you're already in the area
+      const distA = haversine(anchor.lt,anchor.lg,a.lt,a.lg);
+      const distB = haversine(anchor.lt,anchor.lg,b.lt,b.lg);
+      // Combined rank: score weight 60%, proximity weight 40%
+      const rankA = (a.sc * 0.6) - (distA * 20);
+      const rankB = (b.sc * 0.6) - (distB * 20);
+      return rankB - rankA;
+    });
+
+  let toAssign = inZone.slice(0, needed);
+
+  // If zone doesn't fill the day, expand radius to 1.5mi for remaining slots
+  if(toAssign.length < needed){
+    const inWiderZone = pool
+      .filter(r=> !inZone.find(x=>x.id===r.id) &&
+                  haversine(anchor.lt,anchor.lg,r.lt,r.lg) <= 1.5)
+      .sort((a,b)=>b.sc-a.sc);
+    const stillNeeded = needed - toAssign.length;
+    toAssign = [...toAssign, ...inWiderZone.slice(0, stillNeeded)];
+  }
+
+  // If still short, pull from remaining pool sorted by score
+  if(toAssign.length < needed){
+    const assigned_ids = new Set(toAssign.map(r=>r.id));
+    const extras = pool
+      .filter(r=>!assigned_ids.has(r.id))
+      .sort((a,b)=>b.sc-a.sc)
+      .slice(0, needed - toAssign.length);
+    toAssign = [...toAssign, ...extras];
+  }
+
+  toAssign.forEach(r=>{ r.da=day; });
+  return toAssign.length;
+}
+
+// ── AUTO-FILL TODAY ───────────────────────────────────────────────────────────
+function autoFillToday(){
+  if(!dbRecords.length){ showMsg('week-msg','Import data first.','err'); return; }
+  const today = new Date().toLocaleDateString('en-US',{weekday:'long'});
+  const n = getStopsPerDay();
+  const assigned = autoAssignDay(today, n, true);
+  dbLocalSave();
+  renderWeekPlanner();
+  if(assigned > 0){
+    const warn = assigned < 10 ? ' ⚠ Under 10 stops — consider expanding to another zone.' : '';
+    showMsg('week-msg', today+': '+assigned+' stops assigned (target: '+n+').'+warn, 'ok');
+  }
+}
+
+// ── AUTO-FILL A SPECIFIC DAY ──────────────────────────────────────────────────
+function autoFillDay(day){
+  if(!day){ showMsg('week-msg','Pick a day first.','err'); return; }
+  if(!dbRecords.length){ showMsg('week-msg','Import data first.','err'); return; }
+  const n = getStopsPerDay();
+  const assigned = autoAssignDay(day, n, true);
+  dbLocalSave();
+  renderWeekPlanner();
+  if(assigned > 0){
+    const warn = assigned < 10 ? ' ⚠ Under 10 stops — consider expanding area or lowering target.' : '';
+    showMsg('week-msg', day+': '+assigned+' stops assigned (target: '+n+').'+warn, 'ok');
+  }
+}
+
+// ── AUTO-FILL WHOLE WEEK ──────────────────────────────────────────────────────
+function autoFillWeek(){
+  if(!dbClusters.length){ showMsg('week-msg','Import data first.','err'); return; }
+
+  // Clear all day assignments
+  dbRecords.forEach(r=>r.da='');
+
+  const n = getStopsPerDay();
+  const results = [];
+
+  // Score clusters by unworked hot value
+  const clusterValue = dbClusters.map(c=>({
+    ...c,
+    value: c.mb.reduce((s,id)=>{
+      const r=dbRecords.find(x=>x.id===id);
+      if(!r||r.st!=='unworked') return s;
+      return s + (r.pr==='Hot'?3:r.pr==='Warm'?1:0);
+    },0)
+  })).filter(c=>c.value>0).sort((a,b)=>b.value-a.value);
+
+  // Pick up to 5 geographically distinct clusters
+  const assigned=[];
+  const usedZips=new Set();
+  for(const c of clusterValue){
+    if(assigned.length>=5) break;
+    if(assigned.length<3&&usedZips.has(c.zi)&&clusterValue.filter(x=>!usedZips.has(x.zi)).length>0) continue;
+    assigned.push(c);
+    usedZips.add(c.zi);
+  }
+  if(assigned.length<5){
+    for(const c of clusterValue){
+      if(assigned.length>=5) break;
+      if(!assigned.find(x=>x.id===c.id)) assigned.push(c);
+    }
+  }
+
+  // For each cluster/day: include ALL unworked stops in zone,
+  // sorted score-first so Hot leads hit first but nothing gets skipped.
+  // If zone has more than target, cap at target to keep the day manageable.
+  // If zone has fewer than target, include all and note the shortfall.
+  assigned.forEach((c,i)=>{
+    const day=DAYS[i];
+    const members = c.mb
+      .map(id=>dbRecords.find(x=>x.id===id))
+      .filter(r=>r&&r.st==='unworked')
+      .sort((a,b)=>{
+        // Score weight 60%, proximity to cluster centroid 40%
+        const distA = haversine(c.lt, c.lg, a.lt, a.lg);
+        const distB = haversine(c.lt, c.lg, b.lt, b.lg);
+        return (b.sc*0.6 - distB*20) - (a.sc*0.6 - distA*20);
+      })
+      .slice(0, n); // cap at target — circle back for the rest
+    members.forEach(r=>{ r.da=day; });
+    results.push({day, count:members.length, total:c.mb.filter(id=>{const r=dbRecords.find(x=>x.id===id);return r&&r.st==='unworked';}).length});
+  });
+
+  dbLocalSave();
+  renderWeekPlanner();
+
+  const summary = results.map(r=>{
+    const warn = r.count < 10 ? ' ⚠' : '';
+    return r.day+': '+r.count+warn;
+  }).join(' · ');
+  showMsg('week-msg','Week filled ('+n+' stops/day target) — '+summary,'ok');
+}
+
+function renderWeekPlanner(){
+  const byDay={};
+  DAYS.forEach(d=>byDay[d]=[]);
+  dbRecords.forEach(r=>{ if(r.da&&byDay[r.da]) byDay[r.da].push(r); });
+
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long'});
+
+  document.getElementById('week-planner').innerHTML = DAYS.map(day=>{
+    const stops=byDay[day].sort((a,b)=>b.sc-a.sc);
+    const hot=stops.filter(r=>r.pr==='Hot').length;
+    const isToday=day===today;
+    return `
+      <div style="margin-bottom:10px;border:0.5px solid ${isToday?'rgba(59,109,17,0.4)':'var(--border)'};border-radius:var(--radius-lg);overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:${isToday?'var(--green-bg)':'var(--bg2)'}">
+          <div>
+            <span style="font-size:13px;font-weight:500;color:var(--text)">${day}${isToday?' (Today)':''}</span>
+            <span style="font-size:12px;color:var(--text2);margin-left:8px">${stops.length} stops · ${hot} hot</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${stops.length?`<button class="btn sm primary" onclick="loadDayToCanvass('${day}')">Load to canvass</button>`:''}
+            <button class="btn sm danger" onclick="clearDay('${day}')">Clear</button>
+          </div>
+        </div>
+        ${stops.length ? `
+          <div style="max-height:180px;overflow-y:auto">
+            ${stops.map(r=>`
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;border-top:0.5px solid var(--border);font-size:12px">
+                <span style="flex:1;color:var(--text);font-weight:500">${esc(r.n)}</span>
+                <span style="color:var(--text3)">${esc(r.zi)}</span>
+                <span style="font-weight:500;color:${r.pr==='Hot'?'var(--red-text)':r.pr==='Warm'?'var(--yellow-text)':'var(--text3)'}">${r.pr}</span>
+                <button onclick="removeFromDay('${r.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px">✕</button>
+              </div>`).join('')}
+          </div>` : `<div style="padding:12px 14px;font-size:12px;color:var(--text3)">No stops assigned — use Auto-fill or assign stops from Browse tab.</div>`}
+      </div>`;
+  }).join('');
+}
+
+function loadDayToCanvass(day){
+  const stops=dbRecords.filter(r=>r.da===day&&r.st==='unworked');
+  if(!stops.length){ showMsg('week-msg','No unworked stops assigned to '+day,'err'); return; }
+  stops.forEach(r=>dbSelected.add(r.id));
+  dbLoadToCanvass('today');
+}
+
+function loadWeekToCanvass(){
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long'});
+  loadDayToCanvass(today);
+}
+
+function clearDay(day){
+  dbRecords.forEach(r=>{ if(r.da===day) r.da=''; });
+  dbLocalSave(); renderWeekPlanner();
+}
+
+function removeFromDay(id){
+  const r=dbRecords.find(x=>x.id===id); if(r) r.da='';
+  dbLocalSave(); renderWeekPlanner();
+}
+
+function clearWeekPlan(){
+  if(!confirm('Clear all day assignments?')) return;
+  takeSnapshot('pre-clear week plan');
+  dbRecords.forEach(r=>r.da='');
+  dbLocalSave(); renderWeekPlanner();
+}
+
+// ── SYNC DB STATUS BACK FROM CANVASS ─────────────────────────────────────────
+// When a canvass stop is updated, reflect status back to DB record
+function syncDbStatus(canvassId, newStatus){
+  const c=canvassStops.find(x=>x.id===canvassId); if(!c||!c.fromDb) return;
+  const r=dbRecords.find(x=>x.id===c.fromDb); if(!r) return;
+  const statusMap={
+    'Converted':  'converted',
+    'Not interested': 'canvassed',
+    'No answer / closed': 'canvassed',
+  };
+  if(statusMap[newStatus]) r.st=statusMap[newStatus];
+  else if(CANVASS_ACTIVE.includes(newStatus)) r.st='in_canvass';
+  dbLocalSave();
+}
+
+
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+localLoad();
+updateStats();
+updateCanvassStats();
+renderCanvass();
+updateDbStats();
+setStatus('','Not connected to Google Drive — click Connect to sync across devices');
+
+// Attempt silent reconnect after GIS library loads
+window.addEventListener('load', ()=>{ setTimeout(trySilentConnect, 1500); });
+
+
+// ── END DAY + CLEAR QUEUE ─────────────────────────────────────────────────────
+
+function endDay(){
+  const todayStr = new Date().toLocaleDateString();
+  const todayStops = canvassStops.filter(c=>c.date===todayStr && CANVASS_ACTIVE.includes(c.status));
+
+  if(!todayStops.length){
+    showMsg('canvass-add-msg','No active stops in today\'s queue.','err');
+    return;
+  }
+
+  // Build recap
+  const total     = todayStops.length;
+  const notVis    = todayStops.filter(c=>c.status==='Not visited yet').length;
+  const noAns     = todayStops.filter(c=>c.status==='No answer / closed').length;
+  const cbl       = todayStops.filter(c=>c.status==='Come back later').length;
+  const dmu       = todayStops.filter(c=>c.status==='Decision maker unavailable').length;
+  const notInt    = todayStops.filter(c=>c.status==='Not interested').length;
+  const converted = canvassStops.filter(c=>c.date===todayStr&&c.status==='Converted').length;
+
+  const recap = [
+    '<strong>Today\'s canvass recap:</strong>',
+    '',
+    'Total stops in queue: <strong>'+total+'</strong>',
+    converted   ? 'Converted to lead: <strong style="color:var(--green-text)">'+converted+'</strong>' : '',
+    cbl         ? 'Come back later: <strong>'+cbl+'</strong> → moves to Follow Up' : '',
+    dmu         ? 'Decision maker unavailable: <strong>'+dmu+'</strong> → moves to Follow Up' : '',
+    noAns       ? 'No answer / closed: <strong>'+noAns+'</strong> → moves to All Active' : '',
+    notInt      ? 'Not interested: <strong>'+notInt+'</strong> → archived' : '',
+    notVis      ? 'Not visited yet: <strong style="color:var(--yellow-text)">'+notVis+'</strong> → remains unworked in database' : '',
+  ].filter(Boolean).join('<br>');
+
+  document.getElementById('endday-recap').innerHTML = recap;
+  document.getElementById('endday-modal').style.display = 'flex';
+}
+
+function closeEndDayModal(){
+  document.getElementById('endday-modal').style.display = 'none';
+}
+
+function confirmEndDay(downloadSummary){
+  const todayStr = new Date().toLocaleDateString();
+
+  // Download summary first if requested
+  if(downloadSummary) exportCanvassSummary();
+
+  // Process each stop:
+  // - Not visited yet: reset to unworked in DB, remove from canvass queue
+  // - Come back later / DM unavailable: keep in canvass (ages into Follow Up)
+  // - No answer / Not interested: mark canvassed in DB, keep in canvass
+  // - Converted: already handled, keep archived in canvass
+
+  const toRemove = []; // IDs to remove from canvassStops entirely
+
+  canvassStops.forEach(c=>{
+    if(c.date !== todayStr) return;
+    if(!CANVASS_ACTIVE.includes(c.status)) return; // already archived
+
+    if(c.status === 'Not visited yet'){
+      // Reset DB record back to unworked — didn't get to it today
+      if(c.fromDb){
+        const dbR = dbRecords.find(x=>x.id===c.fromDb);
+        if(dbR){ dbR.st='unworked'; dbR.da=''; }
+      }
+      toRemove.push(c.id);
+    } else if(c.status==='Come back later' || c.status==='Decision maker unavailable'){
+      // Keep in canvass — will appear in Follow Up tomorrow
+      // Mark DB as in_canvass still
+    } else {
+      // No answer / Not interested — mark as canvassed in DB
+      if(c.fromDb){
+        const dbR = dbRecords.find(x=>x.id===c.fromDb);
+        if(dbR) dbR.st='canvassed';
+      }
+    }
+  });
+
+  // Remove the "not visited" stops from canvass queue
+  canvassStops = canvassStops.filter(c=>!toRemove.includes(c.id));
+
+  save();
+  dbLocalSave();
+  updateCanvassStats();
+  updateDbStats();
+  renderCanvass();
+  closeEndDayModal();
+
+  const removed = toRemove.length;
+  showMsg('canvass-add-msg',
+    'Day ended — '+removed+' unvisited stops returned to database. Follow-up stops will appear tomorrow.',
+    'ok');
+}
+
+// ── CLEAR QUEUE ───────────────────────────────────────────────────────────────
+function clearQueue(){
+  const todayStr = new Date().toLocaleDateString();
+  const todayStops = canvassStops.filter(c=>c.date===todayStr && CANVASS_ACTIVE.includes(c.status));
+
+  if(!todayStops.length){
+    showMsg('canvass-add-msg',"Today\'s queue is already empty.",'err');
+    return;
+  }
+
+  const msg = 'Clear ' + todayStops.length + ' stops from today\'s queue?\n\n' +
+    'All stops will be returned to the database as unworked — no data is permanently lost.\n\n' +
+    'Use this if you loaded the wrong area or hit a bug.';
+
+  if(!confirm(msg)) return;
+
+  // Snapshot before clearing so user can recover if needed
+  takeSnapshot('pre-clear');
+
+  // Reset all today's active stops in DB back to unworked
+  todayStops.forEach(c=>{
+    if(c.fromDb){
+      const dbR = dbRecords.find(x=>x.id===c.fromDb);
+      if(dbR){ dbR.st='unworked'; dbR.da=''; }
+    }
+  });
+
+  // Remove all today's active stops from canvass list
+  const todayIds = new Set(todayStops.map(c=>c.id));
+  canvassStops = canvassStops.filter(c=>!todayIds.has(c.id));
+
+  save();
+  dbLocalSave();
+  updateCanvassStats();
+  updateDbStats();
+  renderCanvass();
+
+  showMsg('canvass-add-msg',
+    todayStops.length + ' stops cleared — returned to database as unworked. Ready to reload a new area.',
+    'ok');
+}
+
+
+// ── GOOGLE MY MAPS EXPORTS ────────────────────────────────────────────────────
+// My Maps CSV format: Name, Address (+ optional Zone column for color-coding)
+// KML format: one Folder per zone, one Placemark per stop
+
+// ── Single zone CSV ───────────────────────────────────────────────────────────
+function exportZoneCSV(zoneId){
+  const c = dbClusters.find(x=>x.id===zoneId);
+  if(!c){ showMsg('zones-export-msg','Zone not found.','err'); return; }
+
+  const rows = c.mb
+    .map(id=>dbRecords.find(x=>x.id===id))
+    .filter(r=>r&&r.a)
+    .map(r=>[r.n, r.a, r.ph||'', r.pr, r.sc]);
+
+  if(!rows.length){ showMsg('zones-export-msg','No stops with addresses in this zone.','err'); return; }
+
+  const csvRow = arr => arr.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
+  const csv = [csvRow(['Name','Address','Phone','Priority','Score']), ...rows.map(csvRow)].join('\n');
+  dl(csv, 'text/csv', stamp('zone-'+c.nm.replace(/[^a-z0-9]/gi,'-'))+'.csv');
+  showMsg('zones-export-msg', c.nm+': '+rows.length+' stops exported.','ok');
+}
+
+// ── All zones — single CSV with Zone column (best for My Maps color-coding) ──
+function exportAllZonesCSV(){
+  const areaEl = document.getElementById('zone-filter-area');
+  const areaFilter = areaEl ? areaEl.value : 'all';
+
+  const visibleClusters = areaFilter==='all' ? dbClusters : dbClusters.filter(c=>
+    c.mb.some(id=>{ const r=dbRecords.find(x=>x.id===id); return r&&r.ar===areaFilter; })
+  );
+
+  if(!visibleClusters.length){ showMsg('zones-export-msg','No zones to export.','err'); return; }
+
+  const csvRow = arr => arr.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
+  const header = csvRow(['Name','Address','Phone','Zone','Priority','Score']);
+  const rows = [];
+
+  visibleClusters.forEach(c=>{
+    c.mb.forEach(id=>{
+      const r=dbRecords.find(x=>x.id===id);
+      if(r&&r.a) rows.push(csvRow([r.n, r.a, r.ph||'', c.nm, r.pr, r.sc]));
+    });
+  });
+
+  if(!rows.length){ showMsg('zones-export-msg','No stops with addresses found.','err'); return; }
+
+  const csv = [header, ...rows].join('\n');
+  const label = areaFilter==='all' ? 'all-zones' : areaFilter.replace(/[^a-z0-9]/gi,'-');
+  dl(csv, 'text/csv', stamp(label+'-mymaps')+'.csv');
+  showMsg('zones-export-msg',
+    rows.length+' stops across '+visibleClusters.length+' zones exported. '+
+    'Import into mymaps.google.com → use the Zone column to set marker colors.','ok');
+}
+
+// ── KMZ export — 3 priority layers, Google hosted pin icons ─────────────────
+// Uses Google Maps' own hosted pin icons — sharp at all zoom levels,
+// familiar teardrop shape, white border for readability in dense areas.
+// KMZ bundles doc.kml — no custom PNG icons needed (uses URL references).
+// 3 layers: Hot (red) / Warm (orange) / Cold (gray) — under My Maps 10-layer limit.
+function exportAllZonesKMZ(){
+  const areaEl = document.getElementById('zone-filter-area');
+  const areaFilter = areaEl ? areaEl.value : 'all';
+
+  const allRecords = areaFilter==='all' ? dbRecords : dbRecords.filter(r=>r.ar===areaFilter);
+  const candidates = allRecords.filter(r=>r.lt&&r.lg&&r.a);
+
+  if(!candidates.length){ showMsg('zones-export-msg','No stops to export.','err'); return; }
+
+  const ex = s => String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // Google's hosted paddle icons — sharp teardrops with letter labels
+  // These are reliable public URLs that My Maps renders correctly
+  const ICONS = {
+    Hot:  'https://maps.google.com/mapfiles/kml/paddle/red-circle.png',
+    Warm: 'https://maps.google.com/mapfiles/kml/paddle/orange-circle.png',
+    Cold: 'https://maps.google.com/mapfiles/kml/paddle/wht-circle.png',
+  };
+
+  const layers = [
+    { key:'Hot',  label:'Hot Leads',  desc:'Score 80+ — highest priority' },
+    { key:'Warm', label:'Warm Leads', desc:'Score 50-79 — worth a stop' },
+    { key:'Cold', label:'Cold Leads', desc:'Score below 50 — low priority' },
+  ];
+
+  // One StyleMap per priority with normal + highlight
+  const styleDefs = layers.map(l=>{
+    const sid = l.key.toLowerCase();
+    const icon = ICONS[l.key];
+    return (
+      '<Style id="'+sid+'-n">'+
+        '<IconStyle><scale>1.0</scale><Icon><href>'+icon+'</href></Icon></IconStyle>'+
+        '<LabelStyle><scale>0</scale></LabelStyle>'+
+      '</Style>'+
+      '<Style id="'+sid+'-h">'+
+        '<IconStyle><scale>1.3</scale><Icon><href>'+icon+'</href></Icon></IconStyle>'+
+        '<LabelStyle><scale>1.0</scale></LabelStyle>'+
+      '</Style>'+
+      '<StyleMap id="'+sid+'">'+
+        '<Pair><key>normal</key><styleUrl>#'+sid+'-n</styleUrl></Pair>'+
+        '<Pair><key>highlight</key><styleUrl>#'+sid+'-h</styleUrl></Pair>'+
+      '</StyleMap>'
+    );
+  }).join('\n');
+
+  const folderDefs = layers.map(l=>{
+    const stops = candidates.filter(r=>r.pr===l.key);
+    if(!stops.length) return '';
+    const sid = l.key.toLowerCase();
+    const placemarks = stops.map(r=>{
+      const zoneName = (dbClusters.find(c=>c.id===r.zo)||{nm:''}).nm;
+      const descLines = [
+        r.a||'',
+        r.ph  ? 'Phone: '+r.ph   : '',
+        r.web ? 'Website: '+r.web : '',
+        r.em  ? 'Email: '+r.em   : '',
+        r.cn  ? 'Contact: '+r.cn  : '',
+        zoneName ? 'Zone: '+zoneName : '',
+        'Priority: '+r.pr+' | Score: '+r.sc,
+      ].filter(Boolean).join('&#10;');
+      return (
+        '<Placemark>'+
+          '<name>'+ex(r.n)+'</name>'+
+          '<description>'+ex(descLines)+'</description>'+
+          '<styleUrl>#'+sid+'</styleUrl>'+
+          '<Point><coordinates>'+r.lg+','+r.lt+',0</coordinates></Point>'+
+        '</Placemark>'
+      );
+    }).join('\n');
+    return (
+      '<Folder>'+
+        '<name>'+l.label+' ('+stops.length+')</name>'+
+        '<description>'+l.desc+'</description>'+
+        placemarks+
+      '</Folder>'
+    );
+  }).filter(Boolean).join('\n');
+
+  const docName = areaFilter==='all' ? 'All Areas' : areaFilter;
+  const kml =
+    '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    '<kml xmlns="http://www.opengis.net/kml/2.2">\n'+
+    '<Document>\n'+
+    '<name>'+ex(docName)+' — Value Systems</name>\n'+
+    '<description>'+candidates.length+' stops — Hot/Warm/Cold priority layers</description>\n'+
+    styleDefs+'\n'+
+    folderDefs+'\n'+
+    '</Document>\n</kml>';
+
+  // Wrap in KMZ (ZIP) — just doc.kml, icons load from URL
+  const enc      = new TextEncoder();
+  const kmlBytes = enc.encode(kml);
+  const files    = [{ name:'doc.kml', data: kmlBytes }];
+
+  buildKMZ(files).then(kmzBytes=>{
+    const blob = new Blob([kmzBytes], {type:'application/vnd.google-earth.kmz'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = stamp(areaFilter==='all'?'all-areas':areaFilter.replace(/[^a-z0-9]/gi,'-'))+'-mymaps.kmz';
+    a.click();
+    URL.revokeObjectURL(url);
+    const hot  = candidates.filter(r=>r.pr==='Hot').length;
+    const warm = candidates.filter(r=>r.pr==='Warm').length;
+    const cold = candidates.filter(r=>r.pr==='Cold').length;
+    showMsg('zones-export-msg',
+      candidates.length+' stops exported: '+hot+' Hot (red) · '+warm+' Warm (orange) · '+cold+' Cold (gray). Import into mymaps.google.com.','ok');
+  });
+}
+
+// ── Minimal in-browser ZIP/KMZ writer (store method, no compression) ──────────
+async function buildKMZ(files){
+  const enc = new TextEncoder();
+  const parts = [], centralDir = [];
+  let offset = 0;
+
+  function u16(n){ const b=new Uint8Array(2); new DataView(b.buffer).setUint16(0,n,true); return b; }
+  function u32(n){ const b=new Uint8Array(4); new DataView(b.buffer).setUint32(0,n,true); return b; }
+
+  for(const file of files){
+    const nameBytes = enc.encode(file.name);
+    const crc = crc32zip(file.data);
+    const lh = concat2([
+      new Uint8Array([0x50,0x4b,0x03,0x04,20,0,0,0,0,0,0,0,0,0]),
+      u32(crc), u32(file.data.length), u32(file.data.length),
+      u16(nameBytes.length), new Uint8Array([0,0]),
+    ]);
+    const localEntry = concat2([lh, nameBytes, file.data]);
+    const cd = concat2([
+      new Uint8Array([0x50,0x4b,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0]),
+      u32(crc), u32(file.data.length), u32(file.data.length),
+      u16(nameBytes.length), new Uint8Array([0,0,0,0,0,0,0,0,0,0,0,0]),
+      u32(offset),
+    ]);
+    centralDir.push(concat2([cd, nameBytes]));
+    parts.push(localEntry);
+    offset += localEntry.length;
+  }
+
+  const cdBytes = concat2(centralDir);
+  const eocd = concat2([
+    new Uint8Array([0x50,0x4b,0x05,0x06,0,0,0,0]),
+    u16(files.length), u16(files.length),
+    u32(cdBytes.length), u32(offset),
+    new Uint8Array([0,0]),
+  ]);
+  return concat2([...parts, cdBytes, eocd]);
+}
+
+function concat2(arrays){
+  const total = arrays.reduce((s,a)=>s+a.length,0);
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for(const a of arrays){ out.set(a,pos); pos+=a.length; }
+  return out;
+}
+
+function crc32zip(data){
+  let c=0xFFFFFFFF;
+  for(let i=0;i<data.length;i++){
+    c^=data[i];
+    for(let j=0;j<8;j++) c=(c>>>1)^(c&1?0xEDB88320:0);
+  }
+  return (c^0xFFFFFFFF)>>>0;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── DATABASE SNAPSHOTS / ROLLBACK ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MAX_SNAPSHOTS = 5;
+const SNAPSHOT_KEY  = 'vs_db_snapshots';
+
+function loadSnapshots(){
+  try{ return JSON.parse(localStorage.getItem(SNAPSHOT_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+
+function saveSnapshots(snaps){
+  localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snaps));
+}
+
+// ── Take a snapshot ────────────────────────────────────────────────────────────
+function takeSnapshot(reason){
+  if(!dbRecords.length){
+    if(reason==='manual') showMsg('snapshot-msg','Nothing to snapshot — database is empty.','err');
+    return;
+  }
+
+  const now    = new Date();
+  const label  = reason==='manual' ? 'Manual save' :
+                 reason==='pre-import' ? 'Before import' :
+                 reason==='pre-clear' ? 'Before clear' : reason;
+
+  const snap = {
+    ts:      now.toISOString(),
+    label,
+    records: dbRecords.length,
+    clusters:dbClusters.length,
+    areas:   [...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].join(', '),
+    data:    {
+      dbRecords:  JSON.parse(JSON.stringify(dbRecords)),
+      dbClusters: JSON.parse(JSON.stringify(dbClusters)),
+      dbAreas:    [...dbAreas],
+    }
+  };
+
+  const snaps = loadSnapshots();
+  snaps.unshift(snap);                              // newest first
+  while(snaps.length > MAX_SNAPSHOTS) snaps.pop(); // prune oldest
+  saveSnapshots(snaps);
+
+  if(reason==='manual'){
+    showMsg('snapshot-msg',
+      'Snapshot saved — '+snap.records+' records, '+snap.clusters+' zones.','ok');
+    renderSnapshotList();
+    // Also open the panel so they can see it
+    const panel = document.getElementById('snapshots-panel');
+    if(panel && panel.style.display==='none') toggleSnapshots();
+  }
+}
+
+// ── Restore a snapshot ────────────────────────────────────────────────────────
+function restoreSnapshot(idx){
+  const snaps = loadSnapshots();
+  const snap  = snaps[idx];
+  if(!snap){ showMsg('snapshot-msg','Snapshot not found.','err'); return; }
+
+  const ts = new Date(snap.ts).toLocaleString();  const restoreMsg = 'Restore snapshot from '+ts+'?\n\n'+
+    snap.records+' records, '+snap.clusters+' zones'+(snap.areas?', areas: '+snap.areas:'')+
+    '\n\nYour current database will be replaced. This cannot be undone (but your current state is auto-saved as a snapshot).';
+  if(!confirm(restoreMsg)) return;
+
+  // Save current state first so user can undo the restore
+  takeSnapshot('pre-restore ('+ts+')');
+
+  dbRecords  = snap.data.dbRecords;
+  dbClusters = snap.data.dbClusters;
+  dbAreas    = snap.data.dbAreas || [];
+
+  dbLocalSave();
+  updateDbStats();
+  populateDbFilters();
+  renderDb();
+  renderZones();
+  renderSnapshotList();
+
+  showMsg('snapshot-msg',
+    'Restored — '+dbRecords.length+' records from '+ts+'.','ok');
+}
+
+// ── Delete a snapshot ─────────────────────────────────────────────────────────
+function deleteSnapshot(idx){
+  const snaps = loadSnapshots();
+  snaps.splice(idx,1);
+  saveSnapshots(snaps);
+  renderSnapshotList();
+}
+
+// ── Render the snapshot list ──────────────────────────────────────────────────
+function renderSnapshotList(){
+  const el = document.getElementById('snapshots-list');
+  if(!el) return;
+
+  const snaps = loadSnapshots();
+  if(!snaps.length){
+    el.innerHTML='<div class="empty" style="padding:12px">No snapshots yet — snapshots are taken automatically before every import, or click Save Snapshot anytime.</div>';
+    return;
+  }
+
+  el.innerHTML = snaps.map((s,i)=>{
+    const ts   = new Date(s.ts).toLocaleString();
+    const age  = getAge(new Date(s.ts));
+    const size = Math.round(JSON.stringify(s.data).length/1024);
+    return (
+      '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:0.5px solid var(--border);font-size:13px">'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-weight:500;color:var(--text)">'+esc(s.label)+'</div>'+
+          '<div style="font-size:11px;color:var(--text2)">'+ts+' · '+age+'</div>'+
+          '<div style="font-size:11px;color:var(--text3)">'+s.records+' records · '+s.clusters+' zones'+(s.areas?' · '+esc(s.areas):'')+' · '+size+'KB</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-shrink:0">'+
+          '<button class="btn sm primary" onclick="restoreSnapshot('+i+')">Restore</button>'+
+          '<button class="btn sm danger" onclick="deleteSnapshot('+i+')">Delete</button>'+
+        '</div>'+
+      '</div>'
+    );
+  }).join('');
+}
+
+function getAge(date){
+  const mins = Math.floor((new Date()-date)/60000);
+  if(mins<1)  return 'just now';
+  if(mins<60) return mins+'m ago';
+  const hrs = Math.floor(mins/60);
+  if(hrs<24)  return hrs+'h ago';
+  return Math.floor(hrs/24)+'d ago';
+}
+
+function toggleSnapshots(){
+  const panel = document.getElementById('snapshots-panel');
+  const btn   = document.getElementById('snapshots-toggle-btn');
+  const show  = panel.style.display==='none';
+  panel.style.display = show ? 'block' : 'none';
+  btn.textContent     = show ? 'History ▴' : 'History ▾';
+  if(show) renderSnapshotList();
+}
+
+
+// ── EXPORT TERRITORY DATABASE → COPPER (Companies only) ──────────────────────
+// Seeds all database records as Copper Company records.
+// No People or Opportunities — just the company seed data.
+// Import once into Copper → all future lead exports link to existing companies.
+function exportDatabaseCompanies(){
+  if(!dbRecords.length){
+    showMsg('db-export-msg','Database is empty — import Outscraper data first.','err');
+    return;
+  }
+
+  const areaEl   = document.getElementById('db-export-area');
+  const areaFilter = areaEl ? areaEl.value : 'all';
+  const exportOwner = document.getElementById('export-owner') ?
+    document.getElementById('export-owner').value : 'Aaron Neece';
+
+  // Filter by area, exclude blocklisted (shouldn't be in DB but double-check)
+  const records = dbRecords.filter(r=>
+    (areaFilter==='all' || r.ar===areaFilter) &&
+    !isBlocklisted(r.n)
+  );
+
+  if(!records.length){
+    showMsg('db-export-msg','No records found for the selected area.','err');
+    return;
+  }
+
+  // Copper Companies template columns — exact match to official import template
+  const headers = [
+    'Name','Details','Street','City','State','Postal Code','Country',
+    'Contact Type','Owned By','Work Phone','Work Website',
+    'CURRENT POS SOFTWARE cf_343021','NOTES cf_525882'
+  ];
+
+  const csvRow = arr => arr.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
+
+  const rows = records.map(r=>{
+    // Build details block — useful context for whoever opens the record in Copper
+    const details = [
+      r.rt  ? 'Google Rating: '+r.rt+' ('+r.rv+' reviews)' : '',
+      r.em  ? 'Email: '+r.em   : '',
+      r.fb  ? 'Facebook: '+r.fb : '',
+      r.ig  ? 'Instagram: '+r.ig : '',
+      r.cn  ? 'Contact: '+r.cn+(r.ct?' ('+r.ct+')':'') : '',
+      r.ar  ? 'Area: '+r.ar    : '',
+      'Priority: '+r.pr+' | Score: '+r.sc,
+    ].filter(Boolean).join('\n');
+
+    // Parse address — Copper wants separate fields
+    // Our address is stored as full string — put in Street, leave others blank
+    // Copper handles single-line street addresses fine
+    return [
+      r.n,                    // Name
+      details,                // Details
+      r.a   ||'',             // Street (full address)
+      r.ci  ||'',             // City
+      'SC',                   // State — default SC, adjust if multi-state
+      r.zi  ||'',             // Postal Code
+      'United States',        // Country
+      'Potential Customer',   // Contact Type
+      exportOwner,            // Owned By
+      r.ph  ||'',             // Work Phone
+      r.web ||'',             // Work Website
+      r.pr==='Hot'?'Toast/Square/Clover - Unknown':'',  // Current POS (unknown at this stage)
+      '',                     // Notes — blank, will be filled as you work the account
+    ];
+  });
+
+  const csv = [csvRow(headers), ...rows.map(csvRow)].join('\n');
+  const label = areaFilter==='all' ? 'territory' : areaFilter.replace(/[^a-z0-9]/gi,'-');
+  dl(csv, 'text/csv', stamp(label+'-companies')+'.csv');
+
+  const hot  = records.filter(r=>r.pr==='Hot').length;
+  const warm = records.filter(r=>r.pr==='Warm').length;
+  showMsg('db-export-msg',
+    records.length+' companies exported ('+hot+' Hot, '+warm+' Warm). '+
+    'Import into Copper → Companies → Import → CSV. '+
+    'Set duplicate handling to "Skip duplicates" to avoid overwriting existing records.',
+    'ok');
+}
+
+// Populate the area filter on the export tab when it opens
+function populateDbExportFilter(){
+  const sel = document.getElementById('db-export-area');
+  if(!sel) return;
+  const cur = sel.value;
+  const areas = [...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="all">All areas ('+dbRecords.length+' records)</option>'+
+    areas.map(a=>{
+      const cnt = dbRecords.filter(r=>r.ar===a).length;
+      return '<option value="'+a+'"'+(a===cur?' selected':'')+'>'+esc(a)+' ('+cnt+')</option>';
+    }).join('');
+
+  // Update count label
+  const countEl = document.getElementById('db-export-count');
+  if(countEl){
+    const filtered = sel.value==='all' ? dbRecords : dbRecords.filter(r=>r.ar===sel.value);
+    countEl.textContent = filtered.length+' records';
+  }
+}
 </script>
 </body>
 </html>
