@@ -1154,7 +1154,11 @@ function openCanvassEdit(id){
           ${CANVASS_ACTIVE.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
       </div>
-      <input type="text" id="ce-addr-${id}" value="${esc(c.addr||'')}" placeholder="Full address">
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="ce-addr-${id}" value="${esc(c.addr||'')}" placeholder="Full address" style="flex:1">
+        <button class="btn sm" type="button" onclick="geocodeCanvassStop('${id}')" title="Look up coordinates from address" style="flex-shrink:0;white-space:nowrap">📍 Get coords</button>
+      </div>
+      <div id="ce-geo-msg-${id}" style="font-size:11px;color:var(--text2);margin-top:-4px"></div>
       <div class="row">
         <input type="tel"  id="ce-phone-${id}" value="${esc(c.phone||'')}" placeholder="Phone">
         <input type="text" id="ce-notes-${id}" value="${esc(c.notes||'')}" placeholder="Notes">
@@ -1189,6 +1193,8 @@ function saveCanvassEdit(id){
   c.closeTime=document.getElementById('ce-close-'+id).value;
   c.website  =document.getElementById('ce-website-'+id).value.trim();
   c.menu     =document.getElementById('ce-menu-'+id).value.trim();
+  // Persist geocoded coordinates if they were looked up
+  if(c._lat){ c.lat=c._lat; c.lng=c._lng; delete c._lat; delete c._lng; }
   save(); updateCanvassStats();
   document.getElementById('ccard-'+id).outerHTML=renderCanvassCard(c);
 }
@@ -3281,6 +3287,27 @@ function openBuildRun(canvassId){
   buildRunAnchorId = canvassId;
   const todayStr   = new Date().toLocaleDateString();
 
+  // If anchor has no coordinates but has an address, try to geocode silently
+  // Update the anchor display and pool once geocoding completes
+  if(!anchorLat && anchor.addr){
+    document.getElementById('buildrun-anchor').innerHTML =
+      '<strong>Anchor:</strong> '+esc(anchor.name)+
+      '<br><span style="font-size:11px;color:var(--text2)">Looking up coordinates…</span>';
+    geocodeAnchorForRun(anchor).then(coords=>{
+      if(coords){
+        // Store on canvass stop and linked DB record
+        anchor.lat = coords.lat; anchor.lng = coords.lng;
+        if(anchor.fromDb){
+          const dbR = dbRecords.find(x=>x.id===anchor.fromDb);
+          if(dbR){ dbR.lt=coords.lat; dbR.lg=coords.lng; dbLocalSave(); }
+        }
+        save();
+        // Rebuild the run with real coordinates
+        openBuildRun(canvassId);
+      }
+    });
+  }
+
   // ── Build candidate pool ──────────────────────────────────────────────────
   const pool = [];
   const existingTodayNames = new Set(
@@ -3441,6 +3468,93 @@ function confirmBuildRun(){
   showMsg('canvass-add-msg',
     'Run built — anchor + '+loaded+' nearby stops loaded to today\'s canvass.',
     'ok');
+}
+
+// ── GEOCODING — Nominatim (OpenStreetMap, free, no key needed) ────────────────
+// Used to get lat/lng from address for canvass stops that were added manually
+// or imported before the Outscraper pipeline was built.
+// Rate limit: 1 request/second — we enforce this with a simple queue.
+
+let _geocodeQueue = Promise.resolve();
+
+function geocodeAddress(address){
+  // Chain requests to respect Nominatim's 1 req/sec rate limit
+  _geocodeQueue = _geocodeQueue.then(()=>
+    new Promise(resolve=>setTimeout(resolve, 1100))
+    .then(()=>
+      fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(address), {
+        headers:{ 'Accept-Language':'en', 'User-Agent':'ValueSystemsProspectTracker/1.0' }
+      })
+      .then(r=>r.json())
+      .then(data=>{
+        if(data && data.length>0){
+          return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        }
+        return null;
+      })
+    )
+  );
+  return _geocodeQueue;
+}
+
+// ── Geocode a single canvass stop from edit form ──────────────────────────────
+async function geocodeCanvassStop(id){
+  const addrEl  = document.getElementById('ce-addr-'+id);
+  const msgEl   = document.getElementById('ce-geo-msg-'+id);
+  const addr    = addrEl ? addrEl.value.trim() : '';
+
+  if(!addr){ msgEl.textContent = 'Enter an address first.'; return; }
+  msgEl.style.color = 'var(--text2)';
+  msgEl.textContent = 'Looking up coordinates…';
+
+  try{
+    const result = await fetch(
+      'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(addr),
+      { headers:{ 'Accept-Language':'en', 'User-Agent':'ValueSystemsProspectTracker/1.0' } }
+    ).then(r=>r.json());
+
+    if(result && result.length>0){
+      const lat = parseFloat(result[0].lat);
+      const lng = parseFloat(result[0].lon);
+
+      // Store on the canvass stop immediately (saves even before form save)
+      const c = canvassStops.find(x=>x.id===id);
+      if(c){
+        c._lat = lat;
+        c._lng = lng;
+      }
+
+      msgEl.style.color = 'var(--green-text)';
+      msgEl.textContent = '✓ Found: '+lat.toFixed(5)+', '+lng.toFixed(5)+' — coordinates will save with the form.';
+
+      // Also update the DB record if linked
+      if(c && c.fromDb){
+        const dbR = dbRecords.find(x=>x.id===c.fromDb);
+        if(dbR){ dbR.lt = lat; dbR.lg = lng; dbLocalSave(); }
+      }
+    } else {
+      msgEl.style.color = 'var(--yellow-text)';
+      msgEl.textContent = '⚠ Address not found — try a more specific address (include city and state).';
+    }
+  } catch(e){
+    msgEl.style.color = 'var(--red-text)';
+    msgEl.textContent = '✕ Lookup failed — check your internet connection.';
+  }
+}
+
+// ── Auto-geocode anchor in Build a Run if missing coordinates ─────────────────
+async function geocodeAnchorForRun(anchor){
+  if(!anchor.addr) return null;
+  try{
+    const result = await fetch(
+      'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(anchor.addr),
+      { headers:{ 'Accept-Language':'en', 'User-Agent':'ValueSystemsProspectTracker/1.0' } }
+    ).then(r=>r.json());
+    if(result && result.length>0){
+      return { lat: parseFloat(result[0].lat), lng: parseFloat(result[0].lon) };
+    }
+  } catch(e){ /* silent fail */ }
+  return null;
 }
 </script>
 </body>
