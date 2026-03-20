@@ -912,7 +912,40 @@ async function driveInit(){
   }catch(e){ if(e.message!=='401') setStatus('error','Drive error: '+e.message); }
 }
 
+// ── Detect whether Drive data would change anything local ─────────────────────
+function detectDriveDiff(d){
+  // Check for new or conflicting prospects/canvass stops
+  const localPIds = new Set(prospects.map(x=>x.id));
+  const localCIds = new Set(canvassStops.map(x=>x.id));
+  const newProspects   = (d.prospects   ||[]).filter(p=>p.id&&!localPIds.has(p.id)).length;
+  const newCanvass     = (d.canvassStops||[]).filter(c=>c.id&&!localCIds.has(c.id)).length;
+  const conflictP      = (d.prospects   ||[]).filter(p=>p.id&& localPIds.has(p.id)).length;
+  const conflictC      = (d.canvassStops||[]).filter(c=>c.id&& localCIds.has(c.id)).length;
+  // DB would be replaced if Drive count >= local count and counts differ
+  const dbReplace = Array.isArray(d.dbRecords) && d.dbRecords.length >= dbRecords.length
+                    && d.dbRecords.length !== dbRecords.length;
+  return { newProspects, newCanvass, conflictP, conflictC, dbReplace,
+           changed: newProspects>0 || newCanvass>0 || conflictP>0 || conflictC>0 || dbReplace };
+}
+
 function mergeData(d){
+  // Check for differences before merging — snapshot local data if Drive would change anything
+  const hasLocal = prospects.length>0 || canvassStops.length>0 || dbRecords.length>0;
+  if(hasLocal){
+    const diff = detectDriveDiff(d);
+    if(diff.changed){
+      takeSnapshot('drive-sync');
+      // Build a human-readable summary for the drive bar
+      const parts = [];
+      if(diff.newProspects) parts.push(diff.newProspects+' new lead'+(diff.newProspects>1?'s':''));
+      if(diff.newCanvass)   parts.push(diff.newCanvass+' new canvass stop'+(diff.newCanvass>1?'s':''));
+      if(diff.conflictP)    parts.push(diff.conflictP+' lead'+(diff.conflictP>1?'s':'')+' updated from Drive');
+      if(diff.conflictC)    parts.push(diff.conflictC+' canvass stop'+(diff.conflictC>1?'s':'')+' updated from Drive');
+      if(diff.dbReplace)    parts.push('DB replaced ('+d.dbRecords.length+' records from Drive vs '+dbRecords.length+' local)');
+      document.getElementById('drive-label').textContent =
+        'Drive sync — snapshot saved before merge: '+parts.join(', ')+'.';
+    }
+  }
   if(Array.isArray(d.prospects))    mergeArr(prospects,    d.prospects);
   if(Array.isArray(d.canvassStops)) mergeArr(canvassStops, d.canvassStops);
   // Restore database from Drive — overwrites local if Drive has more records
@@ -3078,8 +3111,9 @@ function takeSnapshot(reason){
 
   const now    = new Date();
   const label  = reason==='manual' ? 'Manual save' :
-                 reason==='pre-import' ? 'Before import' :
-                 reason==='pre-clear' ? 'Before clear' : reason;
+                 reason==='pre-import'  ? 'Before import' :
+                 reason==='pre-clear'   ? 'Before clear'  :
+                 reason==='drive-sync'  ? 'Before Drive sync' : reason;
 
   const snap = {
     ts:      now.toISOString(),
