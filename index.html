@@ -270,7 +270,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   <div class="header">
     <div class="header-title">
       <h1>Restaurant Prospect Tracker</h1>
-      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:53</span></p>
+      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 02:28</span></p>
     </div>
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
@@ -1156,10 +1156,7 @@ function renderCanvassFollowup(){
   el.innerHTML = list.map(c=>{
     const daysAgo = Math.floor((new Date()-new Date(c.added))/(1000*60*60*24));
     const age = daysAgo===0?'Today':daysAgo===1?'Yesterday':daysAgo+' days ago';
-    const card = renderCanvassCard(c, age);
-    const btn  = '<div style="padding:0 12px 10px"><button class="btn sm primary" style="width:100%" '+
-      'onclick="openBuildRun(\'' + c.id + '\')">&#128506; Build a Run from here</button></div>';
-    return card.slice(0,-6) + btn + card.slice(-6);
+    return renderCanvassCard(c, age, true);
   }).join('');
 }
 
@@ -1197,7 +1194,7 @@ function renderCanvassArchived(){
   el.innerHTML = list.map(c=>renderCanvassCard(c)).join('');
 }
 
-function renderCanvassCard(c, ageLabel){
+function renderCanvassCard(c, ageLabel, showBuildRun){
   const isConverted=c.status==='Converted';
   return `
     <div class="card${isConverted?' archived':''}" id="ccard-${c.id}">
@@ -1227,6 +1224,7 @@ function renderCanvassCard(c, ageLabel){
         ${!isConverted?`<button class="btn sm" onclick="openCanvassEdit('${c.id}')">Edit</button>`:''}
         ${!isConverted?`<button class="btn sm success" onclick="openConvertModal('${c.id}')">Convert to Lead</button>`:''}
         <button class="btn sm danger" onclick="deleteCanvass('${c.id}')">Remove</button>
+        ${showBuildRun?`<button class="btn sm" style="margin-left:auto;background:#111;color:#fff" onclick="openBuildRun('${c.id}')">Build Run</button>`:''}
       </div>
     </div>`;
 }
