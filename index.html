@@ -218,6 +218,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
       <button class="btn warning" onclick="confirmDemote()">Move to Canvass</button>
       <button class="btn" onclick="closeDemoteModal()">Cancel</button>
     </div>
+  </div>
 </div>
 
 <!-- END DAY MODAL -->
@@ -269,7 +270,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   <div class="header">
     <div class="header-title">
       <h1>Restaurant Prospect Tracker</h1>
-      <p>Value Systems — auto-syncs to Google Drive</p>
+      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 00:03</span></p>
     </div>
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
@@ -769,7 +770,6 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CLIENT_ID  = '874681040584-kv8cd6krhn8dndut2458qe5ua9e6nssr.apps.googleusercontent.com';
@@ -3577,6 +3577,6 @@ async function geocodeAnchorForRun(anchor){
   return null;
 }
 </script>
-<div style="text-align:center;padding:10px 0 6px;font-size:11px;color:#9a9a94;font-family:monospace">Value Systems Prospect Tracker &nbsp;&middot;&nbsp; Build 2026-03-19 23:46</div>
+
 </body>
 </html>
