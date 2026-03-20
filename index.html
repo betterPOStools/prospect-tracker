@@ -227,7 +227,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
     <div class="modal-title">End Day Summary</div>
     <div id="endday-recap" style="margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7"></div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
-      Today's stops will age into <strong>Follow Up</strong> or <strong>All Active</strong> automatically tomorrow based on their current status. The queue will be cleared.
+      Come back later and Decision maker unavailable stops age into <strong>Follow Up</strong> tomorrow. No answer and Not interested stops are logged and returned to the database pool.
     </p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn primary" onclick="confirmEndDay(true)">Download Summary + End Day</button>
@@ -270,7 +270,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   <div class="header">
     <div class="header-title">
       <h1>Restaurant Prospect Tracker</h1>
-      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 00:03</span></p>
+      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:05</span></p>
     </div>
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
@@ -2157,6 +2157,7 @@ function renderDb(){
       '<div style="flex:1;min-width:0">' +
         '<div style="font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.n)+'</div>' +
         '<div style="font-size:11px;color:var(--text3)">'+esc(r.a)+'</div>' +
+        (r.nt ? '<div style="font-size:11px;color:var(--text3);white-space:pre-line;margin-top:2px">'+esc(r.nt)+'</div>' : '') +
       '</div>' +
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">' +
         '<div style="display:flex;gap:5px;align-items:center">' +
@@ -2751,8 +2752,8 @@ function endDay(){
     converted   ? 'Converted to lead: <strong style="color:var(--green-text)">'+converted+'</strong>' : '',
     cbl         ? 'Come back later: <strong>'+cbl+'</strong> → moves to Follow Up' : '',
     dmu         ? 'Decision maker unavailable: <strong>'+dmu+'</strong> → moves to Follow Up' : '',
-    noAns       ? 'No answer / closed: <strong>'+noAns+'</strong> → moves to All Active' : '',
-    notInt      ? 'Not interested: <strong>'+notInt+'</strong> → archived' : '',
+    noAns       ? 'No answer / closed: <strong>'+noAns+'</strong> → visit logged, returned to DB pool' : '',
+    notInt      ? 'Not interested: <strong>'+notInt+'</strong> → visit logged, priority lowered, returned to DB pool' : '',
     notVis      ? 'Not visited yet: <strong style="color:var(--yellow-text)">'+notVis+'</strong> → remains unworked in database' : '',
   ].filter(Boolean).join('<br>');
 
@@ -2793,11 +2794,23 @@ function confirmEndDay(downloadSummary){
       // Keep in canvass — will appear in Follow Up tomorrow
       // Mark DB as in_canvass still
     } else {
-      // No answer / Not interested — mark as canvassed in DB
+      // No answer / Not interested — log visit, return to unworked
+      const dateStr = new Date().toLocaleDateString();
+      const label   = c.status === 'No answer / closed' ? 'No answer' : 'Not interested';
+      const note    = dateStr + ': ' + label;
       if(c.fromDb){
         const dbR = dbRecords.find(x=>x.id===c.fromDb);
-        if(dbR) dbR.st='canvassed';
+        if(dbR){
+          dbR.st  = 'unworked';
+          dbR.da  = '';
+          dbR.nt  = dbR.nt ? dbR.nt + '\n' + note : note;
+          if(c.status === 'Not interested'){
+            const down = {'Hot':'Warm','Warm':'Cold','Cold':'Cold'};
+            if(down[dbR.pr]) dbR.pr = down[dbR.pr];
+          }
+        }
       }
+      toRemove.push(c.id);  // remove from canvass — no longer lingers in All Active
     }
   });
 
