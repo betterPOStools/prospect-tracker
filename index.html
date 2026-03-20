@@ -3334,8 +3334,10 @@ function openBuildRun(canvassId){
           if(dbR){ dbR.lt=coords.lat; dbR.lg=coords.lng; dbLocalSave(); }
         }
         save();
-        // Rebuild the run with real coordinates
-        openBuildRun(canvassId);
+        // Only rebuild if the modal is still open (user hasn't confirmed/closed)
+        if(document.getElementById('buildrun-modal').style.display !== 'none'){
+          openBuildRun(canvassId);
+        }
       }
     });
   }

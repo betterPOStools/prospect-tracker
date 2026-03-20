@@ -465,14 +465,8 @@ async function run() {
 
       await page.click('button:has-text("Load to Today\'s Canvass")');
       await page.waitForTimeout(600);
-      // Modal should close; geocoding async callback can reopen it — force close if needed
-      const buildRunStillOpen = await page.locator('#buildrun-modal').isVisible();
-      if (buildRunStillOpen) {
-        await page.evaluate(() => { if(typeof closeBuildRunModal==='function') closeBuildRunModal(); });
-        await page.waitForTimeout(200);
-      }
       const buildRunGone = !(await page.locator('#buildrun-modal').isVisible());
-      log('Build a Run modal closes after confirm', !buildRunStillOpen, buildRunStillOpen ? '(geocode callback reopened it — known async issue)' : 'closed cleanly');
+      log('Build a Run modal closes after confirm', buildRunGone);
     }
   }
 
