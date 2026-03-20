@@ -270,7 +270,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   <div class="header">
     <div class="header-title">
       <h1>Restaurant Prospect Tracker</h1>
-      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:05</span></p>
+      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:35</span></p>
     </div>
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
@@ -802,7 +802,24 @@ function localLoad() {
   driveFileId = localStorage.getItem('vs_drive_fid') || null;
   if(typeof dbLocalLoad==='function') dbLocalLoad();
 }
-function localSave() {
+function stampTimestamps(current,previous,now){
+  const prevMap=new Map(previous.map(r=>[r.id,r]));
+  current.forEach(record=>{
+    if(!record._ts) record._ts={};
+    const prev=prevMap.get(record.id);
+    if(!prev){
+      Object.keys(record).forEach(k=>{ if(k!=='_ts') record._ts[k]=now; });
+    } else {
+      Object.keys(record).forEach(k=>{ if(k!=='_ts' && record[k]!==prev[k]) record._ts[k]=now; });
+    }
+  });
+}
+function localSave(){
+  const now=Date.now();
+  const prevP=JSON.parse(localStorage.getItem('vs_p3')||'[]');
+  const prevC=JSON.parse(localStorage.getItem('vs_c1')||'[]');
+  stampTimestamps(prospects,   prevP, now);
+  stampTimestamps(canvassStops,prevC, now);
   localStorage.setItem('vs_p3', JSON.stringify(prospects));
   localStorage.setItem('vs_c1', JSON.stringify(canvassStops));
   if(typeof dbLocalSave==='function') dbLocalSave();
@@ -956,8 +973,40 @@ function mergeData(d){
   if(Array.isArray(d.dbBlocklist) && d.dbBlocklist.length > 0) dbBlocklist = d.dbBlocklist;
   updateDbStats();
 }
+function mergeField(driveVal,localVal,driveTs,localTs){
+  if(driveVal===localVal) return driveVal;
+  const dEmpty=driveVal==null||driveVal==='';
+  const lEmpty=localVal==null||localVal==='';
+  if(dEmpty) return localVal;
+  if(lEmpty) return driveVal;
+  // Timestamps available — newer field wins cleanly
+  if(driveTs && localTs) return driveTs>=localTs ? driveVal : localVal;
+  // No timestamps (old records) — fall back to string heuristic
+  if(typeof driveVal!=='string'||typeof localVal!=='string') return driveVal;
+  const d=driveVal.trim(), l=localVal.trim();
+  if(d===l) return d;
+  if(l.includes(d)) return l;   // local is a superset — keep local
+  if(d.includes(l)) return d;   // drive is a superset — keep drive
+  return d+'>>'+l;               // true conflict — append local after drive
+}
 function mergeArr(local,incoming){
-  incoming.forEach(p=>{ if(!p.id||!p.name)return; const i=local.findIndex(x=>x.id===p.id); if(i===-1)local.push(p); else local[i]={...local[i],...p}; });
+  incoming.forEach(p=>{
+    if(!p.id||!p.name)return;
+    const i=local.findIndex(x=>x.id===p.id);
+    if(i===-1){local.push(p);}
+    else{
+      const merged={...local[i]};
+      const dTs=p._ts||{}, lTs=local[i]._ts||{};
+      const mergedTs={...lTs};
+      Object.keys(p).forEach(k=>{
+        if(k==='_ts') return;
+        merged[k]=mergeField(p[k],local[i][k],dTs[k]||0,lTs[k]||0);
+        mergedTs[k]=Math.max(dTs[k]||0,lTs[k]||0);
+      });
+      merged._ts=mergedTs;
+      local[i]=merged;
+    }
+  });
 }
 
 function scheduleSave(){
@@ -1265,13 +1314,14 @@ function confirmConvert(){
   const posVal=document.getElementById('m-pos').value;
   const current=posVal==='other'?document.getElementById('m-pos-other').value.trim():posVal;
   prospects.push({
-    id:uid(), name:c.name, addr:c.addr, phone:c.phone,
+    id:c.fromDb ? 'lead_'+c.fromDb : uid(), name:c.name, addr:c.addr, phone:c.phone,
     email:document.getElementById('m-email').value.trim(),
     current, owner:document.getElementById('m-owner').value.trim(),
     website:c.website||'', menu:c.menu||'',
     notes:c.notes, status:'Open',
     added:new Date().toLocaleDateString(),
     fromCanvass:canvassId,
+    fromDb:c.fromDb||null,
   });
   c.status='Converted'; c.convertedDate=new Date().toLocaleDateString();
   save(); updateStats(); updateCanvassStats(); renderList(); renderCanvass();
@@ -1296,13 +1346,14 @@ function confirmDemote(){
   const status=document.getElementById('demote-status').value;
   // Re-add to canvass, preserving all data
   canvassStops.push({
-    id:uid(), name:p.name, addr:p.addr||'', phone:p.phone||'',
+    id:p.fromDb ? 'canvass_'+p.fromDb : uid(), name:p.name, addr:p.addr||'', phone:p.phone||'',
     notes:(reason?reason+' — ':'')+('Previously a lead'+(p.notes?' — '+p.notes:'')),
     website:p.website||'', menu:p.menu||'',
     openTime:'', closeTime:'',
     status, date:new Date().toLocaleDateString(),
     added:new Date().toISOString(),
     fromLead:leadId,
+    fromDb:p.fromDb||null,
   });
   // Remove from leads
   prospects=prospects.filter(x=>x.id!==leadId);
@@ -1779,8 +1830,8 @@ function processImport(text,msgId){
     const incP=data.prospects||[]; const incC=data.canvassStops||[];
     if(!Array.isArray(incP))throw new Error();
     let pa=0,pu=0,ca=0,cu=0;
-    incP.forEach(p=>{ if(!p.id||!p.name)return; const i=prospects.findIndex(x=>x.id===p.id); if(i===-1){prospects.push(p);pa++;}else{prospects[i]={...prospects[i],...p};pu++;} });
-    incC.forEach(c=>{ if(!c.id||!c.name)return; const i=canvassStops.findIndex(x=>x.id===c.id); if(i===-1){canvassStops.push(c);ca++;}else{canvassStops[i]={...canvassStops[i],...c};cu++;} });
+    const pPre=prospects.length;   mergeArr(prospects,   incP); pa=prospects.length-pPre; pu=incP.length-pa;
+    const cPre=canvassStops.length; mergeArr(canvassStops,incC); ca=canvassStops.length-cPre; cu=incC.length-ca;
     // Restore DB if present in backup
     if(Array.isArray(data.dbRecords)  && data.dbRecords.length  > 0){ dbRecords  = data.dbRecords;  }
     if(Array.isArray(data.dbClusters) && data.dbClusters.length > 0){ dbClusters = data.dbClusters; }
@@ -2198,7 +2249,7 @@ function dbLoadToCanvass(mode){
     const r=dbRecords.find(x=>x.id===id); if(!r)return;
     if(existingNames.has((r.n||'').toLowerCase())) return; // already in canvass
     canvassStops.push({
-      id:uid(), name:r.n, addr:r.a, phone:r.ph,
+      id:'canvass_'+r.id, name:r.n, addr:r.a, phone:r.ph,
       notes:r.cn ? (r.ct ? r.cn+' ('+r.ct+')' : r.cn) : '',
       website:r.web, menu:r.mn,
       openTime:'', closeTime:'',
@@ -3527,7 +3578,7 @@ function confirmBuildRun(){
     if(candidate.type==='db'){
       // New stop from database
       const newStop = {
-        id:uid(), name:candidate.name, addr:candidate.addr,
+        id:candidate.fromDb ? 'canvass_'+candidate.fromDb : uid(), name:candidate.name, addr:candidate.addr,
         phone:candidate.phone, email:candidate.email,
         website:candidate.website, menu:candidate.menu,
         notes:candidate.notes,
