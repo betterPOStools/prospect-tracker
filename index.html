@@ -915,12 +915,13 @@ async function driveInit(){
 // ── Detect whether Drive data would change anything local ─────────────────────
 function detectDriveDiff(d){
   // Check for new or conflicting prospects/canvass stops
-  const localPIds = new Set(prospects.map(x=>x.id));
-  const localCIds = new Set(canvassStops.map(x=>x.id));
-  const newProspects   = (d.prospects   ||[]).filter(p=>p.id&&!localPIds.has(p.id)).length;
-  const newCanvass     = (d.canvassStops||[]).filter(c=>c.id&&!localCIds.has(c.id)).length;
-  const conflictP      = (d.prospects   ||[]).filter(p=>p.id&& localPIds.has(p.id)).length;
-  const conflictC      = (d.canvassStops||[]).filter(c=>c.id&& localCIds.has(c.id)).length;
+  const localPMap = Object.fromEntries(prospects.map(x=>[x.id, x]));
+  const localCMap = Object.fromEntries(canvassStops.map(x=>[x.id, x]));
+  const newProspects = (d.prospects   ||[]).filter(p=>p.id&&!localPMap[p.id]).length;
+  const newCanvass   = (d.canvassStops||[]).filter(c=>c.id&&!localCMap[c.id]).length;
+  // Only flag as conflict if the record exists locally AND the data actually differs
+  const conflictP = (d.prospects   ||[]).filter(p=>p.id&&localPMap[p.id]&&JSON.stringify(p)!==JSON.stringify(localPMap[p.id])).length;
+  const conflictC = (d.canvassStops||[]).filter(c=>c.id&&localCMap[c.id]&&JSON.stringify(c)!==JSON.stringify(localCMap[c.id])).length;
   // DB would be replaced if Drive count >= local count and counts differ
   const dbReplace = Array.isArray(d.dbRecords) && d.dbRecords.length >= dbRecords.length
                     && d.dbRecords.length !== dbRecords.length;
@@ -3104,27 +3105,32 @@ function saveSnapshots(snaps){
 
 // ── Take a snapshot ────────────────────────────────────────────────────────────
 function takeSnapshot(reason){
-  if(!dbRecords.length){
-    if(reason==='manual') showMsg('snapshot-msg','Nothing to snapshot — database is empty.','err');
+  const hasData = dbRecords.length>0 || prospects.length>0 || canvassStops.length>0;
+  if(!hasData){
+    if(reason==='manual') showMsg('snapshot-msg','Nothing to snapshot — no data yet.','err');
     return;
   }
 
   const now    = new Date();
-  const label  = reason==='manual' ? 'Manual save' :
-                 reason==='pre-import'  ? 'Before import' :
-                 reason==='pre-clear'   ? 'Before clear'  :
-                 reason==='drive-sync'  ? 'Before Drive sync' : reason;
+  const label  = reason==='manual'     ? 'Manual save'        :
+                 reason==='pre-import'  ? 'Before import'      :
+                 reason==='pre-clear'   ? 'Before clear'       :
+                 reason==='drive-sync'  ? 'Before Drive sync'  : reason;
 
   const snap = {
     ts:      now.toISOString(),
     label,
-    records: dbRecords.length,
-    clusters:dbClusters.length,
-    areas:   [...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].join(', '),
-    data:    {
-      dbRecords:  JSON.parse(JSON.stringify(dbRecords)),
-      dbClusters: JSON.parse(JSON.stringify(dbClusters)),
-      dbAreas:    [...dbAreas],
+    records:  dbRecords.length,
+    clusters: dbClusters.length,
+    leads:    prospects.length,
+    canvass:  canvassStops.length,
+    areas:    [...new Set(dbRecords.map(r=>r.ar).filter(Boolean))].join(', '),
+    data:     {
+      dbRecords:    JSON.parse(JSON.stringify(dbRecords)),
+      dbClusters:   JSON.parse(JSON.stringify(dbClusters)),
+      dbAreas:      [...dbAreas],
+      prospects:    JSON.parse(JSON.stringify(prospects)),
+      canvassStops: JSON.parse(JSON.stringify(canvassStops)),
     }
   };
 
@@ -3135,7 +3141,7 @@ function takeSnapshot(reason){
 
   if(reason==='manual'){
     showMsg('snapshot-msg',
-      'Snapshot saved — '+snap.records+' records, '+snap.clusters+' zones.','ok');
+      'Snapshot saved — '+snap.records+' DB records, '+snap.leads+' leads, '+snap.canvass+' canvass stops.','ok');
     renderSnapshotList();
     // Also open the panel so they can see it
     const panel = document.getElementById('snapshots-panel');
@@ -3149,19 +3155,28 @@ function restoreSnapshot(idx){
   const snap  = snaps[idx];
   if(!snap){ showMsg('snapshot-msg','Snapshot not found.','err'); return; }
 
-  const ts = new Date(snap.ts).toLocaleString();  const restoreMsg = 'Restore snapshot from '+ts+'?\n\n'+
-    snap.records+' records, '+snap.clusters+' zones'+(snap.areas?', areas: '+snap.areas:'')+
-    '\n\nYour current database will be replaced. This cannot be undone (but your current state is auto-saved as a snapshot).';
+  const ts = new Date(snap.ts).toLocaleString();
+  const restoreMsg = 'Restore snapshot from '+ts+'?\n\n'+
+    snap.records+' DB records, '+snap.clusters+' zones, '+(snap.leads||0)+' leads, '+(snap.canvass||0)+' canvass stops'+
+    (snap.areas?'\nAreas: '+snap.areas:'')+
+    '\n\nAll current data will be replaced. This cannot be undone (but your current state is auto-saved as a snapshot first).';
   if(!confirm(restoreMsg)) return;
 
   // Save current state first so user can undo the restore
   takeSnapshot('pre-restore ('+ts+')');
 
-  dbRecords  = snap.data.dbRecords;
-  dbClusters = snap.data.dbClusters;
-  dbAreas    = snap.data.dbAreas || [];
+  dbRecords  = snap.data.dbRecords  || [];
+  dbClusters = snap.data.dbClusters || [];
+  dbAreas    = snap.data.dbAreas    || [];
+  if(Array.isArray(snap.data.prospects))    prospects    = snap.data.prospects;
+  if(Array.isArray(snap.data.canvassStops)) canvassStops = snap.data.canvassStops;
 
+  localSave();
   dbLocalSave();
+  updateStats();
+  updateCanvassStats();
+  renderList();
+  renderCanvass();
   updateDbStats();
   populateDbFilters();
   renderDb();
@@ -3169,7 +3184,7 @@ function restoreSnapshot(idx){
   renderSnapshotList();
 
   showMsg('snapshot-msg',
-    'Restored — '+dbRecords.length+' records from '+ts+'.','ok');
+    'Restored — '+dbRecords.length+' DB records, '+prospects.length+' leads, '+canvassStops.length+' canvass stops from '+ts+'.','ok');
 }
 
 // ── Delete a snapshot ─────────────────────────────────────────────────────────
@@ -3200,7 +3215,7 @@ function renderSnapshotList(){
         '<div style="flex:1;min-width:0">'+
           '<div style="font-weight:500;color:var(--text)">'+esc(s.label)+'</div>'+
           '<div style="font-size:11px;color:var(--text2)">'+ts+' · '+age+'</div>'+
-          '<div style="font-size:11px;color:var(--text3)">'+s.records+' records · '+s.clusters+' zones'+(s.areas?' · '+esc(s.areas):'')+' · '+size+'KB</div>'+
+          '<div style="font-size:11px;color:var(--text3)">'+s.records+' DB · '+s.clusters+' zones'+(s.leads?' · '+s.leads+' leads':'')+( s.canvass?' · '+s.canvass+' canvass':'')+' · '+size+'KB</div>'+
         '</div>'+
         '<div style="display:flex;gap:6px;flex-shrink:0">'+
           '<button class="btn sm primary" onclick="restoreSnapshot('+i+')">Restore</button>'+
