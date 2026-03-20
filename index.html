@@ -2087,7 +2087,7 @@ function getDbFiltered(){
     (area==='all'||r.ar===area)&&
     (zip==='all'||r.zi===zip)&&
     (zone==='all'||r.zo===zone)&&
-    (!q||r.n.toLowerCase().includes(q)||(r.a||'').toLowerCase().includes(q))
+    (!q||(r.n||'').toLowerCase().includes(q)||(r.a||'').toLowerCase().includes(q))
   ).sort((a,b)=>b.sc-a.sc);
 }
 
@@ -2161,7 +2161,7 @@ function dbLoadToCanvass(mode){
 
   ids.forEach(id=>{
     const r=dbRecords.find(x=>x.id===id); if(!r)return;
-    if(existingNames.has(r.n.toLowerCase())) return; // already in canvass
+    if(existingNames.has((r.n||'').toLowerCase())) return; // already in canvass
     canvassStops.push({
       id:uid(), name:r.n, addr:r.a, phone:r.ph,
       notes:r.cn ? (r.ct ? r.cn+' ('+r.ct+')' : r.cn) : '',
@@ -2218,7 +2218,7 @@ function renderZones(){
 
   // Filter clusters to those that have members in the selected area
   const visibleClusters = areaFilter === 'all' ? dbClusters : dbClusters.filter(c=>{
-    return c.mb.some(id=>{ const r=dbRecords.find(x=>x.id===id); return r&&r.ar===areaFilter; });
+    return (c.mb||[]).some(id=>{ const r=dbRecords.find(x=>x.id===id); return r&&r.ar===areaFilter; });
   });
 
   const workedMap={};
@@ -2542,7 +2542,7 @@ function autoFillWeek(){
   // Score clusters by unworked hot value
   const clusterValue = dbClusters.map(c=>({
     ...c,
-    value: c.mb.reduce((s,id)=>{
+    value: (c.mb||[]).reduce((s,id)=>{
       const r=dbRecords.find(x=>x.id===id);
       if(!r||r.st!=='unworked') return s;
       return s + (r.pr==='Hot'?3:r.pr==='Warm'?1:0);
@@ -3352,7 +3352,7 @@ function openBuildRun(canvassId){
 
   // Pool 1: Unworked database records (not already in today's canvass)
   dbRecords
-    .filter(r=>r.st==='unworked' && r.lt && r.lg && !existingTodayNames.has(r.n.toLowerCase()))
+    .filter(r=>r.st==='unworked' && r.lt && r.lg && !existingTodayNames.has((r.n||'').toLowerCase()))
     .forEach(r=>{
       const dist = anchorLat ? haversine(anchorLat, anchorLng, r.lt, r.lg) : 999;
       pool.push({ type:'db', id:r.id, name:r.n, addr:r.a, phone:r.ph, email:r.em,
