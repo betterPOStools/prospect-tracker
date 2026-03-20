@@ -270,7 +270,7 @@ hr{border:none;border-top:0.5px solid var(--border);margin:18px 0}
   <div class="header">
     <div class="header-title">
       <h1>Restaurant Prospect Tracker</h1>
-      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:35</span></p>
+      <p>Value Systems &nbsp;·&nbsp; <span style="font-family:var(--mono);font-size:11px;color:var(--text3)">Build 2026-03-20 01:53</span></p>
     </div>
     <button class="theme-btn" onclick="toggleTheme()">☀ / ☾</button>
   </div>
@@ -1237,7 +1237,7 @@ function updateCanvassStatus(id,val){
 function deleteCanvass(id){
   canvassStops=canvassStops.filter(c=>c.id!==id);
   routeSelected.delete('c_'+id);
-  save(); renderCanvass(); updateCanvassStats();
+  save(); renderCanvass(); renderCanvassActive(); updateCanvassStats();
 }
 
 function openCanvassEdit(id){
