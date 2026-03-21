@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { DataProvider, useProspects, useCanvass, useDatabase, useFileSync, useLastSave } from './data/store.jsx'
+import { DataProvider, useProspects, useCanvass, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
 import DatabaseTab from './features/database/DatabaseTab.jsx'
 import CanvassTab  from './features/canvass/CanvassTab.jsx'
@@ -46,9 +46,10 @@ function relativeTime(d) {
 }
 
 function SaveIndicator() {
-  const fileSync    = useFileSync()
-  const lastSave    = useLastSave()
-  const [, setTick] = useState(0)
+  const fileSync      = useFileSync()
+  const supabaseSync  = useSupabaseSyncCtx()
+  const lastSave      = useLastSave()
+  const [, setTick]   = useState(0)
 
   // Re-render every 15s so relative timestamps stay fresh
   useEffect(() => {
@@ -76,7 +77,24 @@ function SaveIndicator() {
     )
   }
 
-  // No file linked — show localStorage save status
+  // No file linked — show Supabase sync status if enabled
+  if (supabaseSync?.enabled) {
+    const isSyncing = supabaseSync.status === 'syncing'
+    const isError   = supabaseSync.status === 'error'
+    return (
+      <div className={styles.syncStatus}>
+        <span className={isSyncing ? styles.dotSaving : isError ? styles.dotErr : styles.dotOk} />
+        <span>
+          {isSyncing ? 'Syncing…'
+           : isError  ? 'Sync error'
+           : supabaseSync.lastSyncAt ? `Cloud · ${relativeTime(supabaseSync.lastSyncAt)}`
+           : 'Cloud sync ready'}
+        </span>
+      </div>
+    )
+  }
+
+  // Fallback — localStorage only
   return (
     <div className={styles.syncStatus}>
       <span className={lastSave ? styles.dotOk : styles.dotDim} />

@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react'
 import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
+import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
 
 // ── Last Save ──────────────────────────────────────────────────────────────────
 const LastSaveContext = createContext(null)
@@ -171,6 +172,10 @@ function databaseReducer(state, action) {
 const FileSyncContext = createContext(null)
 export const useFileSync = () => useContext(FileSyncContext)
 
+// ── Supabase Sync Context ──────────────────────────────────────────────────────
+const SupabaseSyncContext = createContext(null)
+export const useSupabaseSyncCtx = () => useContext(SupabaseSyncContext)
+
 // ── Shared merge utility ───────────────────────────────────────────────────────
 function mergeField(driveVal, localVal, driveTs, localTs) {
   if (driveVal === localVal) return driveVal
@@ -219,28 +224,54 @@ export function DataProvider({ children }) {
     dbBlocklist: initial.dbBlocklist,
   })
 
-  const fileSync = useFileSyncHook()
+  const fileSync      = useFileSyncHook()
+  const supabaseSync  = useSupabaseSync()
   const isInitializingRef = useRef(true)
   const [lastLocalSave, setLastLocalSave] = useState(null)
 
-  // Startup: read from linked file if it's newer than localStorage
+  // Startup: read from linked file or Supabase if newer than localStorage
   useEffect(() => {
     async function init() {
+      // ── File sync (existing) ────────────────────────────────────────────────
       const handle = await fileSync.initFromStorage()
-      if (!handle) { isInitializingRef.current = false; return }
-      const raw  = await fileSync.readFromFile()
-      const data = loadFromFile(raw)
-      if (!data) { isInitializingRef.current = false; return }
-      const fileSavedAt  = data.savedAt ? new Date(data.savedAt) : null
-      const lsTs         = localStorage.getItem('vs_filesync_saved_at')
-      const localSavedAt = lsTs ? new Date(lsTs) : null
-      if (!localSavedAt || (fileSavedAt && fileSavedAt > localSavedAt)) {
-        dbDispatch({ type: 'RESTORE_SNAPSHOT',
-          dbRecords: data.dbRecords, dbClusters: data.dbClusters,
-          dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
-        prospectsDispatch({ type: '_REPLACE_ALL', items: data.prospects })
-        canvassDispatch({ type: '_REPLACE_ALL', items: data.canvass })
+      if (handle) {
+        const raw  = await fileSync.readFromFile()
+        const data = loadFromFile(raw)
+        if (data) {
+          const fileSavedAt  = data.savedAt ? new Date(data.savedAt) : null
+          const lsTs         = localStorage.getItem('vs_filesync_saved_at')
+          const localSavedAt = lsTs ? new Date(lsTs) : null
+          if (!localSavedAt || (fileSavedAt && fileSavedAt > localSavedAt)) {
+            dbDispatch({ type: 'RESTORE_SNAPSHOT',
+              dbRecords: data.dbRecords, dbClusters: data.dbClusters,
+              dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
+            prospectsDispatch({ type: '_REPLACE_ALL', items: data.prospects })
+            canvassDispatch({ type: '_REPLACE_ALL', items: data.canvass })
+          }
+        }
       }
+
+      // ── Supabase (new) ─────────────────────────────────────────────────────
+      if (supabaseSync.enabled) {
+        const row = await supabaseSync.loadFromSupabase()
+        if (row?.payload && Object.keys(row.payload).length > 0) {
+          const remoteSavedAt = row.updated_at ? new Date(row.updated_at) : null
+          const localBestTs   = [
+            localStorage.getItem('vs_filesync_saved_at'),
+            localStorage.getItem('vs_supabase_synced_at'),
+          ].filter(Boolean).map(s => new Date(s)).sort((a, b) => b - a)[0] ?? null
+
+          if (!localBestTs || (remoteSavedAt && remoteSavedAt > localBestTs)) {
+            const p = row.payload
+            dbDispatch({ type: 'RESTORE_SNAPSHOT',
+              dbRecords: p.dbRecords, dbClusters: p.dbClusters,
+              dbAreas: p.dbAreas, dbBlocklist: p.dbBlocklist })
+            prospectsDispatch({ type: '_REPLACE_ALL', items: p.prospects || [] })
+            canvassDispatch({ type: '_REPLACE_ALL', items: p.canvass || [] })
+          }
+        }
+      }
+
       setTimeout(() => { isInitializingRef.current = false }, 0)
     }
     init()
@@ -264,7 +295,40 @@ export function DataProvider({ children }) {
     })
   }, [prospects, canvassStops, db, fileSync.linked]) // writeToFile is stable (useCallback)
 
+  // Auto-sync to Supabase on any state change
+  useEffect(() => {
+    if (isInitializingRef.current) return
+    if (!supabaseSync.enabled) return
+    supabaseSync.writeToSupabase({
+      version: 1,
+      prospects,
+      canvass:     canvassStops,
+      dbRecords:   db.dbRecords,
+      dbClusters:  db.dbClusters,
+      dbAreas:     db.dbAreas,
+      dbBlocklist: db.dbBlocklist,
+    })
+  }, [prospects, canvassStops, db, supabaseSync.enabled]) // writeToSupabase is stable (useCallback)
+
+  // Realtime: apply updates from other devices
+  useEffect(() => {
+    if (!supabaseSync.enabled) return
+    return supabaseSync.subscribeRealtime({
+      onUpdate: (payload) => {
+        if (isInitializingRef.current) return
+        if (payload.dbRecords !== undefined) {
+          dbDispatch({ type: 'RESTORE_SNAPSHOT',
+            dbRecords: payload.dbRecords, dbClusters: payload.dbClusters,
+            dbAreas: payload.dbAreas, dbBlocklist: payload.dbBlocklist })
+        }
+        if (payload.prospects !== undefined) prospectsDispatch({ type: '_REPLACE_ALL', items: payload.prospects })
+        if (payload.canvass   !== undefined) canvassDispatch({ type: '_REPLACE_ALL', items: payload.canvass })
+      }
+    })
+  }, [supabaseSync.enabled]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
+    <SupabaseSyncContext.Provider value={supabaseSync}>
     <LastSaveContext.Provider value={lastLocalSave}>
     <FileSyncContext.Provider value={fileSync}>
     <ProspectsContext.Provider value={prospects}>
@@ -282,6 +346,7 @@ export function DataProvider({ children }) {
     </ProspectsContext.Provider>
     </FileSyncContext.Provider>
     </LastSaveContext.Provider>
+    </SupabaseSyncContext.Provider>
   )
 }
 
