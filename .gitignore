@@ -1,1 +1,4 @@
 node_modules/
+
+# Always track the sync backup even if it gets large
+!data/backup.json
