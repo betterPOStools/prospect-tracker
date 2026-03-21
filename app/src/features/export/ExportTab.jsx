@@ -123,12 +123,17 @@ export default function ExportTab() {
     const file = e.target.files[0]; if (!file) return
     try {
       const text = await file.text()
-      const data = JSON.parse(text)
-      if (!data.version || !data.exportedAt) {
-        flash('Unrecognized file format — must be a prospect-tracker backup JSON.', 'err')
-        e.target.value = ''; return
-      }
-      if (!confirm(`Restore from backup dated ${new Date(data.exportedAt).toLocaleString()}?\n\nThis will replace ALL current data. Make sure to export a backup first.`)) {
+      let raw = JSON.parse(text)
+
+      // Handle old export format: bare array of prospects
+      if (Array.isArray(raw)) raw = { prospects: raw }
+
+      const data = raw
+      const dateLabel = data.exportedAt || data.savedAt
+        ? `dated ${new Date(data.exportedAt || data.savedAt).toLocaleString()}`
+        : `from file "${file.name}"`
+
+      if (!confirm(`Restore backup ${dateLabel}?\n\nThis will replace ALL current data. Make sure to export a backup first.`)) {
         e.target.value = ''; return
       }
       if (data.dbRecords !== undefined) {
