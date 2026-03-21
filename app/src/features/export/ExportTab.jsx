@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useProspects, useProspectsDispatch, useCanvass, useCanvassDispatch, useDatabase, useDatabaseDispatch, useFileSync, useCurrentStatePayload } from '../../data/store.jsx'
 import { loadSnapshots } from '../../data/storage.js'
+import { exportKmz } from '../../data/kmzExport.js'
 import Button from '../../components/Button.jsx'
 
 function relativeTime(d) {
@@ -104,6 +105,13 @@ export default function ExportTab() {
     }))
     downloadCSV(rows, `leads-${dateTag()}.csv`)
     flash(`${rows.length} leads exported to CSV.`)
+  }
+
+  async function handleExportKmz() {
+    if (!db.dbRecords.length) { flash('No DB records to export.', 'err'); return }
+    const count = await exportKmz(db.dbRecords, `prospect-tracker-${dateTag()}.kmz`)
+    if (!count) { flash('No records have GPS coordinates — import Outscraper data with lat/lng.', 'err'); return }
+    flash(`KMZ exported — ${count} mapped records across 5 priority layers.`)
   }
 
   function exportCanvassCSV() {
@@ -229,6 +237,14 @@ export default function ExportTab() {
           Import from JSON
           <input ref={importRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
         </label>
+      </Section>
+
+      <Section
+        title="Export to KMZ"
+        sub="Export DB records as a Google Earth / Google My Maps file. 5 layers: 🔥 Fire, 🥵 Hot, ☀️ Warm, 🥶 Cold, ☠️ Dead. Only records with GPS coordinates are included.">
+        <Button size="sm" variant="primary" onClick={handleExportKmz}>
+          Export KMZ ({db.dbRecords.filter(r => r.lt && r.lg).length} mapped)
+        </Button>
       </Section>
 
       <Section
