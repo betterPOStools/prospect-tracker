@@ -38,7 +38,7 @@ export function buildClusters(records, radiusMiles = 0.5) {
         })
       })
       const topWord = Object.entries(wordCount).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
-      const hot = members.filter(m => m.pr === 'Hot').length
+      const hot = members.filter(m => m.pr === 'Fire' || m.pr === 'Hot').length
 
       clusters.push({
         id:  `zone_${zip}_${clusters.length}`,

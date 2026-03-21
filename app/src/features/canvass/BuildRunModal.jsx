@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { FOLLOWUP_STATUSES } from './constants.js'
+import { PRIORITY_COLOR, PRIORITY_EMOJI } from '../../data/scoring.js'
 import Modal from '../../components/Modal.jsx'
 import Button from '../../components/Button.jsx'
 
@@ -24,9 +25,9 @@ export default function BuildRunModal({ triggerStop, onClose }) {
     canvass
       .filter(s => s.date !== todayStr && FOLLOWUP_STATUSES.includes(s.status))
       .sort((a, b) => {
-        // Sort Hot first, then by score, then by age (oldest first)
-        const priA = a.priority === 'Hot' ? 2 : a.priority === 'Warm' ? 1 : 0
-        const priB = b.priority === 'Hot' ? 2 : b.priority === 'Warm' ? 1 : 0
+        const ORDER = { Fire: 4, Hot: 3, Warm: 2, Cold: 1, Dead: 0 }
+        const priA = ORDER[a.priority] ?? 0
+        const priB = ORDER[b.priority] ?? 0
         if (priB !== priA) return priB - priA
         if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0)
         return new Date(a.added) - new Date(b.added)
@@ -59,7 +60,6 @@ export default function BuildRunModal({ triggerStop, onClose }) {
   const selectedStops = followUps.filter(s => selected.has(s.id))
   const url = routeUrl(selectedStops)
 
-  const PRIORITY_COLOR = { Hot: 'var(--red-text)', Warm: 'var(--yellow-text)', Cold: 'var(--text3)' }
 
   function daysAgo(stop) {
     const d = Math.floor((new Date() - new Date(stop.added)) / 86400000)
@@ -113,7 +113,7 @@ export default function BuildRunModal({ triggerStop, onClose }) {
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[s.priority] || 'var(--text3)' }}>
-                  {s.priority} {s.score || ''}
+                  {PRIORITY_EMOJI[s.priority]} {s.priority} {s.score || ''}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{daysAgo(s)}</div>
               </div>

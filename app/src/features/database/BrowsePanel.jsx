@@ -2,9 +2,8 @@ import { useState, useMemo } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { uid } from '../../data/helpers.js'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
+import { PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
 import Button from '../../components/Button.jsx'
-
-const PRIORITY_COLOR = { Hot: 'var(--red-text)', Warm: 'var(--yellow-text)', Cold: 'var(--text3)' }
 
 function statusBadge(st) {
   if (st === 'unworked')   return <span style={{ background: 'var(--bg2)', color: 'var(--text2)', padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>Unworked</span>
@@ -105,9 +104,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
       <div className="filter-row" style={{ flexWrap: 'wrap', gap: '6px' }}>
         <select value={filterPri}    onChange={e => setFilterPri(e.target.value)}    style={{ minWidth: '100px' }}>
           <option value="all">All priorities</option>
-          <option value="Hot">Hot</option>
-          <option value="Warm">Warm</option>
-          <option value="Cold">Cold</option>
+          {PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_EMOJI[p]} {p}</option>)}
         </select>
         <select value={filterSt}     onChange={e => setFilterSt(e.target.value)}     style={{ minWidth: '120px' }}>
           <option value="all">All statuses</option>
@@ -166,7 +163,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px', flexShrink: 0 }}>
               <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr] }}>{r.pr} {r.sc}</span>
+                <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr] }}>{PRIORITY_EMOJI[r.pr]} {r.pr} {r.sc}</span>
                 {r.rt > 0 && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>★{r.rt}</span>}
                 {statusBadge(r.st)}
               </div>

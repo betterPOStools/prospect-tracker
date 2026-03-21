@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useDatabase } from '../../data/store.jsx'
+import { PRIORITIES, PRIORITY_EMOJI } from '../../data/scoring.js'
 import StatBar    from '../../components/StatBar.jsx'
 import ImportBar  from './ImportBar.jsx'
 import BlocklistManager from './BlocklistManager.jsx'
@@ -17,14 +18,12 @@ export default function DatabaseTab() {
 
   const stats = useMemo(() => {
     const total    = dbRecords.length
-    const hot      = dbRecords.filter(r => r.pr === 'Hot').length
-    const warm     = dbRecords.filter(r => r.pr === 'Warm').length
     const unworked = dbRecords.filter(r => r.st === 'unworked').length
     const worked   = dbRecords.filter(r => r.st !== 'unworked' && r.st !== 'in_canvass').length
+    const byCounts = PRIORITIES.map(p => ({ n: dbRecords.filter(r => r.pr === p).length, label: `${PRIORITY_EMOJI[p]} ${p}` }))
     return [
       { n: total,    label: 'Total' },
-      { n: hot,      label: 'Hot' },
-      { n: warm,     label: 'Warm' },
+      ...byCounts,
       { n: unworked, label: 'Unworked' },
       { n: worked,   label: 'Worked' },
     ]

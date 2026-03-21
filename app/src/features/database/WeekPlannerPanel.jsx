@@ -2,10 +2,9 @@ import { useState, useMemo } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { DAYS, autoAssignDay, autoFillWeek } from '../../data/weekPlanner.js'
+import { PRIORITY_COLOR, PRIORITY_EMOJI } from '../../data/scoring.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
-
-const PRIORITY_COLOR = { Hot: 'var(--red-text)', Warm: 'var(--yellow-text)', Cold: 'var(--text3)' }
 
 export default function WeekPlannerPanel() {
   const db         = useDatabase()
@@ -156,7 +155,7 @@ export default function WeekPlannerPanel() {
                       <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.n}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.a}</div>
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr], flexShrink: 0 }}>{r.pr} {r.sc}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr], flexShrink: 0 }}>{PRIORITY_EMOJI[r.pr]} {r.pr} {r.sc}</span>
                     <button onClick={() => handleRemoveStop(r.id)}
                       style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: '14px', padding: '0 4px', flexShrink: 0 }}>✕</button>
                   </div>

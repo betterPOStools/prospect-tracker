@@ -13,10 +13,11 @@ export function autoAssignDay(dbRecords, day, n, areaFilter = 'all') {
 
   const ZONE_RADIUS = 0.75
 
+  const PRI_WEIGHT = { Fire: 40, Hot: 30, Warm: 10, Cold: 2, Dead: 0 }
   const anchorScores = pool.map(r => {
-    const baseScore = (r.pr === 'Hot' ? 30 : r.pr === 'Warm' ? 10 : 2) + r.sc * 0.3
+    const baseScore = (PRI_WEIGHT[r.pr] ?? 2) + r.sc * 0.3
     const hotNeighbors = pool.filter(nb =>
-      nb.id !== r.id && nb.pr === 'Hot' &&
+      nb.id !== r.id && (nb.pr === 'Fire' || nb.pr === 'Hot') &&
       haversine(r.lt, r.lg, nb.lt, nb.lg) <= ZONE_RADIUS
     ).length
     return { r, anchorVal: baseScore + hotNeighbors * 8 }
@@ -58,7 +59,7 @@ export function autoFillWeek(dbRecords, dbClusters, n) {
     value: (c.mb || []).reduce((s, id) => {
       const r = dbRecords.find(x => x.id === id)
       if (!r || r.st !== 'unworked') return s
-      return s + (r.pr === 'Hot' ? 3 : r.pr === 'Warm' ? 1 : 0)
+      return s + (r.pr === 'Fire' ? 4 : r.pr === 'Hot' ? 3 : r.pr === 'Warm' ? 1 : 0)
     }, 0)
   })).filter(c => c.value > 0).sort((a, b) => b.value - a.value)
 

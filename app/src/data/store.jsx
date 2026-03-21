@@ -2,6 +2,15 @@ import { createContext, useContext, useReducer, useEffect, useRef, useState } fr
 import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
 import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
+import { calcScore, calcPriority } from './scoring.js'
+
+function rescoreAll(records) {
+  return records.map(r => {
+    const sc = calcScore(r)
+    const pr = calcPriority(sc)
+    return (r.sc === sc && r.pr === pr) ? r : { ...r, sc, pr }
+  })
+}
 
 // ── Last Save ──────────────────────────────────────────────────────────────────
 const LastSaveContext = createContext(null)
@@ -143,7 +152,7 @@ function databaseReducer(state, action) {
         let updated  = { ...r, ...fields }
         if (note) updated.nt = updated.nt ? updated.nt + '\n' + note : note
         if (down) {
-          const map = { Hot: 'Warm', Warm: 'Cold', Cold: 'Cold' }
+          const map = { Fire: 'Hot', Hot: 'Warm', Warm: 'Cold', Cold: 'Dead', Dead: 'Dead' }
           if (map[updated.pr]) updated.pr = map[updated.pr]
         }
         return updated
@@ -214,6 +223,7 @@ function mergeArr(local, incoming) {
 // ── Provider ───────────────────────────────────────────────────────────────────
 export function DataProvider({ children }) {
   const initial = loadAll()
+  if (initial.dbRecords.length) initial.dbRecords = rescoreAll(initial.dbRecords)
 
   const [prospects, prospectsDispatch] = useReducer(prospectsReducer, initial.prospects)
   const [canvassStops, canvassDispatch] = useReducer(canvassReducer, initial.canvassStops)
@@ -264,7 +274,7 @@ export function DataProvider({ children }) {
           if (!localBestTs || (remoteSavedAt && remoteSavedAt > localBestTs)) {
             const p = row.payload
             dbDispatch({ type: 'RESTORE_SNAPSHOT',
-              dbRecords: p.dbRecords, dbClusters: p.dbClusters,
+              dbRecords: rescoreAll(p.dbRecords || []), dbClusters: p.dbClusters,
               dbAreas: p.dbAreas, dbBlocklist: p.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: p.prospects || [] })
             canvassDispatch({ type: '_REPLACE_ALL', items: p.canvass || [] })
