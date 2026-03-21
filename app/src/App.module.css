@@ -27,8 +27,14 @@
 }
 @media (max-width: 400px) { .syncStatus { display: none; } }
 .dotOk     { width: 6px; height: 6px; border-radius: 50%; background: var(--green-text);  flex-shrink: 0; }
-.dotSaving { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow-text); flex-shrink: 0; }
+.dotSaving { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow-text); flex-shrink: 0; animation: pulse 1s ease-in-out infinite; }
 .dotErr    { width: 6px; height: 6px; border-radius: 50%; background: var(--red-text);    flex-shrink: 0; }
+.dotDim    { width: 6px; height: 6px; border-radius: 50%; background: var(--text3);       flex-shrink: 0; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
 
 .themeBtn {
   background: var(--bg2);

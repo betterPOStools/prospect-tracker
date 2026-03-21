@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { DataProvider, useProspects, useCanvass, useDatabase, useFileSync } from './data/store.jsx'
+import { useState, useEffect } from 'react'
+import { DataProvider, useProspects, useCanvass, useDatabase, useFileSync, useLastSave } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
 import DatabaseTab from './features/database/DatabaseTab.jsx'
 import CanvassTab  from './features/canvass/CanvassTab.jsx'
@@ -45,9 +45,48 @@ function relativeTime(d) {
   return m < 60 ? m + 'm ago' : Math.floor(m / 60) + 'h ago'
 }
 
+function SaveIndicator() {
+  const fileSync    = useFileSync()
+  const lastSave    = useLastSave()
+  const [, setTick] = useState(0)
+
+  // Re-render every 15s so relative timestamps stay fresh
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 15000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (fileSync?.status === 'error') {
+    return (
+      <div className={styles.syncStatus}>
+        <span className={styles.dotErr} />
+        <span>Save error</span>
+      </div>
+    )
+  }
+
+  if (fileSync?.linked) {
+    const isSaving = fileSync.status === 'saving'
+    return (
+      <div className={styles.syncStatus}>
+        <span className={isSaving ? styles.dotSaving : styles.dotOk} />
+        <span>{isSaving ? 'Saving…' : fileSync.fileName}</span>
+        {!isSaving && fileSync.lastSavedAt && <span> · {relativeTime(fileSync.lastSavedAt)}</span>}
+      </div>
+    )
+  }
+
+  // No file linked — show localStorage save status
+  return (
+    <div className={styles.syncStatus}>
+      <span className={lastSave ? styles.dotOk : styles.dotDim} />
+      <span>{lastSave ? `Saved · ${relativeTime(lastSave)}` : 'No changes yet'}</span>
+    </div>
+  )
+}
+
 function AppShell() {
   const { toggleTheme } = useTheme()
-  const fileSync = useFileSync()
   const [activeTab, setActiveTab] = useState('canvass')
 
   return (
@@ -62,16 +101,7 @@ function AppShell() {
             </span>
           </p>
         </div>
-        {fileSync?.linked && (
-          <div className={styles.syncStatus}>
-            <span className={
-              fileSync.status === 'error'  ? styles.dotErr :
-              fileSync.status === 'saving' ? styles.dotSaving : styles.dotOk
-            } />
-            {fileSync.fileName}
-            {fileSync.lastSavedAt && <> · {relativeTime(fileSync.lastSavedAt)}</>}
-          </div>
-        )}
+        <SaveIndicator />
         <button className={styles.themeBtn} onClick={toggleTheme} aria-label="Toggle light/dark theme">☀ / ☾</button>
       </div>
 

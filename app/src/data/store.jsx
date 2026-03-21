@@ -1,6 +1,9 @@
-import { createContext, useContext, useReducer, useEffect, useRef } from 'react'
+import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react'
 import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
+
+// ── Last Save ──────────────────────────────────────────────────────────────────
+const LastSaveContext = createContext(null)
 
 // ── Prospects ──────────────────────────────────────────────────────────────────
 const ProspectsContext = createContext(null)
@@ -218,6 +221,7 @@ export function DataProvider({ children }) {
 
   const fileSync = useFileSyncHook()
   const isInitializingRef = useRef(true)
+  const [lastLocalSave, setLastLocalSave] = useState(null)
 
   // Startup: read from linked file if it's newer than localStorage
   useEffect(() => {
@@ -242,6 +246,12 @@ export function DataProvider({ children }) {
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Track localStorage saves (happens on every state change via reducers)
+  useEffect(() => {
+    if (isInitializingRef.current) return
+    setLastLocalSave(new Date())
+  }, [prospects, canvassStops, db])
+
   // Auto-write to file on any state change
   useEffect(() => {
     if (isInitializingRef.current) return
@@ -255,6 +265,7 @@ export function DataProvider({ children }) {
   }, [prospects, canvassStops, db, fileSync.linked]) // writeToFile is stable (useCallback)
 
   return (
+    <LastSaveContext.Provider value={lastLocalSave}>
     <FileSyncContext.Provider value={fileSync}>
     <ProspectsContext.Provider value={prospects}>
       <ProspectsDispatchContext.Provider value={prospectsDispatch}>
@@ -270,6 +281,7 @@ export function DataProvider({ children }) {
       </ProspectsDispatchContext.Provider>
     </ProspectsContext.Provider>
     </FileSyncContext.Provider>
+    </LastSaveContext.Provider>
   )
 }
 
@@ -280,6 +292,7 @@ export const useCanvass = () => useContext(CanvassContext)
 export const useCanvassDispatch = () => useContext(CanvassDispatchContext)
 export const useDatabase = () => useContext(DatabaseContext)
 export const useDatabaseDispatch = () => useContext(DatabaseDispatchContext)
+export const useLastSave = () => useContext(LastSaveContext)
 
 // Returns a complete state payload suitable for file sync / export
 export function useCurrentStatePayload() {
