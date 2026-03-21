@@ -1,0 +1,19 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--bg2);
+  border-radius: var(--radius);
+  padding: 11px 10px;
+  text-align: center;
+}
+.statN { font-size: 22px; font-weight: 500; color: var(--text); }
+.statL { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+@media (max-width: 520px) {
+  .stats { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+  .statN { font-size: 20px; }
+}

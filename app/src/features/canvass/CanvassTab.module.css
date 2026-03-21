@@ -1,0 +1,28 @@
+.subtabs {
+  display: flex;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+.subtab {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  white-space: nowrap;
+  background: none;
+  transition: color .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.subtab:hover { color: var(--text); }
+.subtab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+
+.badge {
+  font-size: 11px;
+  color: var(--text3);
+}

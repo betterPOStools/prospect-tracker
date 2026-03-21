@@ -1,0 +1,15 @@
+.card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 13px 15px;
+  margin-bottom: 9px;
+}
+.card:hover { border-color: var(--border2); }
+.card.archived { opacity: .55; }
+
+.name    { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.detail  { font-size: 12px; color: var(--text2); margin-bottom: 2px; }
+.detail a { color: var(--blue-text); text-decoration: none; }
+.detail a:hover { text-decoration: underline; }
+.actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }

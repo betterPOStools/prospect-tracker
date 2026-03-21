@@ -1,0 +1,299 @@
+import { createContext, useContext, useReducer, useEffect, useRef } from 'react'
+import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
+import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
+
+// ── Prospects ──────────────────────────────────────────────────────────────────
+const ProspectsContext = createContext(null)
+const ProspectsDispatchContext = createContext(null)
+
+function prospectsReducer(state, action) {
+  let next
+  switch (action.type) {
+    case 'ADD':
+      next = [...state, action.prospect]
+      break
+    case 'UPDATE':
+      next = state.map(p => p.id === action.prospect.id ? action.prospect : p)
+      break
+    case 'DELETE':
+      next = state.filter(p => p.id !== action.id)
+      break
+    case 'IMPORT_MERGE':
+      next = mergeArr([...state], action.incoming)
+      break
+    case '_REPLACE_ALL':
+      next = action.items || []
+      break
+    default:
+      return state
+  }
+  saveProspects(next)
+  return next
+}
+
+// ── Canvass ────────────────────────────────────────────────────────────────────
+const CanvassContext = createContext(null)
+const CanvassDispatchContext = createContext(null)
+
+function canvassReducer(state, action) {
+  let next
+  switch (action.type) {
+    case 'ADD':
+      next = [...state, action.stop]
+      break
+    case 'ADD_MANY':
+      next = [...state, ...action.stops]
+      break
+    case 'UPDATE':
+      next = state.map(s => s.id === action.stop.id ? action.stop : s)
+      break
+    case 'UPDATE_STATUS':
+      next = state.map(s => s.id === action.id ? { ...s, status: action.status } : s)
+      break
+    case 'DELETE':
+      next = state.filter(s => s.id !== action.id)
+      break
+    case 'DELETE_MANY':
+      next = state.filter(s => !action.ids.includes(s.id))
+      break
+    case 'IMPORT_MERGE':
+      next = mergeArr([...state], action.incoming)
+      break
+    case '_REPLACE_ALL':
+      next = action.items || []
+      break
+    default:
+      return state
+  }
+  saveCanvass(next)
+  return next
+}
+
+// ── Database ───────────────────────────────────────────────────────────────────
+const DatabaseContext = createContext(null)
+const DatabaseDispatchContext = createContext(null)
+
+function databaseReducer(state, action) {
+  let next
+  switch (action.type) {
+    case 'IMPORT':
+      next = {
+        ...state,
+        dbRecords:  action.dbRecords,
+        dbClusters: action.dbClusters,
+        dbAreas:    action.dbAreas,
+        dbBlocklist: action.dbBlocklist ?? state.dbBlocklist,
+      }
+      break
+    case 'UPDATE_RECORD':
+      next = { ...state, dbRecords: state.dbRecords.map(r => r.id === action.record.id ? action.record : r) }
+      break
+    case 'UPDATE_RECORD_STATUS':
+      next = { ...state, dbRecords: state.dbRecords.map(r => r.id === action.id ? { ...r, st: action.status } : r) }
+      break
+    case 'UPDATE_RECORD_STATUS_MANY':
+      next = { ...state, dbRecords: state.dbRecords.map(r => action.ids.includes(r.id) ? { ...r, ...action.fields } : r) }
+      break
+    case 'ASSIGN_DAY':
+      next = { ...state, dbRecords: state.dbRecords.map(r => action.ids.includes(r.id) ? { ...r, da: action.day } : r) }
+      break
+    case 'SET_CLUSTERS':
+      next = { ...state, dbClusters: action.dbClusters }
+      break
+    case 'SET_AREAS':
+      next = { ...state, dbAreas: action.dbAreas }
+      break
+    case 'SET_BLOCKLIST':
+      next = { ...state, dbBlocklist: action.dbBlocklist }
+      break
+    case 'WEEK_ASSIGN': {
+      // action.assignments = [{ id, da }]
+      const daMap = Object.fromEntries(action.assignments.map(a => [a.id, a.da]))
+      next = { ...state, dbRecords: state.dbRecords.map(r => daMap[r.id] !== undefined ? { ...r, da: daMap[r.id] } : r) }
+      break
+    }
+    case 'CLEAR_WEEK':
+      next = { ...state, dbRecords: state.dbRecords.map(r => ({ ...r, da: '' })) }
+      break
+    case 'CLEAR_DAY':
+      next = { ...state, dbRecords: state.dbRecords.map(r => r.da === action.day ? { ...r, da: '' } : r) }
+      break
+    case 'REMOVE_FROM_DAY':
+      next = { ...state, dbRecords: state.dbRecords.map(r => r.id === action.id ? { ...r, da: '' } : r) }
+      break
+    case 'RESTORE_SNAPSHOT':
+      next = {
+        dbRecords:   action.dbRecords   || [],
+        dbClusters:  action.dbClusters  || [],
+        dbAreas:     action.dbAreas     || [],
+        dbBlocklist: action.dbBlocklist || state.dbBlocklist,
+      }
+      break
+    case 'END_DAY_UPDATE': {
+      const updatedRecords = state.dbRecords.map(r => {
+        const u = action.updates.find(x => x.id === r.id)
+        if (!u) return r
+        const fields = { ...u.fields }
+        const note   = fields._note; delete fields._note
+        const down   = fields._downgrade; delete fields._downgrade
+        let updated  = { ...r, ...fields }
+        if (note) updated.nt = updated.nt ? updated.nt + '\n' + note : note
+        if (down) {
+          const map = { Hot: 'Warm', Warm: 'Cold', Cold: 'Cold' }
+          if (map[updated.pr]) updated.pr = map[updated.pr]
+        }
+        return updated
+      })
+      next = { ...state, dbRecords: updatedRecords }
+      break
+    }
+    case 'RENAME_ZONE': {
+      const updated = state.dbRecords.map(r =>
+        r.zo === action.oldName ? { ...r, zo: action.newName } : r
+      )
+      const updatedClusters = state.dbClusters.map(c =>
+        c.zone === action.oldName ? { ...c, zone: action.newName } : c
+      )
+      next = { ...state, dbRecords: updated, dbClusters: updatedClusters }
+      break
+    }
+    default:
+      return state
+  }
+  saveDb(next)
+  return next
+}
+
+// ── File Sync Context ──────────────────────────────────────────────────────────
+const FileSyncContext = createContext(null)
+export const useFileSync = () => useContext(FileSyncContext)
+
+// ── Shared merge utility ───────────────────────────────────────────────────────
+function mergeField(driveVal, localVal, driveTs, localTs) {
+  if (driveVal === localVal) return driveVal
+  const dEmpty = driveVal == null || driveVal === ''
+  const lEmpty = localVal == null || localVal === ''
+  if (dEmpty) return localVal
+  if (lEmpty) return driveVal
+  if (driveTs && localTs) return driveTs >= localTs ? driveVal : localVal
+  if (typeof driveVal !== 'string' || typeof localVal !== 'string') return driveVal
+  const d = driveVal.trim(), l = localVal.trim()
+  if (d === l) return d
+  if (l.includes(d)) return l
+  if (d.includes(l)) return d
+  return d + '>>' + l
+}
+
+function mergeArr(local, incoming) {
+  incoming.forEach(p => {
+    if (!p.id || !p.name) return
+    const i = local.findIndex(x => x.id === p.id)
+    if (i === -1) { local.push(p) }
+    else {
+      const merged = { ...local[i] }
+      const dTs = p._ts || {}, lTs = local[i]._ts || {}
+      Object.keys(p).forEach(k => {
+        if (k === '_ts') return
+        merged[k] = mergeField(p[k], local[i][k], dTs[k], lTs[k])
+      })
+      merged._ts = { ...lTs, ...dTs }
+      local[i] = merged
+    }
+  })
+  return local
+}
+
+// ── Provider ───────────────────────────────────────────────────────────────────
+export function DataProvider({ children }) {
+  const initial = loadAll()
+
+  const [prospects, prospectsDispatch] = useReducer(prospectsReducer, initial.prospects)
+  const [canvassStops, canvassDispatch] = useReducer(canvassReducer, initial.canvassStops)
+  const [db, dbDispatch] = useReducer(databaseReducer, {
+    dbRecords:   initial.dbRecords,
+    dbClusters:  initial.dbClusters,
+    dbAreas:     initial.dbAreas,
+    dbBlocklist: initial.dbBlocklist,
+  })
+
+  const fileSync = useFileSyncHook()
+  const isInitializingRef = useRef(true)
+
+  // Startup: read from linked file if it's newer than localStorage
+  useEffect(() => {
+    async function init() {
+      const handle = await fileSync.initFromStorage()
+      if (!handle) { isInitializingRef.current = false; return }
+      const raw  = await fileSync.readFromFile()
+      const data = loadFromFile(raw)
+      if (!data) { isInitializingRef.current = false; return }
+      const fileSavedAt  = data.savedAt ? new Date(data.savedAt) : null
+      const lsTs         = localStorage.getItem('vs_filesync_saved_at')
+      const localSavedAt = lsTs ? new Date(lsTs) : null
+      if (!localSavedAt || (fileSavedAt && fileSavedAt > localSavedAt)) {
+        dbDispatch({ type: 'RESTORE_SNAPSHOT',
+          dbRecords: data.dbRecords, dbClusters: data.dbClusters,
+          dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
+        prospectsDispatch({ type: '_REPLACE_ALL', items: data.prospects })
+        canvassDispatch({ type: '_REPLACE_ALL', items: data.canvass })
+      }
+      setTimeout(() => { isInitializingRef.current = false }, 0)
+    }
+    init()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-write to file on any state change
+  useEffect(() => {
+    if (isInitializingRef.current) return
+    if (!fileSync.linked) return
+    fileSync.writeToFile({
+      version: 1, savedAt: new Date().toISOString(),
+      prospects, canvass: canvassStops,
+      dbRecords: db.dbRecords, dbClusters: db.dbClusters,
+      dbAreas: db.dbAreas, dbBlocklist: db.dbBlocklist,
+    })
+  }, [prospects, canvassStops, db, fileSync.linked]) // writeToFile is stable (useCallback)
+
+  return (
+    <FileSyncContext.Provider value={fileSync}>
+    <ProspectsContext.Provider value={prospects}>
+      <ProspectsDispatchContext.Provider value={prospectsDispatch}>
+        <CanvassContext.Provider value={canvassStops}>
+          <CanvassDispatchContext.Provider value={canvassDispatch}>
+            <DatabaseContext.Provider value={db}>
+              <DatabaseDispatchContext.Provider value={dbDispatch}>
+                {children}
+              </DatabaseDispatchContext.Provider>
+            </DatabaseContext.Provider>
+          </CanvassDispatchContext.Provider>
+        </CanvassContext.Provider>
+      </ProspectsDispatchContext.Provider>
+    </ProspectsContext.Provider>
+    </FileSyncContext.Provider>
+  )
+}
+
+// ── Hooks ──────────────────────────────────────────────────────────────────────
+export const useProspects = () => useContext(ProspectsContext)
+export const useProspectsDispatch = () => useContext(ProspectsDispatchContext)
+export const useCanvass = () => useContext(CanvassContext)
+export const useCanvassDispatch = () => useContext(CanvassDispatchContext)
+export const useDatabase = () => useContext(DatabaseContext)
+export const useDatabaseDispatch = () => useContext(DatabaseDispatchContext)
+
+// Returns a complete state payload suitable for file sync / export
+export function useCurrentStatePayload() {
+  const prospects = useProspects()
+  const canvass   = useCanvass()
+  const db        = useDatabase()
+  return {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    prospects,
+    canvass,
+    dbRecords:   db.dbRecords,
+    dbClusters:  db.dbClusters,
+    dbAreas:     db.dbAreas,
+    dbBlocklist: db.dbBlocklist,
+  }
+}

@@ -1,0 +1,29 @@
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.Open     { background: var(--blue-bg);   color: var(--blue-text); }
+.Won      { background: var(--green-bg);  color: var(--green-text); }
+.Lost     { background: var(--red-bg);    color: var(--red-text); }
+.Abandoned{ background: var(--bg2);       color: var(--text2); }
+.canvass  { background: var(--purple-bg); color: var(--purple-text); }
+.converted{ background: var(--green-bg);  color: var(--green-text); }
+
+.hoursChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 0.5px solid var(--border2);
+  color: var(--text2);
+  background: var(--bg2);
+}
+.hoursChip.closed    { background: var(--red-bg);   color: var(--red-text);   border-color: transparent; }
+.hoursChip.openNow   { background: var(--green-bg); color: var(--green-text); border-color: transparent; }

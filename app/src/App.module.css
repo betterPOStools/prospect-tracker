@@ -1,0 +1,101 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.headerTitle h1 {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.headerTitle p { font-size: 13px; color: var(--text2); }
+
+.syncStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text2);
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 400px) { .syncStatus { display: none; } }
+.dotOk     { width: 6px; height: 6px; border-radius: 50%; background: var(--green-text);  flex-shrink: 0; }
+.dotSaving { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow-text); flex-shrink: 0; }
+.dotErr    { width: 6px; height: 6px; border-radius: 50%; background: var(--red-text);    flex-shrink: 0; }
+
+.themeBtn {
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.themeBtn:hover { background: var(--bg3); }
+
+.shell {
+  background: var(--bg);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 0.5px solid var(--border);
+  overflow-x: auto;
+  background: var(--bg);
+}
+
+.tab {
+  padding: 12px 14px;
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  white-space: nowrap;
+  background: none;
+  transition: color .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+
+.badge {
+  background: var(--blue-bg);
+  color: var(--blue-text);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.panel { padding: 20px; }
+
+.placeholder {
+  text-align: center;
+  padding: 40px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .panel { padding: 14px; }
+  .headerTitle h1 { font-size: 17px; }
+  .headerTitle p  { font-size: 12px; }
+  .tab { padding: 10px 10px; font-size: 12px; }
+}
