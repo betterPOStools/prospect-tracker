@@ -153,7 +153,10 @@ function QueueView({ os }) {
   const db       = useDatabase()
   const dispatch = useDatabaseDispatch()
   const { takeSnapshot } = useSnapshots()
-  const [msg, setMsg] = useState(null)
+  const [msg,         setMsg]         = useState(null)
+  const [lastPolled,  setLastPolled]  = useState(null)
+  const [checking,    setChecking]    = useState(false)
+  const [, setTick] = useState(0) // force re-render to update "X ago" display
 
   const doImport = useCallback((task) => {
     takeSnapshot('pre-import')
@@ -169,15 +172,32 @@ function QueueView({ os }) {
     setMsg({ text: `"${task.city}, ${task.state}" imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped.`, type: 'ok' })
   }, [db, dispatch, takeSnapshot, os]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Start polling when Queue is visible and there are pending tasks; stop on cleanup
+  const onComplete = useCallback((t) => {
+    if (os.config.autoImport) doImport(t)
+  }, [doImport, os.config.autoImport]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function doCheck() {
+    setChecking(true)
+    try {
+      const t = await os.pollNow(onComplete)
+      setLastPolled(t)
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  // Start polling + immediate check when Queue is visible and there are pending tasks
   useEffect(() => {
     const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
     if (!hasPending) return
 
-    os.startPolling((completedTask) => {
-      if (os.config.autoImport) doImport(completedTask)
-    })
-    return () => os.stopPolling()
+    doCheck() // immediate first check
+    os.startPolling(onComplete)
+
+    // Tick every 15s to update "X ago" display
+    const ticker = setInterval(() => setTick(n => n + 1), 15_000)
+
+    return () => { os.stopPolling(); clearInterval(ticker) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!os.tasks.length) {
@@ -188,8 +208,18 @@ function QueueView({ os }) {
     )
   }
 
+  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+  const agoSecs = lastPolled ? Math.round((Date.now() - lastPolled) / 1000) : null
+
   return (
     <div>
+      {hasPending && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text2)', marginBottom: 10 }}>
+          <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
+          {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : 'Polling every 30s'}
+          <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>
+        </div>
+      )}
       {msg && (
         <div style={{ fontSize: 12, marginBottom: 8, color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>
           {msg.text}

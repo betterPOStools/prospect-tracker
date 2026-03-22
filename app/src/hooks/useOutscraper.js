@@ -55,51 +55,60 @@ export function useOutscraper() {
     return task
   }, [config.categories]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // shared poll cycle — polls all pending tasks once, returns Date of completion
+  const runPoll = useCallback(async () => {
+    let changed = false
+    const snapshot = loadOsTasks()
+
+    for (let i = 0; i < snapshot.length; i++) {
+      const t = snapshot[i]
+      if (t.status === 'completed' || t.status === 'failed') continue
+      try {
+        const result    = await pollTask(apiKeyRef.current, t.taskId)
+        const newStatus = (result.status || '').toLowerCase()
+
+        if (['success', 'finished', 'done'].includes(newStatus)) {
+          let data = result.data || []
+          // Flatten arrays-of-arrays (one sub-array per query)
+          if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) {
+            data = data.flat()
+          }
+          snapshot[i] = { ...t, status: 'completed', resultData: data, recordCount: data.length, completedAt: new Date().toISOString() }
+          changed = true
+          onCompleteRef.current?.(snapshot[i])
+        } else if (['failed', 'error'].includes(newStatus)) {
+          snapshot[i] = { ...t, status: 'failed', error: result.error || 'Unknown error' }
+          changed = true
+        } else {
+          const progress = result.total_results_count || 0
+          const etaSecs  = result.estimated_time_seconds ?? result.time_left ?? result.eta ?? t.etaSecs ?? null
+          if (progress !== t.progress || etaSecs !== t.etaSecs || newStatus !== (t.status || '')) {
+            snapshot[i] = { ...t, status: newStatus || t.status || 'pending', progress, etaSecs }
+            changed = true
+          }
+        }
+      } catch (e) { /* keep polling on transient errors */ }
+    }
+
+    if (changed) {
+      saveOsTasks(snapshot)
+      _setTasks([...snapshot])
+    }
+    return new Date()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // startPolling — 30s interval; calls onTaskComplete(updatedTask) when a task finishes
   const startPolling = useCallback((onTaskComplete) => {
     stopPolling()
     onCompleteRef.current = onTaskComplete
+    pollingRef.current = setInterval(runPoll, 30_000)
+  }, [runPoll]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    pollingRef.current = setInterval(async () => {
-      let changed = false
-      const snapshot = loadOsTasks()
-
-      for (let i = 0; i < snapshot.length; i++) {
-        const t = snapshot[i]
-        if (t.status === 'completed' || t.status === 'failed') continue
-        try {
-          const result    = await pollTask(apiKeyRef.current, t.taskId)
-          const newStatus = (result.status || '').toLowerCase()
-
-          if (['success', 'finished', 'done'].includes(newStatus)) {
-            let data = result.data || []
-            // Flatten arrays-of-arrays (one sub-array per query)
-            if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) {
-              data = data.flat()
-            }
-            snapshot[i] = { ...t, status: 'completed', resultData: data, recordCount: data.length, completedAt: new Date().toISOString() }
-            changed = true
-            onCompleteRef.current?.(snapshot[i])
-          } else if (['failed', 'error'].includes(newStatus)) {
-            snapshot[i] = { ...t, status: 'failed', error: result.error || 'Unknown error' }
-            changed = true
-          } else {
-            const progress = result.total_results_count || 0
-            const etaSecs  = result.estimated_time_seconds ?? result.time_left ?? result.eta ?? t.etaSecs ?? null
-            if (progress !== t.progress || etaSecs !== t.etaSecs) {
-              snapshot[i] = { ...t, status: newStatus || 'running', progress, etaSecs }
-              changed = true
-            }
-          }
-        } catch (e) { /* keep polling on transient errors */ }
-      }
-
-      if (changed) {
-        saveOsTasks(snapshot)
-        _setTasks([...snapshot])
-      }
-    }, 30_000)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // pollNow — immediate single poll (for manual refresh or on-mount check)
+  const pollNow = useCallback((onTaskComplete) => {
+    if (onTaskComplete) onCompleteRef.current = onTaskComplete
+    return runPoll()
+  }, [runPoll])
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
@@ -129,7 +138,7 @@ export function useOutscraper() {
     config, setConfig,
     tasks,  setTasks,
     submit,
-    startPolling, stopPolling,
+    startPolling, stopPolling, pollNow,
     markImported, removeTask, retryTask,
   }
 }
