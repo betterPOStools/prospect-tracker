@@ -37,6 +37,7 @@ export function useOutscraper() {
 
     const task = {
       taskId,
+      queueTaskId: resp.queue_task_id || null,
       city,
       state,
       zips: zips.join(', '),
@@ -64,7 +65,8 @@ export function useOutscraper() {
       const t = snapshot[i]
       if (t.status === 'completed' || t.status === 'failed') continue
       try {
-        const result    = await pollTask(apiKeyRef.current, t.taskId)
+        const pollId    = t.queueTaskId || t.taskId
+        const result    = await pollTask(apiKeyRef.current, pollId)
         const newStatus = (result.status || '').toLowerCase()
 
         if (['success', 'finished', 'done'].includes(newStatus)) {
@@ -150,18 +152,21 @@ export function useOutscraper() {
         let data = r.data || local.resultData || []
         if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
 
-        // Parse city/state from title ("Wilmington, NC — 2026-03-21")
-        const titleMatch = (r.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
-        const city  = local.city  || (titleMatch ? titleMatch[1].trim() : r.title || 'Unknown')
+        // Parse city/state from metadata.title or title ("Columbia, SC — 2026-03-22")
+        const meta       = r.metadata || {}
+        const rawTitle   = meta.title || r.title || ''
+        const titleMatch = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+        const city  = local.city  || (titleMatch ? titleMatch[1].trim() : rawTitle || 'Unknown')
         const state = local.state || (titleMatch ? titleMatch[2] : '')
 
         return {
           taskId,
+          queueTaskId: r.queue_task_id  || local.queueTaskId || null,
           city,
           state,
           zips:        local.zips        || '',
-          queryCount:  r.queries_count   || r.queryCount || local.queryCount || 0,
-          submittedAt: r.created_at      || r.submittedAt || local.submittedAt || new Date().toISOString(),
+          queryCount:  meta.queries_amount || r.queries_count || r.queryCount || local.queryCount || 0,
+          submittedAt: r.created || r.created_at || r.submittedAt || local.submittedAt || new Date().toISOString(),
           status:      isFin ? 'completed' : (['failed', 'error'].includes(status) ? 'failed' : status || 'pending'),
           resultData:  isFin ? data : (local.resultData || []),
           recordCount: r.total_results_count || (isFin ? data.length : 0) || local.recordCount || 0,

@@ -162,19 +162,22 @@ function AddByIdRow({ os }) {
     setBusy(true); setErr(null)
     try {
       const result    = await pollTask(os.apiKey, taskId)
+      const meta      = result.metadata || {}
       const newStatus = (result.status || '').toLowerCase()
       const isFin     = ['success', 'finished', 'done', 'completed'].includes(newStatus)
       let data = result.data || []
       if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
 
-      const titleMatch = (result.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+      const rawTitle  = meta.title || result.title || ''
+      const titleMatch = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
       const task = {
         taskId,
-        city:        titleMatch ? titleMatch[1].trim() : result.title || taskId,
+        queueTaskId: result.queue_task_id || null,
+        city:        titleMatch ? titleMatch[1].trim() : rawTitle || taskId,
         state:       titleMatch ? titleMatch[2] : '',
         zips:        '',
-        queryCount:  result.queries_count || 0,
-        submittedAt: result.created_at || new Date().toISOString(),
+        queryCount:  meta.queries_amount || result.queries_count || 0,
+        submittedAt: result.created || result.created_at || new Date().toISOString(),
         status:      isFin ? 'completed' : (['failed','error'].includes(newStatus) ? 'failed' : newStatus || 'pending'),
         resultData:  isFin ? data : [],
         recordCount: isFin ? data.length : (result.total_results_count || 0),
