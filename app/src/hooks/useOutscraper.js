@@ -5,6 +5,10 @@ import {
   loadOsTasks, saveOsTasks,
   buildQueries, submitScrape, pollTask,
 } from '../data/outscraper.js'
+import { supabase } from '../lib/supabase.js'
+
+const SUPABASE_TABLE  = 'app_state'
+const SUPABASE_ROW_ID = 1
 
 export function useOutscraper() {
   const [apiKey, _setApiKey] = useState(() => loadOsApiKey())
@@ -14,9 +18,31 @@ export function useOutscraper() {
   const pollingRef     = useRef(null)
   const onCompleteRef  = useRef(null)  // stable ref so interval closure always sees latest callback
   const apiKeyRef      = useRef(apiKey)
+  const pushTimerRef   = useRef(null)
 
   // Keep refs in sync
   useEffect(() => { apiKeyRef.current = apiKey }, [apiKey])
+
+  // Push tasks to Supabase (read-modify-write to avoid clobbering other fields)
+  async function pushTasksToSupabase(tasks) {
+    if (!supabase) return
+    const stripped = tasks.map(t => t.imported ? { ...t, resultData: [] } : t)
+    try {
+      const { data } = await supabase.from(SUPABASE_TABLE).select('payload').eq('id', SUPABASE_ROW_ID).maybeSingle()
+      const payload = { ...(data?.payload || {}), osTasks: stripped }
+      await supabase.from(SUPABASE_TABLE).upsert(
+        { id: SUPABASE_ROW_ID, payload, updated_at: new Date().toISOString() },
+        { onConflict: 'id' }
+      )
+    } catch (e) { /* ignore — main store.jsx sync will catch it on next write */ }
+  }
+
+  // Reload tasks when another device syncs them in
+  useEffect(() => {
+    function handleSync() { _setTasks(loadOsTasks()) }
+    window.addEventListener('vs-os-tasks-synced', handleSync)
+    return () => window.removeEventListener('vs-os-tasks-synced', handleSync)
+  }, [])
 
   function setApiKey(key) { _setApiKey(key); saveOsApiKey(key) }
   function setConfig(cfg) { _setConfig(cfg); saveOsConfig(cfg) }
@@ -24,6 +50,8 @@ export function useOutscraper() {
     const resolved = typeof next === 'function' ? next(tasks) : next
     _setTasks(resolved)
     saveOsTasks(resolved)
+    clearTimeout(pushTimerRef.current)
+    pushTimerRef.current = setTimeout(() => pushTasksToSupabase(resolved), 2000)
   }
 
   // submit — builds queries from known zips (already looked up by component) and submits

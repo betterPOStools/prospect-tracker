@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react'
 import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
+import { loadOsTasks, saveOsTasks } from './outscraper.js'
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
 import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
 import { calcScore, calcPriority } from './scoring.js'
@@ -278,6 +279,10 @@ export function DataProvider({ children }) {
               dbAreas: p.dbAreas, dbBlocklist: p.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: p.prospects || [] })
             canvassDispatch({ type: '_REPLACE_ALL', items: p.canvass || [] })
+            if (p.osTasks?.length) {
+              saveOsTasks(p.osTasks)
+              window.dispatchEvent(new CustomEvent('vs-os-tasks-synced'))
+            }
           }
         }
       }
@@ -317,6 +322,7 @@ export function DataProvider({ children }) {
       dbClusters:  db.dbClusters,
       dbAreas:     db.dbAreas,
       dbBlocklist: db.dbBlocklist,
+      osTasks:     loadOsTasks().map(t => t.imported ? { ...t, resultData: [] } : t),
     })
   }, [prospects, canvassStops, db, supabaseSync.enabled]) // writeToSupabase is stable (useCallback)
 
@@ -333,6 +339,10 @@ export function DataProvider({ children }) {
         }
         if (payload.prospects !== undefined) prospectsDispatch({ type: '_REPLACE_ALL', items: payload.prospects })
         if (payload.canvass   !== undefined) canvassDispatch({ type: '_REPLACE_ALL', items: payload.canvass })
+        if (payload.osTasks?.length) {
+          saveOsTasks(payload.osTasks)
+          window.dispatchEvent(new CustomEvent('vs-os-tasks-synced'))
+        }
       }
     })
   }, [supabaseSync.enabled]) // eslint-disable-line react-hooks/exhaustive-deps
