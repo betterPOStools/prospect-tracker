@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
-import { lookupZips, loadOsTasks, processOutscraperRows, saveOsApiKey, saveOsConfig } from '../../data/outscraper.js'
+import { lookupZips, loadOsTasks, pollTask, processOutscraperRows, saveOsApiKey, saveOsConfig } from '../../data/outscraper.js'
 import Button from '../../components/Button.jsx'
 
 const VIEWS = ['Search', 'Queue', 'Settings']
@@ -148,6 +148,65 @@ function SearchView({ os }) {
   )
 }
 
+// ── Add by ID ──────────────────────────────────────────────────────────────────
+function AddByIdRow({ os }) {
+  const [idVal, setIdVal] = useState('')
+  const [busy,  setBusy]  = useState(false)
+  const [err,   setErr]   = useState(null)
+
+  async function handleAdd(e) {
+    e.preventDefault()
+    const taskId = idVal.trim()
+    if (!taskId) return
+    if (os.tasks.some(t => t.taskId === taskId)) { setErr('Already in queue.'); return }
+    setBusy(true); setErr(null)
+    try {
+      const result    = await pollTask(os.apiKey, taskId)
+      const newStatus = (result.status || '').toLowerCase()
+      const isFin     = ['success', 'finished', 'done', 'completed'].includes(newStatus)
+      let data = result.data || []
+      if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
+
+      const titleMatch = (result.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+      const task = {
+        taskId,
+        city:        titleMatch ? titleMatch[1].trim() : result.title || taskId,
+        state:       titleMatch ? titleMatch[2] : '',
+        zips:        '',
+        queryCount:  result.queries_count || 0,
+        submittedAt: result.created_at || new Date().toISOString(),
+        status:      isFin ? 'completed' : (['failed','error'].includes(newStatus) ? 'failed' : newStatus || 'pending'),
+        resultData:  isFin ? data : [],
+        recordCount: isFin ? data.length : (result.total_results_count || 0),
+        imported:    false,
+        importCounts:null,
+        error:       result.error || null,
+        etaSecs:     result.estimated_time_seconds ?? result.time_left ?? result.eta ?? null,
+      }
+      os.setTasks(prev => [...prev, task])
+      setIdVal('')
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleAdd} style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+      <input
+        value={idVal}
+        onChange={e => { setIdVal(e.target.value); setErr(null) }}
+        placeholder="Paste Outscraper task ID…"
+        style={{ flex: 1 }}
+        disabled={busy}
+      />
+      <Button type="submit" disabled={busy || !idVal.trim()}>{busy ? 'Loading…' : 'Add task'}</Button>
+      {err && <span style={{ fontSize: 12, color: 'var(--red-text)', alignSelf: 'center' }}>{err}</span>}
+    </form>
+  )
+}
+
 // ── Queue View ─────────────────────────────────────────────────────────────────
 function QueueView({ os }) {
   const db       = useDatabase()
@@ -221,9 +280,10 @@ function QueueView({ os }) {
           {msg.text}
         </div>
       )}
+      <AddByIdRow os={os} />
       {!os.tasks.length && (
         <div style={{ textAlign: 'center', padding: '24px 16px', color: 'var(--text2)', fontSize: 13 }}>
-          No tasks yet — click Refresh to load from Outscraper, or submit a scrape from Search.
+          No tasks yet — paste a task ID above, or submit a scrape from Search.
         </div>
       )}
       {[...os.tasks].reverse().map(task => {
