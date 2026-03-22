@@ -4,6 +4,30 @@ All notable changes to the Value Systems Restaurant Prospect Tracker are documen
 
 ---
 
+## [2026-03-21] — Outscraper API Integration
+
+### Overview
+Adds a 4th Database sub-tab ("Outscraper API") that integrates Outscraper's REST API directly into the tracker. Aaron can now submit Google Maps scrapes, monitor progress, and auto-import results without leaving the app or visiting the Outscraper website.
+
+### New Features
+- **New Scrape form** — area name, ZIPs, city, state, live query preview with cost estimate, removable category pills
+- **Queue panel** — per-task cards with status dots (amber pulse / green / red), 30-second polling, Import / Preview / Download buttons
+- **Auto-import** — when polling detects a completed task, rows are fed through `processOutscraperRows()` automatically (if enabled in settings)
+- **History panel** — table of completed imports with re-import link and Clear History button
+- **Settings panel** — API key (password field with show/hide), default categories, auto-import toggle
+- **Refactored `importOutscraper()`** — row-processing logic extracted into `processOutscraperRows(rows, area)` so both XLSX import and API import share the same dedup/scoring/merge path
+- localStorage keys: `vs_os_key`, `vs_os_cfg`, `vs_os_tasks` (intentionally excluded from Drive sync)
+
+---
+
+## [2026-03-20] — KMZ Export + 5-Priority Scoring System
+
+### New Features
+- **KMZ export** — exports prospects as 5-layer KMZ (one layer per priority tier: Hot / Warm / Neutral / Cool / Cold) for use in Google Earth / Maps
+- **5-tier priority scoring** — updated scoring system with emoji labels and clearer band ranges
+
+---
+
 ## [Unreleased] — React Migration + Playwright Test Suite
 
 ### Overview
