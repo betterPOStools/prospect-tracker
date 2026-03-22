@@ -3,12 +3,8 @@ import {
   loadOsApiKey, saveOsApiKey,
   loadOsConfig, saveOsConfig,
   loadOsTasks, saveOsTasks,
-  buildQueries, submitScrape, pollTask,
+  buildQueries, submitScrape, pollTask, listTasks,
 } from '../data/outscraper.js'
-import { supabase } from '../lib/supabase.js'
-
-const SUPABASE_TABLE  = 'app_state'
-const SUPABASE_ROW_ID = 1
 
 export function useOutscraper() {
   const [apiKey, _setApiKey] = useState(() => loadOsApiKey())
@@ -18,31 +14,9 @@ export function useOutscraper() {
   const pollingRef     = useRef(null)
   const onCompleteRef  = useRef(null)  // stable ref so interval closure always sees latest callback
   const apiKeyRef      = useRef(apiKey)
-  const pushTimerRef   = useRef(null)
 
   // Keep refs in sync
   useEffect(() => { apiKeyRef.current = apiKey }, [apiKey])
-
-  // Push tasks to Supabase (read-modify-write to avoid clobbering other fields)
-  async function pushTasksToSupabase(tasks) {
-    if (!supabase) return
-    const stripped = tasks.map(t => t.imported ? { ...t, resultData: [] } : t)
-    try {
-      const { data } = await supabase.from(SUPABASE_TABLE).select('payload').eq('id', SUPABASE_ROW_ID).maybeSingle()
-      const payload = { ...(data?.payload || {}), osTasks: stripped }
-      await supabase.from(SUPABASE_TABLE).upsert(
-        { id: SUPABASE_ROW_ID, payload, updated_at: new Date().toISOString() },
-        { onConflict: 'id' }
-      )
-    } catch (e) { /* ignore — main store.jsx sync will catch it on next write */ }
-  }
-
-  // Reload tasks when another device syncs them in
-  useEffect(() => {
-    function handleSync() { _setTasks(loadOsTasks()) }
-    window.addEventListener('vs-os-tasks-synced', handleSync)
-    return () => window.removeEventListener('vs-os-tasks-synced', handleSync)
-  }, [])
 
   function setApiKey(key) { _setApiKey(key); saveOsApiKey(key) }
   function setConfig(cfg) { _setConfig(cfg); saveOsConfig(cfg) }
@@ -50,8 +24,6 @@ export function useOutscraper() {
     const resolved = typeof next === 'function' ? next(tasks) : next
     _setTasks(resolved)
     saveOsTasks(resolved)
-    clearTimeout(pushTimerRef.current)
-    pushTimerRef.current = setTimeout(() => pushTasksToSupabase(resolved), 2000)
   }
 
   // submit — builds queries from known zips (already looked up by component) and submits
@@ -161,12 +133,54 @@ export function useOutscraper() {
     ))
   }
 
+  // fetchFromOutscraper — loads all tasks from the API and merges with local tracking data
+  const fetchFromOutscraper = useCallback(async () => {
+    if (!apiKeyRef.current) return
+    const resp = await listTasks(apiKeyRef.current)
+    // API returns { data: [...] } or an array directly
+    const remote = Array.isArray(resp) ? resp : (resp.data || [])
+
+    setTasks(prev => {
+      const localById = Object.fromEntries(prev.map(t => [t.taskId, t]))
+      const merged = remote.map(r => {
+        const taskId  = r.id || r.task_id || r.taskId
+        const local   = localById[taskId] || {}
+        const status  = (r.status || '').toLowerCase()
+        const isFin   = ['success', 'finished', 'done', 'completed'].includes(status)
+        let data = r.data || local.resultData || []
+        if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
+
+        // Parse city/state from title ("Wilmington, NC — 2026-03-21")
+        const titleMatch = (r.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+        const city  = local.city  || (titleMatch ? titleMatch[1].trim() : r.title || 'Unknown')
+        const state = local.state || (titleMatch ? titleMatch[2] : '')
+
+        return {
+          taskId,
+          city,
+          state,
+          zips:        local.zips        || '',
+          queryCount:  r.queries_count   || r.queryCount || local.queryCount || 0,
+          submittedAt: r.created_at      || r.submittedAt || local.submittedAt || new Date().toISOString(),
+          status:      isFin ? 'completed' : (['failed', 'error'].includes(status) ? 'failed' : status || 'pending'),
+          resultData:  isFin ? data : (local.resultData || []),
+          recordCount: r.total_results_count || (isFin ? data.length : 0) || local.recordCount || 0,
+          imported:    local.imported    || false,
+          importCounts:local.importCounts|| null,
+          error:       r.error           || local.error || null,
+          etaSecs:     r.estimated_time_seconds ?? r.time_left ?? r.eta ?? local.etaSecs ?? null,
+        }
+      })
+      return merged
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   return {
     apiKey, setApiKey,
     config, setConfig,
     tasks,  setTasks,
     submit,
-    startPolling, stopPolling, pollNow,
+    startPolling, stopPolling, pollNow, fetchFromOutscraper,
     markImported, removeTask, retryTask,
   }
 }

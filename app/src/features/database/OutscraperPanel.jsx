@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
-import { lookupZips, processOutscraperRows, saveOsApiKey, saveOsConfig } from '../../data/outscraper.js'
+import { lookupZips, loadOsTasks, processOutscraperRows, saveOsApiKey, saveOsConfig } from '../../data/outscraper.js'
 import Button from '../../components/Button.jsx'
 
 const VIEWS = ['Search', 'Queue', 'Settings']
@@ -186,17 +186,20 @@ function QueueView({ os }) {
     }
   }
 
-  // Start polling + immediate check when Queue is visible and there are pending tasks
+  // On mount: fetch full list from Outscraper, then start polling if anything is pending
   useEffect(() => {
-    const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
-    if (!hasPending) return
+    os.fetchFromOutscraper()
+      .then(() => {
+        const hasPending = loadOsTasks().some(t => t.status !== 'completed' && t.status !== 'failed')
+        if (hasPending) { doCheck(); os.startPolling(onComplete) }
+      })
+      .catch(() => {
+        // Fall back: start polling based on whatever is in localStorage
+        const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+        if (hasPending) { doCheck(); os.startPolling(onComplete) }
+      })
 
-    doCheck() // immediate first check
-    os.startPolling(onComplete)
-
-    // Tick every 15s to update "X ago" display
     const ticker = setInterval(() => setTick(n => n + 1), 15_000)
-
     return () => { os.stopPolling(); clearInterval(ticker) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -213,13 +216,16 @@ function QueueView({ os }) {
 
   return (
     <div>
-      {hasPending && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text2)', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text2)', marginBottom: 10 }}>
+        {hasPending && <>
           <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
           {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : 'Polling every 30s'}
           <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>
-        </div>
-      )}
+        </>}
+        <Button size="sm" onClick={() => os.fetchFromOutscraper().catch(() => {})} style={{ marginLeft: 'auto' }}>
+          Refresh from Outscraper
+        </Button>
+      </div>
       {msg && (
         <div style={{ fontSize: 12, marginBottom: 8, color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>
           {msg.text}

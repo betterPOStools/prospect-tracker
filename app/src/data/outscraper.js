@@ -121,6 +121,14 @@ export async function submitScrape(apiKey, title, queries) {
   return await resp.json()
 }
 
+export async function listTasks(apiKey) {
+  const resp = await fetch('https://api.outscraper.cloud/tasks', {
+    headers: { 'X-API-KEY': apiKey },
+  })
+  if (!resp.ok) throw new Error(`Failed to list tasks: ${resp.status}`)
+  return await resp.json()
+}
+
 export async function pollTask(apiKey, taskId) {
   const resp = await fetch(`https://api.outscraper.cloud/tasks/${taskId}`, {
     headers: { 'X-API-KEY': apiKey },
