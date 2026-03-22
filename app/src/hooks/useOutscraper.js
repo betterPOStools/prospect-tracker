@@ -141,6 +141,7 @@ export function useOutscraper() {
     const resp = await listTasks(apiKeyRef.current)
     // API returns { data: [...] } or an array directly
     const remote = Array.isArray(resp) ? resp : (resp.data || [])
+    if (!remote.length) return // reseller doesn't support list endpoint — don't wipe local tasks
 
     setTasks(prev => {
       const localById = Object.fromEntries(prev.map(t => [t.taskId, t]))

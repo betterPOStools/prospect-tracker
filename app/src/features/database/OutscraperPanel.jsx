@@ -274,8 +274,8 @@ function QueueView({ os }) {
         <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
         {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : hasPending ? 'Polling every 30s' : 'Ready'}
         {hasPending && <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>}
-        <Button size="sm" onClick={() => os.fetchFromOutscraper().catch(() => {})} style={{ marginLeft: 'auto' }}>
-          Refresh
+        <Button size="sm" onClick={doCheck} disabled={checking} style={{ marginLeft: 'auto' }}>
+          {checking ? 'Checking…' : 'Refresh'}
         </Button>
       </div>
       {msg && (
