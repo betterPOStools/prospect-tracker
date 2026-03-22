@@ -38,6 +38,7 @@ export function useOutscraper() {
     const task = {
       taskId,
       queueTaskId: resp.queue_task_id || null,
+      tags: resp.metadata?.tags || resp.tags || '',
       city,
       state,
       zips: zips.join(', '),
@@ -163,6 +164,7 @@ export function useOutscraper() {
         return {
           taskId,
           queueTaskId: r.queue_task_id  || local.queueTaskId || null,
+          tags:        (r.metadata?.tags || r.tags || local.tags || ''),
           city,
           state,
           zips:        local.zips        || '',

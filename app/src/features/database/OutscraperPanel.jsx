@@ -173,6 +173,7 @@ function AddByIdRow({ os }) {
       const task = {
         taskId,
         queueTaskId: result.queue_task_id || null,
+        tags:        meta.tags || '',
         city:        titleMatch ? titleMatch[1].trim() : rawTitle || taskId,
         state:       titleMatch ? titleMatch[2] : '',
         zips:        '',
@@ -208,6 +209,14 @@ function AddByIdRow({ os }) {
       {err && <span style={{ fontSize: 12, color: 'var(--red-text)', alignSelf: 'center' }}>{err}</span>}
     </form>
   )
+}
+
+function buildDownloadUrl(task) {
+  const id = task.taskId
+  if (!id || !task.tags) return null
+  const year = id.slice(0, 4), month = id.slice(4, 6), day = id.slice(6, 8)
+  const tagPart = task.tags.split(',').map(t => t.trim()).filter(Boolean).join('_')
+  return `https://s3.us-east-005.backblazeb2.com/shared-data-files/results/${year}/${month}/${day}/Outscraper-${id}_${tagPart}.xlsx`
 }
 
 // ── Queue View ─────────────────────────────────────────────────────────────────
@@ -325,6 +334,12 @@ function QueueView({ os }) {
                   const preview = task.resultData.slice(0, 10).map(r => `${r.name || '?'} — ${r.city || ''} ${r.postal_code || ''}`).join('\n')
                   alert(`First 10 results:\n\n${preview}`)
                 }}>Preview</Button>
+              )}
+              {isCompleted && buildDownloadUrl(task) && (
+                <a href={buildDownloadUrl(task)} download
+                  style={{ fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius)', background: 'var(--bg3, var(--bg2))', border: '0.5px solid var(--border)', color: 'var(--text)', textDecoration: 'none', cursor: 'pointer' }}>
+                  Download XLSX
+                </a>
               )}
               {isFailed && <Button size="sm" onClick={() => os.retryTask(task.taskId)}>Retry</Button>}
               <Button size="sm" variant="danger" onClick={() => os.removeTask(task.taskId)}>Remove</Button>
