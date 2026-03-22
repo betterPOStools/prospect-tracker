@@ -203,32 +203,27 @@ function QueueView({ os }) {
     return () => { os.stopPolling(); clearInterval(ticker) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!os.tasks.length) {
-    return (
-      <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text2)', fontSize: 13 }}>
-        No tasks yet. Submit a scrape from the Search tab.
-      </div>
-    )
-  }
-
   const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
   const agoSecs = lastPolled ? Math.round((Date.now() - lastPolled) / 1000) : null
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text2)', marginBottom: 10 }}>
-        {hasPending && <>
-          <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
-          {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : 'Polling every 30s'}
-          <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>
-        </>}
+        <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
+        {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : hasPending ? 'Polling every 30s' : 'Ready'}
+        {hasPending && <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>}
         <Button size="sm" onClick={() => os.fetchFromOutscraper().catch(() => {})} style={{ marginLeft: 'auto' }}>
-          Refresh from Outscraper
+          Refresh
         </Button>
       </div>
       {msg && (
         <div style={{ fontSize: 12, marginBottom: 8, color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>
           {msg.text}
+        </div>
+      )}
+      {!os.tasks.length && (
+        <div style={{ textAlign: 'center', padding: '24px 16px', color: 'var(--text2)', fontSize: 13 }}>
+          No tasks yet — click Refresh to load from Outscraper, or submit a scrape from Search.
         </div>
       )}
       {[...os.tasks].reverse().map(task => {
