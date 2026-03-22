@@ -307,7 +307,8 @@ function SettingsView({ os }) {
 // ── OutscraperPanel ────────────────────────────────────────────────────────────
 export default function OutscraperPanel() {
   const os = useOutscraper()
-  const [view, setView] = useState(os.apiKey ? 'Search' : 'Settings')
+  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+  const [view, setView] = useState(!os.apiKey ? 'Settings' : hasPending ? 'Queue' : 'Search')
 
   // Expose setView to child components via the os object (search view needs it)
   os._setView = setView
