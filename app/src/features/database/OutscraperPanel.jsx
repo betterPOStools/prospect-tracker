@@ -172,54 +172,64 @@ function AddByIdRow({ os }) {
 
   async function handleAdd(e) {
     e.preventDefault()
-    const taskId = idVal.trim()
-    if (!taskId) return
-    if (os.tasks.some(t => t.taskId === taskId)) { setErr('Already in queue.'); return }
+    const ids = idVal.split(',').map(s => s.trim()).filter(Boolean)
+    if (!ids.length) return
+    const dupes = ids.filter(id => os.tasks.some(t => t.taskId === id))
+    if (dupes.length) { setErr('Already in queue: ' + dupes.join(', ')); return }
     setBusy(true); setErr(null)
+    const errors = []
     try {
-      // Step 1: fetch task config/metadata (city, state, tags, queue_task_id)
-      const config      = await getTaskConfig(os.apiKey, taskId)
-      const meta        = config.metadata || {}
-      const queueTaskId = config.queue_task_id || null
-      const rawTitle    = meta.title || config.title || ''
-      const titleMatch  = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+      for (const taskId of ids) {
+        try {
+          // Step 1: fetch task config/metadata (city, state, tags, queue_task_id)
+          const config      = await getTaskConfig(os.apiKey, taskId)
+          const meta        = config.metadata || {}
+          const queueTaskId = config.queue_task_id || null
+          const rawTitle    = meta.title || config.title || ''
+          const titleMatch  = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
 
-      // Step 2: if we have a request ID, fetch actual status + results
-      let status = 'pending', resultData = [], recordCount = 0, etaSecs = null, error = null
-      if (queueTaskId) {
-        const poll    = await pollTask(os.apiKey, queueTaskId)
-        const pollSt  = (poll.status || '').toLowerCase()
-        const isFin   = ['success', 'finished', 'done', 'completed'].includes(pollSt)
+          // Step 2: if we have a request ID, fetch actual status + results
+          let status = 'pending', resultData = [], recordCount = 0, etaSecs = null, error = null
+          if (queueTaskId) {
+            const poll    = await pollTask(os.apiKey, queueTaskId)
+            const pollSt  = (poll.status || '').toLowerCase()
+            const isFin   = ['success', 'finished', 'done', 'completed'].includes(pollSt)
 
-        if (isFin) {
-          let data = poll.data || []
-          if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
-          status = 'completed'; resultData = data; recordCount = data.length
-        } else if (['failed', 'error'].includes(pollSt)) {
-          status = 'failed'; error = poll.error || 'Unknown error'
-        } else {
-          status = pollSt || 'pending'
-          etaSecs = poll.estimated_time_seconds ?? poll.time_left ?? null
+            if (isFin) {
+              let data = poll.data || []
+              if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
+              status = 'completed'; resultData = data; recordCount = data.length
+            } else if (['failed', 'error'].includes(pollSt)) {
+              status = 'failed'; error = poll.error || 'Unknown error'
+            } else if (pollSt === 'pending' && !poll.data && Object.keys(poll).length <= 3) {
+              // Results expired from /requests/ endpoint (2-hour window)
+              status = 'expired'
+            } else {
+              status = pollSt || 'pending'
+              etaSecs = poll.estimated_time_seconds ?? poll.time_left ?? null
+            }
+          }
+
+          const task = {
+            taskId,
+            queueTaskId,
+            tags:        config.tags || meta.tags || '',
+            city:        titleMatch ? titleMatch[1].trim() : rawTitle || taskId,
+            state:       titleMatch ? titleMatch[2] : '',
+            zips:        '',
+            queryCount:  meta.queries_amount || config.queries_count || 0,
+            submittedAt: config.created || config.created_at || new Date().toISOString(),
+            status, resultData, recordCount,
+            imported: false, importCounts: null,
+            error, etaSecs,
+          }
+          os.setTasks(prev => [...prev, task])
+        } catch (err) {
+          errors.push(taskId + ': ' + err.message)
         }
       }
-
-      const task = {
-        taskId,
-        queueTaskId,
-        tags:        meta.tags || '',
-        city:        titleMatch ? titleMatch[1].trim() : rawTitle || taskId,
-        state:       titleMatch ? titleMatch[2] : '',
-        zips:        '',
-        queryCount:  meta.queries_amount || config.queries_count || 0,
-        submittedAt: config.created || config.created_at || new Date().toISOString(),
-        status, resultData, recordCount,
-        imported: false, importCounts: null,
-        error, etaSecs,
-      }
-      os.setTasks(prev => [...prev, task])
       setIdVal('')
-    } catch (e) {
-      setErr(e.message)
+      if (errors.length) setErr(errors.join('; '))
     } finally {
       setBusy(false)
     }
@@ -230,7 +240,7 @@ function AddByIdRow({ os }) {
       <input
         value={idVal}
         onChange={e => { setIdVal(e.target.value); setErr(null) }}
-        placeholder="Paste Outscraper task ID…"
+        placeholder="Paste task ID(s), comma-separated…"
         style={{ flex: 1 }}
         disabled={busy}
       />
@@ -244,8 +254,22 @@ function buildDownloadUrl(task) {
   const id = extractTaskId(task.taskId)
   if (!id || !task.tags) return null
   const year = id.slice(0, 4), month = id.slice(4, 6), day = id.slice(6, 8)
-  const tagPart = task.tags.split(',').map(t => t.trim()).filter(Boolean).join('_')
+  const tagPart = task.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).join('_')
   return `https://s3.us-east-005.backblazeb2.com/shared-data-files/results/${year}/${month}/${day}/Outscraper-${id}_${tagPart}.xlsx`
+}
+
+function buildProxiedUrls(task) {
+  const id = extractTaskId(task.taskId)
+  if (!id || !task.tags) return null
+  const tagPart = task.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).join('_')
+  const base = new Date(`${id.slice(0, 4)}-${id.slice(4, 6)}-${id.slice(6, 8)}`)
+  const urls = []
+  for (let offset = 0; offset <= 3; offset++) {
+    const d = new Date(base); d.setDate(d.getDate() + offset)
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0')
+    urls.push(`/s3-proxy/shared-data-files/results/${y}/${m}/${dd}/Outscraper-${id}_${tagPart}.xlsx`)
+  }
+  return urls
 }
 
 // ── Queue View ─────────────────────────────────────────────────────────────────
@@ -272,6 +296,49 @@ function QueueView({ os }) {
     setMsg({ text: `"${task.city}, ${task.state}" imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped.`, type: 'ok' })
   }, [db, dispatch, takeSnapshot, os]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [fetching, setFetching] = useState(null) // taskId currently being fetched
+
+  const doFetchAndImport = useCallback(async (task) => {
+    const urls = buildProxiedUrls(task)
+    if (!urls) { setMsg({ text: 'Cannot build download URL — missing tags.', type: 'err' }); return }
+    setFetching(task.taskId)
+    try {
+      let resp = null
+      for (const url of urls) {
+        const r = await fetch(url)
+        if (r.ok) { resp = r; break }
+      }
+      if (!resp) throw new Error('XLSX not found on S3 (tried submission date + 3 days)')
+      const xlsxMod = await import('xlsx')
+      const XLSX = xlsxMod.default || xlsxMod
+      const buf = await resp.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      // Update task with fetched data
+      os.setTasks(prev => prev.map(t => t.taskId === task.taskId
+        ? { ...t, status: 'completed', resultData: rows, recordCount: rows.length }
+        : t
+      ))
+      // Import immediately
+      takeSnapshot('pre-import')
+      const result = processOutscraperRows(
+        rows,
+        `${task.city}, ${task.state}`,
+        db.dbRecords,
+        db.dbBlocklist,
+        db.dbAreas,
+      )
+      dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+      os.markImported(task.taskId, { added: result.added, updated: result.updated, dupes: result.dupes })
+      setMsg({ text: `"${task.city}, ${task.state}" fetched & imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped.`, type: 'ok' })
+    } catch (e) {
+      setMsg({ text: `Fetch failed: ${e.message}`, type: 'err' })
+    } finally {
+      setFetching(null)
+    }
+  }, [db, dispatch, takeSnapshot, os]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const onComplete = useCallback((t) => {
     if (os.config.autoImport) doImport(t)
   }, [doImport, os.config.autoImport]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -290,12 +357,12 @@ function QueueView({ os }) {
   useEffect(() => {
     os.fetchFromOutscraper()
       .then(() => {
-        const hasPending = loadOsTasks().some(t => t.status !== 'completed' && t.status !== 'failed')
+        const hasPending = loadOsTasks().some(t => t.status !== 'completed' && t.status !== 'failed' && t.status !== 'expired')
         if (hasPending) { doCheck(); os.startPolling(onComplete) }
       })
       .catch(() => {
         // Fall back: start polling based on whatever is in localStorage
-        const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+        const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed' && t.status !== 'expired')
         if (hasPending) { doCheck(); os.startPolling(onComplete) }
       })
 
@@ -303,7 +370,7 @@ function QueueView({ os }) {
     return () => { os.stopPolling(); clearInterval(ticker) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed' && t.status !== 'expired')
   const agoSecs = lastPolled ? Math.round((Date.now() - lastPolled) / 1000) : null
 
   return (
@@ -328,9 +395,10 @@ function QueueView({ os }) {
         </div>
       )}
       {[...os.tasks].reverse().map(task => {
-        const isRunning   = task.status !== 'completed' && task.status !== 'failed'
+        const isRunning   = task.status !== 'completed' && task.status !== 'failed' && task.status !== 'expired'
         const isCompleted = task.status === 'completed'
         const isFailed    = task.status === 'failed'
+        const isExpired   = task.status === 'expired'
 
         return (
           <div key={task.taskId} style={card}>
@@ -350,13 +418,19 @@ function QueueView({ os }) {
               {isRunning   && <><span style={dot('#f59e0b', true)} />{task.status || 'Pending'}{task.progress ? ` (${task.progress} so far)` : ''}{task.etaSecs ? ` — ~${fmtEta(task.etaSecs)}` : ''}</>}
               {isCompleted && <><span style={dot('#22c55e')} />Completed — {task.recordCount} records</>}
               {isFailed    && <><span style={dot('#ef4444')} />Failed: {task.error || 'Unknown error'}</>}
+              {isExpired   && <><span style={dot('#94a3b8')} />Expired — results no longer available from API</>}
             </div>
 
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {isCompleted && (
+              {isCompleted && task.recordCount > 0 && (
                 task.imported
                   ? <span style={{ fontSize: 12, color: 'var(--text2)' }}>✓ Imported{task.importCounts ? ` (${task.importCounts.added} added)` : ''}</span>
                   : <Button variant="primary" size="sm" onClick={() => doImport(task)}>Import to database</Button>
+              )}
+              {(isExpired || (isCompleted && !task.recordCount && !task.imported)) && buildProxiedUrls(task) && (
+                <Button variant="primary" size="sm" disabled={fetching === task.taskId} onClick={() => doFetchAndImport(task)}>
+                  {fetching === task.taskId ? 'Fetching…' : 'Fetch & Import'}
+                </Button>
               )}
               {isCompleted && task.resultData?.length > 0 && (
                 <Button size="sm" onClick={() => {
@@ -364,7 +438,7 @@ function QueueView({ os }) {
                   alert(`First 10 results:\n\n${preview}`)
                 }}>Preview</Button>
               )}
-              {isCompleted && buildDownloadUrl(task) && (
+              {(isCompleted || isExpired) && buildDownloadUrl(task) && (
                 <a href={buildDownloadUrl(task)} download
                   style={{ fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius)', background: 'var(--bg3, var(--bg2))', border: '0.5px solid var(--border)', color: 'var(--text)', textDecoration: 'none', cursor: 'pointer' }}>
                   Download XLSX
@@ -485,7 +559,7 @@ function SettingsView({ os }) {
 // ── OutscraperPanel ────────────────────────────────────────────────────────────
 export default function OutscraperPanel() {
   const os = useOutscraper()
-  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed')
+  const hasPending = os.tasks.some(t => t.status !== 'completed' && t.status !== 'failed' && t.status !== 'expired')
   const [view, setView] = useState(!os.apiKey ? 'Settings' : hasPending ? 'Queue' : 'Search')
 
   // Expose setView to child components via the os object (search view needs it)

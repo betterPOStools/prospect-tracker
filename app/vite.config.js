@@ -5,4 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/prospect-tracker/',
+  server: {
+    proxy: {
+      '/s3-proxy': {
+        target: 'https://s3.us-east-005.backblazeb2.com',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/s3-proxy/, ''),
+      },
+    },
+  },
 })

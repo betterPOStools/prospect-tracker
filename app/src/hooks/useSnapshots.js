@@ -50,7 +50,11 @@ export function useSnapshots() {
     const snaps = loadSnapshots()
     snaps.unshift(snap)
     while (snaps.length > MAX_SNAPSHOTS) snaps.pop()
-    saveSnapshots(snaps)
+    // Trim oldest snapshots until it fits in localStorage
+    while (snaps.length > 0) {
+      try { saveSnapshots(snaps); return true }
+      catch { snaps.pop() }
+    }
     return true
   }
 

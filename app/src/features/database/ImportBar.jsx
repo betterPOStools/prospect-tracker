@@ -25,7 +25,8 @@ export default function ImportBar({ onImported }) {
     setMsg({ text: 'Reading file…', type: 'ok' })
 
     try {
-      const XLSX = (await import('xlsx')).default
+      const xlsxMod = await import('xlsx')
+      const XLSX = xlsxMod.default || xlsxMod
       const buf  = await file.arrayBuffer()
       const wb   = XLSX.read(buf, { type: 'array' })
       const ws   = wb.Sheets[wb.SheetNames[0]]

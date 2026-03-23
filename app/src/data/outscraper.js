@@ -110,7 +110,7 @@ export async function submitScrape(apiKey, title, queries, { useEnrichments = tr
       ],
       output_extension: 'xlsx',
     },
-    tags: 'value-systems, ' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    tags: title.replace(/\s*[—-]\s*\d{4}-\d{2}-\d{2}.*$/, ''),
     enrichments: enrichmentList,
     categories: [],
     locations: [],

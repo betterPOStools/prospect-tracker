@@ -3,7 +3,7 @@ import {
   loadOsApiKey, saveOsApiKey,
   loadOsConfig, saveOsConfig,
   loadOsTasks, saveOsTasks,
-  buildQueries, submitScrape, pollTask, listTasks,
+  buildQueries, submitScrape, pollTask, listTasks, getTaskConfig,
   extractTaskId,
 } from '../data/outscraper.js'
 import { supabase } from '../lib/supabase.js'
@@ -94,14 +94,23 @@ export function useOutscraper() {
       const today   = new Date().toISOString().slice(0, 10)
       const suffix  = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''
       const title   = `${city}, ${state} \u2014 ${today}${suffix}`
-      const localTags = 'value-systems, ' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      const localTags = `${city}, ${state}`
       const resp    = await submitScrape(apiKeyRef.current, title, queries, { useEnrichments: config.useEnrichments !== false, exactMatch: config.exactMatch === true })
       const taskId  = extractTaskId(resp?.id || resp?.task_id)
       if (!taskId) throw new Error('No task ID returned from Outscraper.')
 
+      // Fetch task config to get queue_task_id (needed for polling /requests/)
+      let queueTaskId = resp.queue_task_id || null
+      if (!queueTaskId) {
+        try {
+          const cfg = await getTaskConfig(apiKeyRef.current, taskId)
+          queueTaskId = cfg.queue_task_id || null
+        } catch {}
+      }
+
       newTasks.push({
         taskId,
-        queueTaskId: resp.queue_task_id || null,
+        queueTaskId,
         tags:        resp.metadata?.tags || resp.tags || localTags,
         city, state,
         zips:        chunk.join(', '),
@@ -128,8 +137,19 @@ export function useOutscraper() {
 
     for (let i = 0; i < snapshot.length; i++) {
       const t = snapshot[i]
-      if (t.status === 'completed' || t.status === 'failed') continue
+      if (t.status === 'completed' || t.status === 'failed' || t.status === 'expired') continue
       try {
+        // If we don't have a queueTaskId, fetch it from task config
+        if (!t.queueTaskId) {
+          try {
+            const cfg = await getTaskConfig(apiKeyRef.current, t.taskId)
+            if (cfg.queue_task_id) {
+              t.queueTaskId = cfg.queue_task_id
+              snapshot[i] = { ...t }
+              changed = true
+            }
+          } catch {}
+        }
         const pollId    = t.queueTaskId || t.taskId
         const result    = await pollTask(apiKeyRef.current, pollId)
         const newStatus = (result.status || '').toLowerCase()
@@ -142,6 +162,10 @@ export function useOutscraper() {
           onCompleteRef.current?.(snapshot[i])
         } else if (['failed', 'error'].includes(newStatus)) {
           snapshot[i] = { ...t, status: 'failed', error: result.error || 'Unknown error' }
+          changed = true
+        } else if (newStatus === 'pending' && !result.data && Object.keys(result).length <= 3) {
+          // Results expired from /requests/ endpoint (2-hour window)
+          snapshot[i] = { ...t, status: 'expired' }
           changed = true
         } else {
           const progress = result.total_results_count || 0
