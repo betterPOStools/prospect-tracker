@@ -23,8 +23,3 @@
 |---|---|
 | Push v0.2.0 tag to GitHub | Run `ssh-keyscan github.com >> ~/.ssh/known_hosts` then `git push origin v0.2.0` — SSH host key not yet trusted on this machine |
 
-## Future / Separate Projects
-
-| Feature | Description |
-|---|---|
-| Demo POS Menu Extractor | Separate project — extract menu data from restaurant website, fill POS demo template, walk in with demo ready |
