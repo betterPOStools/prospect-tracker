@@ -27,6 +27,23 @@ function routeUrl(stops) {
   return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps ? '&waypoints=' + wps : ''}`
 }
 
+// Extracted style constants — avoids re-creating objects on every render
+const headerBox = { background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }
+const headerFlex = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }
+const headerTitle = { fontSize: '13px', fontWeight: 500, color: 'var(--text)' }
+const headerSub = { fontSize: '12px', color: 'var(--text2)' }
+const headerActions = { marginLeft: 'auto', display: 'flex', gap: '6px', flexWrap: 'wrap' }
+const routeLink = { display: 'inline-flex', alignItems: 'center', padding: '0 10px', height: '30px', fontSize: '12px', fontWeight: 500, background: 'var(--accent)', color: '#fff', borderRadius: 'var(--radius)', textDecoration: 'none' }
+const listBox = { border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }
+const stopRow = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderBottom: '0.5px solid var(--border)', fontSize: '13px', background: 'var(--bg)' }
+const posBadge = { width: '22px', height: '22px', borderRadius: '50%', background: 'var(--bg3)', color: 'var(--text2)', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const stopName = { fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+const stopAddr = { fontSize: '11px', color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+const statusBox = { textAlign: 'right', flexShrink: 0 }
+const arrowCol = { display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }
+const mapsLink = { fontSize: '11px', color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }
+const footer = { fontSize: '12px', color: 'var(--text3)', marginTop: '8px', textAlign: 'right' }
+
 export default function RouteTab() {
   const canvass = useCanvass()
 
@@ -89,24 +106,18 @@ export default function RouteTab() {
   return (
     <div>
       {/* Header controls */}
-      <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={headerBox}>
+        <div style={headerFlex}>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>Today's Route</div>
-            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>
+            <div style={headerTitle}>Today's Route</div>
+            <div style={headerSub}>
               {stops.length} stop{stops.length !== 1 ? 's' : ''} · Drag to reorder · Opens in Google Maps
             </div>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <div style={headerActions}>
             <Button size="sm" onClick={resetOrder}>Reset order</Button>
             {url && (
-              <a href={url} target="_blank" rel="noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center',
-                  padding: '0 10px', height: '30px', fontSize: '12px', fontWeight: 500,
-                  background: 'var(--accent)', color: '#fff', borderRadius: 'var(--radius)',
-                  textDecoration: 'none',
-                }}>
+              <a href={url} target="_blank" rel="noreferrer" style={routeLink}>
                 Open Full Route ↗
               </a>
             )}
@@ -115,33 +126,16 @@ export default function RouteTab() {
       </div>
 
       {/* Stop list */}
-      <div style={{ border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+      <div style={listBox}>
         {stops.map((s, idx) => {
           const chip = hoursChip(s.openTime, s.closeTime)
           return (
-            <div key={s.id} style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '10px 12px', borderBottom: '0.5px solid var(--border)',
-              fontSize: '13px', background: 'var(--bg)',
-            }}>
-              {/* Position badge */}
-              <div style={{
-                width: '22px', height: '22px', borderRadius: '50%',
-                background: 'var(--bg3)', color: 'var(--text2)', fontSize: '11px',
-                fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                {idx + 1}
-              </div>
+            <div key={s.id} style={stopRow}>
+              <div style={posBadge}>{idx + 1}</div>
 
-              {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {s.name}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {s.addr}
-                </div>
+                <div style={stopName}>{s.name}</div>
+                <div style={stopAddr}>{s.addr}</div>
                 {chip && (
                   <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '10px', marginTop: '2px', display: 'inline-block',
                     background: chip.isOpen ? 'var(--green-bg)' : 'var(--bg3)',
@@ -151,8 +145,7 @@ export default function RouteTab() {
                 )}
               </div>
 
-              {/* Status + priority */}
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={statusBox}>
                 <div style={{ fontSize: '11px', fontWeight: 500, color: STATUS_COLOR[s.status] || 'var(--text3)' }}>
                   {s.status}
                 </div>
@@ -161,8 +154,7 @@ export default function RouteTab() {
                 )}
               </div>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
+              <div style={arrowCol}>
                 <button onClick={() => moveUp(idx)} disabled={idx === 0}
                   style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer',
                     color: idx === 0 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▲</button>
@@ -171,20 +163,15 @@ export default function RouteTab() {
                     color: idx === stops.length - 1 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▼</button>
               </div>
 
-              {/* Maps link */}
               {s.addr && (
-                <a href={mapsUrl(s.addr)} target="_blank" rel="noreferrer"
-                  style={{ fontSize: '11px', color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }}>
-                  Maps ↗
-                </a>
+                <a href={mapsUrl(s.addr)} target="_blank" rel="noreferrer" style={mapsLink}>Maps ↗</a>
               )}
             </div>
           )
         })}
       </div>
 
-      {/* Summary footer */}
-      <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px', textAlign: 'right' }}>
+      <div style={footer}>
         {stops.filter(s => s.status !== 'Not visited yet').length} of {stops.length} visited today
       </div>
     </div>

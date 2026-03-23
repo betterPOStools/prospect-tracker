@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useCanvassDispatch, useDatabaseDispatch } from '../../data/store.jsx'
 import { hoursChip } from '../../data/helpers.js'
 import { CANVASS_ACTIVE, CANVASS_TO_DB_STATUS } from './constants.js'
@@ -6,6 +6,9 @@ import { HoursChip } from '../../components/Badge.jsx'
 import Button from '../../components/Button.jsx'
 import styles from './CanvassCard.module.css'
 import btnStyles from '../../components/Button.module.css'
+
+// Module-level geocode cache — survives re-renders, cleared on page reload
+const _geocodeCache = new Map()
 
 export default function CanvassCard({ stop, ageLabel, showBuildRun, onConvert, onBuildRun }) {
   const canvassDispatch = useCanvassDispatch()
@@ -38,16 +41,31 @@ export default function CanvassCard({ stop, ageLabel, showBuildRun, onConvert, o
   function set(field, val) { setForm(f => ({ ...f, [field]: val })) }
 
   const [geocoding, setGeocoding] = useState(false)
-  async function geocodeAddr() {
+  const geocodeTimer = useRef(null)
+  const geocodeAddr = useCallback(() => {
     const addr = form.addr?.trim(); if (!addr) return
-    setGeocoding(true)
-    try {
-      const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, { headers: { 'Accept-Language': 'en' } })
-      const data = await res.json()
-      if (data[0]) { set('_lat', parseFloat(data[0].lat)); set('_lng', parseFloat(data[0].lon)) }
-    } catch { /* silently ignore */ }
-    setGeocoding(false)
-  }
+    // Debounce rapid clicks (300ms)
+    clearTimeout(geocodeTimer.current)
+    geocodeTimer.current = setTimeout(async () => {
+      // Check cache first
+      if (_geocodeCache.has(addr)) {
+        const { lat, lng } = _geocodeCache.get(addr)
+        set('_lat', lat); set('_lng', lng)
+        return
+      }
+      setGeocoding(true)
+      try {
+        const res  = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, { headers: { 'Accept-Language': 'en' } })
+        const data = await res.json()
+        if (data[0]) {
+          const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon)
+          _geocodeCache.set(addr, { lat, lng })
+          set('_lat', lat); set('_lng', lng)
+        }
+      } catch { /* silently ignore */ }
+      setGeocoding(false)
+    }, 300)
+  }, [form.addr])
 
   function saveEdit() {
     const updated = {

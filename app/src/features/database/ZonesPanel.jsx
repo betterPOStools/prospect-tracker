@@ -12,14 +12,15 @@ export default function ZonesPanel({ onBrowseZone }) {
   const { msg, flash } = useFlashMessage()
   const [areaFilter, setAreaFilter] = useState('all')
 
+  const recordById = useMemo(() => new Map(db.dbRecords.map(r => [r.id, r])), [db.dbRecords])
   const areas = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
 
   const visibleClusters = useMemo(() => {
     if (areaFilter === 'all') return db.dbClusters
     return db.dbClusters.filter(c =>
-      (c.mb || []).some(id => { const r = db.dbRecords.find(x => x.id === id); return r && r.ar === areaFilter })
+      (c.mb || []).some(id => { const r = recordById.get(id); return r && r.ar === areaFilter })
     )
-  }, [db.dbClusters, db.dbRecords, areaFilter])
+  }, [db.dbClusters, recordById, areaFilter])
 
   const workedMap = useMemo(() => {
     const m = {}
@@ -46,7 +47,7 @@ export default function ZonesPanel({ onBrowseZone }) {
     const stops = []
     const dbUpdates = [];
     (c.mb || []).forEach(id => {
-      const r = db.dbRecords.find(x => x.id === id); if (!r) return
+      const r = recordById.get(id); if (!r) return
       if (existingNames.has((r.n || '').toLowerCase())) return
       stops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
@@ -94,7 +95,7 @@ export default function ZonesPanel({ onBrowseZone }) {
         : visibleClusters.map(c => {
           const w   = workedMap[c.id] || { total: c.cnt, worked: 0 }
           const pct = w.total ? Math.round(w.worked / w.total * 100) : 0
-          const clusterAreas = [...new Set((c.mb || []).map(id => { const r = db.dbRecords.find(x => x.id === id); return r?.ar || '' }).filter(Boolean))].join(', ')
+          const clusterAreas = [...new Set((c.mb || []).map(id => { const r = recordById.get(id); return r?.ar || '' }).filter(Boolean))].join(', ')
           return (
             <div key={c.id} style={{ background: 'var(--bg)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '13px 15px', marginBottom: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>

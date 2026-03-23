@@ -5,11 +5,15 @@ import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
 import { calcScore, calcPriority } from './scoring.js'
 
 function rescoreAll(records) {
-  return records.map(r => {
+  let changed = false
+  const result = records.map(r => {
     const sc = calcScore(r)
     const pr = calcPriority(sc)
-    return (r.sc === sc && r.pr === pr) ? r : { ...r, sc, pr }
+    if (r.sc === sc && r.pr === pr) return r
+    changed = true
+    return { ...r, sc, pr }
   })
+  return changed ? result : records
 }
 
 // ── Last Save ──────────────────────────────────────────────────────────────────
