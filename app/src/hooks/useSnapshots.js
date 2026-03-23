@@ -38,12 +38,12 @@ export function useSnapshots() {
       canvass:  canvass.length,
       areas:    [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].join(', '),
       data: {
-        dbRecords:    JSON.parse(JSON.stringify(db.dbRecords)),
-        dbClusters:   JSON.parse(JSON.stringify(db.dbClusters)),
+        dbRecords:    structuredClone(db.dbRecords),
+        dbClusters:   structuredClone(db.dbClusters),
         dbAreas:      [...db.dbAreas],
         dbBlocklist:  [...db.dbBlocklist],
-        prospects:    JSON.parse(JSON.stringify(prospects)),
-        canvassStops: JSON.parse(JSON.stringify(canvass)),
+        prospects:    structuredClone(prospects),
+        canvassStops: structuredClone(canvass),
       }
     }
 

@@ -40,18 +40,26 @@ function stampTimestamps(current, previous, now) {
   })
 }
 
+// Cache previous state to avoid re-parsing localStorage on every save.
+// stampTimestamps needs the previous records to diff per-field timestamps;
+// without this, each save does JSON.parse of the entire previous array.
+let _prevProspects = null
+let _prevCanvass = null
+
 export function saveProspects(prospects) {
   const now = Date.now()
-  const prev = parse(KEYS.prospects, [])
+  const prev = _prevProspects || parse(KEYS.prospects, [])
   stampTimestamps(prospects, prev, now)
   localStorage.setItem(KEYS.prospects, JSON.stringify(prospects))
+  _prevProspects = prospects
 }
 
 export function saveCanvass(canvassStops) {
   const now = Date.now()
-  const prev = parse(KEYS.canvass, [])
+  const prev = _prevCanvass || parse(KEYS.canvass, [])
   stampTimestamps(canvassStops, prev, now)
   localStorage.setItem(KEYS.canvass, JSON.stringify(canvassStops))
+  _prevCanvass = canvassStops
 }
 
 export function saveDb({ dbRecords, dbClusters, dbAreas, dbBlocklist }) {

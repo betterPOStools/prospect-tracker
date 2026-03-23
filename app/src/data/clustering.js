@@ -12,6 +12,8 @@ export function buildClusters(records, radiusMiles = 0.5) {
   const byZip = {}
   records.forEach(r => { (byZip[r.zi] || (byZip[r.zi] = [])).push(r) })
 
+  const DEG_PER_MILE = 1 / 69  // ~latitude degrees per mile
+
   Object.entries(byZip).forEach(([zip, pts]) => {
     const sorted = [...pts].sort((a, b) => (b.rv || 0) - (a.rv || 0))
     const assigned = new Set()
@@ -20,8 +22,14 @@ export function buildClusters(records, radiusMiles = 0.5) {
       if (assigned.has(anchor.id)) return
       const members = [anchor]
       assigned.add(anchor.id)
+      // Bounding-box thresholds — skip haversine for obviously-distant pairs
+      const latThresh = radiusMiles * DEG_PER_MILE
+      const cosLat = Math.cos(anchor.lt * Math.PI / 180)
+      const lngThresh = cosLat > 0.01 ? radiusMiles * DEG_PER_MILE / cosLat : 1
       sorted.forEach(pt => {
         if (assigned.has(pt.id)) return
+        if (Math.abs(anchor.lt - pt.lt) > latThresh) return
+        if (Math.abs(anchor.lg - pt.lg) > lngThresh) return
         if (haversine(anchor.lt, anchor.lg, pt.lt, pt.lg) <= radiusMiles) {
           members.push(pt)
           assigned.add(pt.id)

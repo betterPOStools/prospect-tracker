@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
@@ -272,6 +272,63 @@ function buildProxiedUrls(task) {
   return urls
 }
 
+const TaskCard = memo(function TaskCard({ task, doImport, doFetchAndImport, fetching, os }) {
+  const isRunning   = task.status !== 'completed' && task.status !== 'failed' && task.status !== 'expired'
+  const isCompleted = task.status === 'completed'
+  const isFailed    = task.status === 'failed'
+  const isExpired   = task.status === 'expired'
+
+  return (
+    <div style={card}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+        <div>
+          <span style={{ fontWeight: 600, fontSize: 13 }}>{task.city}, {task.state}</span>
+          <span style={{ fontSize: 11, color: 'var(--text2)', marginLeft: 8 }}>
+            {task.zips} · {task.queryCount} queries
+          </span>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))' }}>
+          {new Date(task.submittedAt).toLocaleString()}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, marginBottom: 10 }}>
+        {isRunning   && <><span style={dot('#f59e0b', true)} />{task.status || 'Pending'}{task.progress ? ` (${task.progress} so far)` : ''}{task.etaSecs ? ` — ~${fmtEta(task.etaSecs)}` : ''}</>}
+        {isCompleted && <><span style={dot('#22c55e')} />Completed — {task.recordCount} records</>}
+        {isFailed    && <><span style={dot('#ef4444')} />Failed: {task.error || 'Unknown error'}</>}
+        {isExpired   && <><span style={dot('#94a3b8')} />Expired — results no longer available from API</>}
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {isCompleted && task.recordCount > 0 && (
+          task.imported
+            ? <span style={{ fontSize: 12, color: 'var(--text2)' }}>✓ Imported{task.importCounts ? ` (${task.importCounts.added} added)` : ''}</span>
+            : <Button variant="primary" size="sm" onClick={() => doImport(task)}>Import to database</Button>
+        )}
+        {(isExpired || (isCompleted && !task.recordCount && !task.imported)) && buildProxiedUrls(task) && (
+          <Button variant="primary" size="sm" disabled={fetching === task.taskId} onClick={() => doFetchAndImport(task)}>
+            {fetching === task.taskId ? 'Fetching…' : 'Fetch & Import'}
+          </Button>
+        )}
+        {isCompleted && task.resultData?.length > 0 && (
+          <Button size="sm" onClick={() => {
+            const preview = task.resultData.slice(0, 10).map(r => `${r.name || '?'} — ${r.city || ''} ${r.postal_code || ''}`).join('\n')
+            alert(`First 10 results:\n\n${preview}`)
+          }}>Preview</Button>
+        )}
+        {(isCompleted || isExpired) && buildDownloadUrl(task) && (
+          <a href={buildDownloadUrl(task)} download
+            style={{ fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius)', background: 'var(--bg3, var(--bg2))', border: '0.5px solid var(--border)', color: 'var(--text)', textDecoration: 'none', cursor: 'pointer' }}>
+            Download XLSX
+          </a>
+        )}
+        {isFailed && <Button size="sm" onClick={() => os.retryTask(task.taskId)}>Retry</Button>}
+        <Button size="sm" variant="danger" onClick={() => os.removeTask(task.taskId)}>Remove</Button>
+      </div>
+    </div>
+  )
+})
+
 // ── Queue View ─────────────────────────────────────────────────────────────────
 function QueueView({ os }) {
   const db       = useDatabase()
@@ -394,62 +451,9 @@ function QueueView({ os }) {
           No tasks yet — paste a task ID above, or submit a scrape from Search.
         </div>
       )}
-      {[...os.tasks].reverse().map(task => {
-        const isRunning   = task.status !== 'completed' && task.status !== 'failed' && task.status !== 'expired'
-        const isCompleted = task.status === 'completed'
-        const isFailed    = task.status === 'failed'
-        const isExpired   = task.status === 'expired'
-
-        return (
-          <div key={task.taskId} style={card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
-              <div>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{task.city}, {task.state}</span>
-                <span style={{ fontSize: 11, color: 'var(--text2)', marginLeft: 8 }}>
-                  {task.zips} · {task.queryCount} queries
-                </span>
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))' }}>
-                {new Date(task.submittedAt).toLocaleString()}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, marginBottom: 10 }}>
-              {isRunning   && <><span style={dot('#f59e0b', true)} />{task.status || 'Pending'}{task.progress ? ` (${task.progress} so far)` : ''}{task.etaSecs ? ` — ~${fmtEta(task.etaSecs)}` : ''}</>}
-              {isCompleted && <><span style={dot('#22c55e')} />Completed — {task.recordCount} records</>}
-              {isFailed    && <><span style={dot('#ef4444')} />Failed: {task.error || 'Unknown error'}</>}
-              {isExpired   && <><span style={dot('#94a3b8')} />Expired — results no longer available from API</>}
-            </div>
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {isCompleted && task.recordCount > 0 && (
-                task.imported
-                  ? <span style={{ fontSize: 12, color: 'var(--text2)' }}>✓ Imported{task.importCounts ? ` (${task.importCounts.added} added)` : ''}</span>
-                  : <Button variant="primary" size="sm" onClick={() => doImport(task)}>Import to database</Button>
-              )}
-              {(isExpired || (isCompleted && !task.recordCount && !task.imported)) && buildProxiedUrls(task) && (
-                <Button variant="primary" size="sm" disabled={fetching === task.taskId} onClick={() => doFetchAndImport(task)}>
-                  {fetching === task.taskId ? 'Fetching…' : 'Fetch & Import'}
-                </Button>
-              )}
-              {isCompleted && task.resultData?.length > 0 && (
-                <Button size="sm" onClick={() => {
-                  const preview = task.resultData.slice(0, 10).map(r => `${r.name || '?'} — ${r.city || ''} ${r.postal_code || ''}`).join('\n')
-                  alert(`First 10 results:\n\n${preview}`)
-                }}>Preview</Button>
-              )}
-              {(isCompleted || isExpired) && buildDownloadUrl(task) && (
-                <a href={buildDownloadUrl(task)} download
-                  style={{ fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius)', background: 'var(--bg3, var(--bg2))', border: '0.5px solid var(--border)', color: 'var(--text)', textDecoration: 'none', cursor: 'pointer' }}>
-                  Download XLSX
-                </a>
-              )}
-              {isFailed && <Button size="sm" onClick={() => os.retryTask(task.taskId)}>Retry</Button>}
-              <Button size="sm" variant="danger" onClick={() => os.removeTask(task.taskId)}>Remove</Button>
-            </div>
-          </div>
-        )
-      })}
+      {[...os.tasks].reverse().map(task => (
+        <TaskCard key={task.taskId} task={task} doImport={doImport} doFetchAndImport={doFetchAndImport} fetching={fetching} os={os} />
+      ))}
     </div>
   )
 }

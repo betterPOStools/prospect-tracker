@@ -202,11 +202,14 @@ function mergeField(driveVal, localVal, driveTs, localTs) {
 }
 
 function mergeArr(local, incoming) {
+  const idxById = new Map(local.map((item, i) => [item.id, i]))
   incoming.forEach(p => {
     if (!p.id || !p.name) return
-    const i = local.findIndex(x => x.id === p.id)
-    if (i === -1) { local.push(p) }
-    else {
+    const i = idxById.get(p.id)
+    if (i === undefined) {
+      idxById.set(p.id, local.length)
+      local.push(p)
+    } else {
       const merged = { ...local[i] }
       const dTs = p._ts || {}, lTs = local[i]._ts || {}
       Object.keys(p).forEach(k => {
@@ -287,7 +290,7 @@ export function DataProvider({ children }) {
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Track localStorage saves (happens on every state change via reducers)
+  // Track localStorage saves
   useEffect(() => {
     if (isInitializingRef.current) return
     setLastLocalSave(new Date())

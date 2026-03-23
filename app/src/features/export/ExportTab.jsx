@@ -38,6 +38,21 @@ function dateTag() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
+const sectionOuter = { background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', marginBottom: '12px' }
+const sectionTitle = { fontSize: '13px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }
+const sectionSub   = { fontSize: '12px', color: 'var(--text2)', marginBottom: '10px' }
+const sectionBody  = { display: 'flex', gap: '8px', flexWrap: 'wrap' }
+
+function Section({ title, sub, children }) {
+  return (
+    <div style={sectionOuter}>
+      <div style={sectionTitle}>{title}</div>
+      {sub && <div style={sectionSub}>{sub}</div>}
+      <div style={sectionBody}>{children}</div>
+    </div>
+  )
+}
+
 export default function ExportTab() {
   const prospects   = useProspects()
   const pDispatch   = useProspectsDispatch()
@@ -159,14 +174,6 @@ export default function ExportTab() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
-  const Section = ({ title, sub, children }) => (
-    <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', marginBottom: '12px' }}>
-      <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', marginBottom: '2px' }}>{title}</div>
-      {sub && <div style={{ fontSize: '12px', color: 'var(--text2)', marginBottom: '10px' }}>{sub}</div>}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{children}</div>
-    </div>
-  )
 
   // ── File Sync status helpers ──────────────────────────────────────────────────
   const dotColor = fileSync.status === 'error'  ? 'var(--red-text)'

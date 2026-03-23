@@ -27,7 +27,11 @@ export const DEFAULT_BLOCKLIST = [
   "sheetz","wawa","buccee's","buc-ee's","pilot flying j",
 ]
 
+// Pre-lowercased default list for fast matching
+const DEFAULT_BLOCKLIST_LOWER = DEFAULT_BLOCKLIST.map(t => t.toLowerCase())
+
 export function isBlocklisted(name, blocklist) {
   const lower = (name || '').toLowerCase()
-  return (blocklist || DEFAULT_BLOCKLIST).some(term => lower.includes(term.toLowerCase()))
+  const terms = blocklist ? blocklist.map(t => t.toLowerCase()) : DEFAULT_BLOCKLIST_LOWER
+  return terms.some(term => lower.includes(term))
 }

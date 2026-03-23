@@ -39,27 +39,35 @@ function buildKml(dbRecords) {
     </IconStyle>
   </Style>`).join('\n')
 
-  const folders = PRIORITIES.map(p => {
-    const records = dbRecords.filter(r => r.pr === p && r.lt && r.lg)
-    if (!records.length) return ''
-    return `  <Folder>
-    <name>${PRIORITY_EMOJI[p]} ${p} (${records.length})</name>
+  // Single pass: bucket mapped records by priority
+  const byPriority = Object.fromEntries(PRIORITIES.map(p => [p, []]))
+  let mapped = 0
+  for (const r of dbRecords) {
+    if (r.lt && r.lg && byPriority[r.pr]) {
+      byPriority[r.pr].push(r)
+      mapped++
+    }
+  }
+
+  const folders = PRIORITIES
+    .filter(p => byPriority[p].length)
+    .map(p => `  <Folder>
+    <name>${PRIORITY_EMOJI[p]} ${p} (${byPriority[p].length})</name>
     <description>${p} priority prospects — score ${
       p === 'Fire' ? '100+' :
       p === 'Hot'  ? '80–99' :
       p === 'Warm' ? '60–79' :
       p === 'Cold' ? '40–59' : 'below 40'
     }</description>
-${records.map(placemark).join('\n')}
-  </Folder>`
-  }).filter(Boolean).join('\n')
+${byPriority[p].map(placemark).join('\n')}
+  </Folder>`).join('\n')
 
-  const mapped = dbRecords.filter(r => r.lt && r.lg).length
+  const tiers = PRIORITIES.filter(p => byPriority[p].length).length
   return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <Document>
   <name>Prospect Tracker — ${new Date().toLocaleDateString()}</name>
-  <description>${mapped} mapped records across ${PRIORITIES.filter(p => dbRecords.some(r => r.pr === p && r.lt && r.lg)).length} priority tiers</description>
+  <description>${mapped} mapped records across ${tiers} priority tiers</description>
 ${styles}
 ${folders}
 </Document>

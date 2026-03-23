@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { DataProvider, useProspects, useCanvass, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
+import { useState, useEffect, memo, useMemo } from 'react'
+import { DataProvider, useProspects, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
 import DatabaseTab from './features/database/DatabaseTab.jsx'
 import CanvassTab  from './features/canvass/CanvassTab.jsx'
@@ -20,21 +20,18 @@ const TABS = [
   { id: 'sources', label: 'Free Sources',    badge: null },
 ]
 
-function TabBadge({ id }) {
-  const prospects   = useProspects()
-  const canvass     = useCanvass()
+const TabBadge = memo(function TabBadge({ id }) {
+  const prospects     = useProspects()
   const { dbRecords } = useDatabase()
 
-  if (id === 'leads') {
-    const count = prospects.filter(p => p.status === 'Open').length
-    return count > 0 ? <span className={styles.badge}>{count}</span> : null
-  }
-  if (id === 'db') {
-    const count = dbRecords.length
-    return count > 0 ? <span className={styles.badge}>{count}</span> : null
-  }
-  return null
-}
+  const count = useMemo(() => {
+    if (id === 'leads')  return prospects.filter(p => p.status === 'Open').length
+    if (id === 'db')     return dbRecords.length
+    return 0
+  }, [id, prospects, dbRecords])
+
+  return count > 0 ? <span className={styles.badge}>{count}</span> : null
+})
 
 function relativeTime(d) {
   if (!d) return ''

@@ -53,11 +53,12 @@ export function autoAssignDay(dbRecords, day, n, areaFilter = 'all') {
 
 // Returns array of { id, da } assignments for whole week
 export function autoFillWeek(dbRecords, dbClusters, n) {
+  const recordById = new Map(dbRecords.map(r => [r.id, r]))
   // Score clusters by unworked hot value
   const clusterValue = dbClusters.map(c => ({
     ...c,
     value: (c.mb || []).reduce((s, id) => {
-      const r = dbRecords.find(x => x.id === id)
+      const r = recordById.get(id)
       if (!r || r.st !== 'unworked') return s
       return s + (r.pr === 'Fire' ? 4 : r.pr === 'Hot' ? 3 : r.pr === 'Warm' ? 1 : 0)
     }, 0)
@@ -82,7 +83,7 @@ export function autoFillWeek(dbRecords, dbClusters, n) {
   assigned.forEach((c, i) => {
     const day = DAYS[i]
     const members = c.mb
-      .map(id => dbRecords.find(x => x.id === id))
+      .map(id => recordById.get(id))
       .filter(r => r && r.st === 'unworked')
       .sort((a, b) => {
         const distA = haversine(c.lt, c.lg, a.lt, a.lg)
