@@ -22,14 +22,33 @@ export function saveOsApiKey(key)   { localStorage.setItem(OS_KEYS.apiKey, key) 
 
 export function loadOsConfig() {
   const cfg = parse(OS_KEYS.config, {})
-  if (!cfg.categories) cfg.categories = DEFAULT_CATEGORIES
-  if (cfg.autoImport === undefined) cfg.autoImport = true
+  if (!cfg.categories)              cfg.categories     = DEFAULT_CATEGORIES
+  if (cfg.autoImport  === undefined) cfg.autoImport    = true
+  if (cfg.zipBatchSize === undefined) cfg.zipBatchSize = 10
+  if (cfg.useEnrichments === undefined) cfg.useEnrichments = true
+  if (cfg.exactMatch === undefined) cfg.exactMatch = false
   return cfg
 }
 export function saveOsConfig(cfg)   { localStorage.setItem(OS_KEYS.config, JSON.stringify(cfg)) }
 
 export function loadOsTasks()       { return parse(OS_KEYS.tasks, []) }
 export function saveOsTasks(tasks)  { localStorage.setItem(OS_KEYS.tasks, JSON.stringify(tasks)) }
+
+// ── Task ID normalizer ─────────────────────────────────────────────────────────
+// API sometimes returns base64(userId + "," + taskId) instead of the raw task ID.
+// The raw ID is alphanumeric, ~17 chars, starts with a date (YYYYMMDD...).
+export function extractTaskId(id) {
+  if (!id) return id
+  try {
+    const decoded = atob(id)
+    const comma = decoded.lastIndexOf(',')
+    if (comma !== -1) {
+      const candidate = decoded.slice(comma + 1)
+      if (/^[a-z0-9]{10,}$/.test(candidate)) return candidate
+    }
+  } catch {}
+  return id
+}
 
 // ── ZIP lookup via Zippopotam.us (free, no key, CORS-enabled) ──────────────────
 export async function lookupZips(city, stateAbbr) {
@@ -68,7 +87,10 @@ export function buildQueries(zips, city, state, categoriesString) {
 }
 
 // ── API submit & poll ──────────────────────────────────────────────────────────
-export async function submitScrape(apiKey, title, queries) {
+export async function submitScrape(apiKey, title, queries, { useEnrichments = true, exactMatch = false } = {}) {
+  const enrichmentList = useEnrichments
+    ? ['contacts_n_leads', 'company_insights_service', 'emails_validator_service']
+    : []
   const payload = {
     service_name: 'google_maps_service_v2',
     title,
@@ -89,7 +111,7 @@ export async function submitScrape(apiKey, title, queries) {
       output_extension: 'xlsx',
     },
     tags: 'value-systems, ' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    enrichments: ['contacts_n_leads', 'company_insights_service', 'emails_validator_service'],
+    enrichments: enrichmentList,
     categories: [],
     locations: [],
     language: 'en',
@@ -100,15 +122,15 @@ export async function submitScrape(apiKey, title, queries) {
       { key: 'business_status', labelKey: 'title.operationalOnly', operator: 'equals', value: ['operational'] },
       { key: 'phone', labelKey: 'title.withPhone', operator: 'is not blank', value: null },
     ],
-    exactMatch: false,
+    exactMatch,
     useZipCodes: true,
     dropDuplicates: true,
     dropEmailDuplicates: true,
     ignoreWithoutEmails: false,
     UISettings: { isCustomCategories: false, isCustomLocations: false, isCustomQueries: true },
-    enrichments_kwargs: {
+    enrichments_kwargs: useEnrichments ? {
       contacts_n_leads: { contacts_per_company: 1, general_emails: false, preferred_contacts: ['decision makers'] },
-    },
+    } : {},
     org: 'os',
   }
 
@@ -129,8 +151,18 @@ export async function listTasks(apiKey) {
   return await resp.json()
 }
 
-export async function pollTask(apiKey, taskId) {
+// Fetch task config/metadata (title, tags, queue_task_id) — does NOT return status or results
+export async function getTaskConfig(apiKey, taskId) {
   const resp = await fetch(`https://api.outscraper.cloud/tasks/${taskId}`, {
+    headers: { 'X-API-KEY': apiKey },
+  })
+  if (!resp.ok) throw new Error(`Task fetch error: ${resp.status}`)
+  return await resp.json()
+}
+
+// Poll request status + results via the request endpoint
+export async function pollTask(apiKey, requestId) {
+  const resp = await fetch(`https://api.outscraper.cloud/requests/${requestId}`, {
     headers: { 'X-API-KEY': apiKey },
   })
   if (!resp.ok) throw new Error(`Poll error: ${resp.status}`)

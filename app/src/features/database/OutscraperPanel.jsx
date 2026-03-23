@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
-import { lookupZips, loadOsTasks, pollTask, processOutscraperRows, saveOsApiKey, saveOsConfig } from '../../data/outscraper.js'
+import { lookupZips, loadOsTasks, getTaskConfig, pollTask, processOutscraperRows, saveOsApiKey, saveOsConfig, extractTaskId } from '../../data/outscraper.js'
 import Button from '../../components/Button.jsx'
 
 const VIEWS = ['Search', 'Queue', 'Settings']
@@ -72,11 +72,13 @@ function SearchView({ os }) {
     if (!city.trim()) { setErr('Enter a city name.'); return }
     setPhase('looking'); setErr(null); setFound(null)
     try {
-      const zips = await lookupZips(city.trim(), state)
-      const cats = os.config.categories.split(',').map(c => c.trim()).filter(Boolean)
+      const zips      = await lookupZips(city.trim(), state)
+      const cats      = os.config.categories.split(',').map(c => c.trim()).filter(Boolean)
+      const batchSize = os.config.zipBatchSize || zips.length
+      const batches   = Math.ceil(zips.length / batchSize)
       const queryCount = zips.length * cats.length
-      const costEst = (queryCount * 0.002).toFixed(3)
-      setFound({ zips, queryCount, costEst })
+      const costEst   = (queryCount * 0.002).toFixed(3)
+      setFound({ zips, queryCount, costEst, batches, batchSize })
       setPhase('confirm')
     } catch (e) {
       setErr(e.message)
@@ -131,12 +133,26 @@ function SearchView({ os }) {
               {found.zips.slice(0, 8).join(', ')}{found.zips.length > 8 ? ` +${found.zips.length - 8} more` : ''}
             </span>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 10 }}>
+          <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 4 }}>
             <strong>{found.queryCount}</strong> queries × $0.002 ≈ <strong>${found.costEst}</strong> estimated cost
           </div>
+          {found.batches > 1 && (
+            <div style={{ fontSize: 12, color: 'var(--blue-text, var(--accent))', marginBottom: 10 }}>
+              Will submit as <strong>{found.batches} separate tasks</strong> of ~{found.batchSize} ZIPs each
+              {os.config.useEnrichments === false ? ' · enrichments off (faster)' : ''}
+            </div>
+          )}
+          {found.batches === 1 && os.config.useEnrichments === false && (
+            <div style={{ fontSize: 12, color: 'var(--blue-text, var(--accent))', marginBottom: 10 }}>
+              Enrichments off (faster, no contact data)
+            </div>
+          )}
+          {found.batches === 1 && os.config.useEnrichments !== false && (
+            <div style={{ marginBottom: 10 }} />
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="primary" onClick={handleSubmit} disabled={phase === 'submitting'}>
-              {phase === 'submitting' ? 'Submitting…' : 'Submit scrape'}
+              {phase === 'submitting' ? 'Submitting…' : found.batches > 1 ? `Submit ${found.batches} tasks` : 'Submit scrape'}
             </Button>
             <Button onClick={() => setPhase('idle')}>Cancel</Button>
           </div>
@@ -161,31 +177,44 @@ function AddByIdRow({ os }) {
     if (os.tasks.some(t => t.taskId === taskId)) { setErr('Already in queue.'); return }
     setBusy(true); setErr(null)
     try {
-      const result    = await pollTask(os.apiKey, taskId)
-      const meta      = result.metadata || {}
-      const newStatus = (result.status || '').toLowerCase()
-      const isFin     = ['success', 'finished', 'done', 'completed'].includes(newStatus)
-      let data = result.data || []
-      if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
+      // Step 1: fetch task config/metadata (city, state, tags, queue_task_id)
+      const config      = await getTaskConfig(os.apiKey, taskId)
+      const meta        = config.metadata || {}
+      const queueTaskId = config.queue_task_id || null
+      const rawTitle    = meta.title || config.title || ''
+      const titleMatch  = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
 
-      const rawTitle  = meta.title || result.title || ''
-      const titleMatch = rawTitle.match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+      // Step 2: if we have a request ID, fetch actual status + results
+      let status = 'pending', resultData = [], recordCount = 0, etaSecs = null, error = null
+      if (queueTaskId) {
+        const poll    = await pollTask(os.apiKey, queueTaskId)
+        const pollSt  = (poll.status || '').toLowerCase()
+        const isFin   = ['success', 'finished', 'done', 'completed'].includes(pollSt)
+
+        if (isFin) {
+          let data = poll.data || []
+          if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
+          status = 'completed'; resultData = data; recordCount = data.length
+        } else if (['failed', 'error'].includes(pollSt)) {
+          status = 'failed'; error = poll.error || 'Unknown error'
+        } else {
+          status = pollSt || 'pending'
+          etaSecs = poll.estimated_time_seconds ?? poll.time_left ?? null
+        }
+      }
+
       const task = {
         taskId,
-        queueTaskId: result.queue_task_id || null,
+        queueTaskId,
         tags:        meta.tags || '',
         city:        titleMatch ? titleMatch[1].trim() : rawTitle || taskId,
         state:       titleMatch ? titleMatch[2] : '',
         zips:        '',
-        queryCount:  meta.queries_amount || result.queries_count || 0,
-        submittedAt: result.created || result.created_at || new Date().toISOString(),
-        status:      isFin ? 'completed' : (['failed','error'].includes(newStatus) ? 'failed' : newStatus || 'pending'),
-        resultData:  isFin ? data : [],
-        recordCount: isFin ? data.length : (result.total_results_count || 0),
-        imported:    false,
-        importCounts:null,
-        error:       result.error || null,
-        etaSecs:     result.estimated_time_seconds ?? result.time_left ?? result.eta ?? null,
+        queryCount:  meta.queries_amount || config.queries_count || 0,
+        submittedAt: config.created || config.created_at || new Date().toISOString(),
+        status, resultData, recordCount,
+        imported: false, importCounts: null,
+        error, etaSecs,
       }
       os.setTasks(prev => [...prev, task])
       setIdVal('')
@@ -212,7 +241,7 @@ function AddByIdRow({ os }) {
 }
 
 function buildDownloadUrl(task) {
-  const id = task.taskId
+  const id = extractTaskId(task.taskId)
   if (!id || !task.tags) return null
   const year = id.slice(0, 4), month = id.slice(4, 6), day = id.slice(6, 8)
   const tagPart = task.tags.split(',').map(t => t.trim()).filter(Boolean).join('_')
@@ -353,15 +382,18 @@ function QueueView({ os }) {
 
 // ── Settings View ──────────────────────────────────────────────────────────────
 function SettingsView({ os }) {
-  const [keyVal,     setKeyVal]     = useState(os.apiKey)
-  const [showKey,    setShowKey]    = useState(false)
-  const [catsVal,    setCatsVal]    = useState(os.config.categories)
-  const [autoImport, setAutoImport] = useState(os.config.autoImport)
-  const [saved,      setSaved]      = useState(false)
+  const [keyVal,        setKeyVal]        = useState(os.apiKey)
+  const [showKey,       setShowKey]       = useState(false)
+  const [catsVal,       setCatsVal]       = useState(os.config.categories)
+  const [autoImport,    setAutoImport]    = useState(os.config.autoImport)
+  const [zipBatchSize,  setZipBatchSize]  = useState(os.config.zipBatchSize ?? 10)
+  const [useEnrichments,setUseEnrichments]= useState(os.config.useEnrichments !== false)
+  const [exactMatch,    setExactMatch]    = useState(os.config.exactMatch === true)
+  const [saved,         setSaved]         = useState(false)
 
   function handleSave() {
     os.setApiKey(keyVal.trim())
-    os.setConfig({ ...os.config, categories: catsVal.trim(), autoImport })
+    os.setConfig({ ...os.config, categories: catsVal.trim(), autoImport, zipBatchSize: Number(zipBatchSize) || 10, useEnrichments, exactMatch })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -392,6 +424,43 @@ function SettingsView({ os }) {
           rows={3}
           style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical' }}
         />
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 4 }}>ZIPs per task (batch size)</div>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={zipBatchSize}
+            onChange={e => setZipBatchSize(e.target.value)}
+            style={{ width: 80 }}
+          />
+          <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3 }}>
+            Columbia had 38 ZIPs → 4 tasks of 10
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+          <input type="checkbox" checked={useEnrichments} onChange={e => setUseEnrichments(e.target.checked)} />
+          Enrich results (contact names, emails, phone validation)
+        </label>
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3, marginLeft: 20 }}>
+          Disable for faster scrapes — no contact data, just business listings
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+          <input type="checkbox" checked={exactMatch} onChange={e => setExactMatch(e.target.checked)} />
+          Exact category match only
+        </label>
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3, marginLeft: 20 }}>
+          Off (default): Google may include adjacent categories (bars in restaurant searches). On: stricter, fewer but cleaner results.
+        </div>
       </div>
 
       <div style={{ marginBottom: 14 }}>

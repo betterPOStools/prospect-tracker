@@ -4,7 +4,12 @@ import {
   loadOsConfig, saveOsConfig,
   loadOsTasks, saveOsTasks,
   buildQueries, submitScrape, pollTask, listTasks,
+  extractTaskId,
 } from '../data/outscraper.js'
+import { supabase } from '../lib/supabase.js'
+
+const OS_ROW_ID      = 2   // separate row in app_state table — never conflicts with main sync (id=1)
+const SYNC_DEBOUNCE  = 1500
 
 export function useOutscraper() {
   const [apiKey, _setApiKey] = useState(() => loadOsApiKey())
@@ -12,50 +17,109 @@ export function useOutscraper() {
   const [tasks,  _setTasks]  = useState(() => loadOsTasks())
 
   const pollingRef     = useRef(null)
-  const onCompleteRef  = useRef(null)  // stable ref so interval closure always sees latest callback
+  const onCompleteRef  = useRef(null)
   const apiKeyRef      = useRef(apiKey)
+  const syncTimerRef   = useRef(null)
 
   // Keep refs in sync
   useEffect(() => { apiKeyRef.current = apiKey }, [apiKey])
 
+  // On mount: merge Supabase task metadata with localStorage
+  useEffect(() => {
+    if (!supabase) return
+    supabase.from('app_state').select('payload').eq('id', OS_ROW_ID).maybeSingle()
+      .then(({ data }) => {
+        const remote = data?.payload?.osTasks
+        if (!remote?.length) return
+        _setTasks(prev => {
+          const localById = Object.fromEntries(prev.map(t => [t.taskId, t]))
+          const merged = [...prev]
+          remote.forEach(r => {
+            if (!localById[r.taskId]) merged.push(r) // add tasks this device hasn't seen
+            else {
+              // local wins for resultData; remote status/importCounts may be newer
+              const idx = merged.findIndex(t => t.taskId === r.taskId)
+              merged[idx] = { ...r, resultData: merged[idx].resultData || [] }
+            }
+          })
+          saveOsTasks(merged)
+          return merged
+        })
+      })
+      .catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   function setApiKey(key) { _setApiKey(key); saveOsApiKey(key) }
   function setConfig(cfg) { _setConfig(cfg); saveOsConfig(cfg) }
+
+  // Strip resultData before syncing — it can be large and is ephemeral (2hr window)
+  function stripForSync(taskList) {
+    return taskList.map(({ resultData, ...rest }) => rest)
+  }
+
+  function syncToSupabase(taskList) {
+    if (!supabase) return
+    clearTimeout(syncTimerRef.current)
+    syncTimerRef.current = setTimeout(async () => {
+      try {
+        await supabase.from('app_state').upsert(
+          { id: OS_ROW_ID, payload: { osTasks: stripForSync(taskList) }, updated_at: new Date().toISOString() },
+          { onConflict: 'id' }
+        )
+      } catch (e) { console.warn('[OsTasks] sync failed:', e.message) }
+    }, SYNC_DEBOUNCE)
+  }
+
+  function persistTasks(taskList) {
+    saveOsTasks(taskList)
+    syncToSupabase(taskList)
+  }
+
   function setTasks(next) {
     const resolved = typeof next === 'function' ? next(tasks) : next
     _setTasks(resolved)
-    saveOsTasks(resolved)
+    persistTasks(resolved)
   }
 
-  // submit — builds queries from known zips (already looked up by component) and submits
+  // submit — splits ZIPs into batches, submits one task per batch
   const submit = useCallback(async ({ city, state, zips }) => {
-    const queries = buildQueries(zips, city, state, config.categories)
-    const today   = new Date().toISOString().slice(0, 10)
-    const title   = `${city}, ${state} \u2014 ${today}`
-    const resp    = await submitScrape(apiKeyRef.current, title, queries)
-    const taskId  = resp?.id || resp?.task_id
-    if (!taskId) throw new Error('No task ID returned from Outscraper.')
+    const batchSize = config.zipBatchSize || zips.length
+    const chunks    = []
+    for (let i = 0; i < zips.length; i += batchSize) chunks.push(zips.slice(i, i + batchSize))
 
-    const task = {
-      taskId,
-      queueTaskId: resp.queue_task_id || null,
-      tags: resp.metadata?.tags || resp.tags || '',
-      city,
-      state,
-      zips: zips.join(', '),
-      queryCount: queries.length,
-      submittedAt: new Date().toISOString(),
-      status: 'pending',
-      resultData: [],
-      recordCount: 0,
-      imported: false,
-      importCounts: null,
-      error: null,
-      etaSecs: resp?.estimated_time_seconds ?? resp?.time_left ?? resp?.eta ?? null,
+    const newTasks = []
+    for (let ci = 0; ci < chunks.length; ci++) {
+      const chunk   = chunks[ci]
+      const queries = buildQueries(chunk, city, state, config.categories)
+      const today   = new Date().toISOString().slice(0, 10)
+      const suffix  = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''
+      const title   = `${city}, ${state} \u2014 ${today}${suffix}`
+      const localTags = 'value-systems, ' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      const resp    = await submitScrape(apiKeyRef.current, title, queries, { useEnrichments: config.useEnrichments !== false, exactMatch: config.exactMatch === true })
+      const taskId  = extractTaskId(resp?.id || resp?.task_id)
+      if (!taskId) throw new Error('No task ID returned from Outscraper.')
+
+      newTasks.push({
+        taskId,
+        queueTaskId: resp.queue_task_id || null,
+        tags:        resp.metadata?.tags || resp.tags || localTags,
+        city, state,
+        zips:        chunk.join(', '),
+        queryCount:  queries.length,
+        submittedAt: new Date().toISOString(),
+        status:      'pending',
+        resultData:  [],
+        recordCount: 0,
+        imported:    false,
+        importCounts: null,
+        error:       null,
+        etaSecs:     resp?.estimated_time_seconds ?? resp?.time_left ?? resp?.eta ?? null,
+      })
     }
 
-    setTasks(prev => [...prev, task])
-    return task
-  }, [config.categories]) // eslint-disable-line react-hooks/exhaustive-deps
+    setTasks(prev => [...prev, ...newTasks])
+    return newTasks
+  }, [config.categories, config.zipBatchSize, config.useEnrichments]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // shared poll cycle — polls all pending tasks once, returns Date of completion
   const runPoll = useCallback(async () => {
@@ -72,10 +136,7 @@ export function useOutscraper() {
 
         if (['success', 'finished', 'done'].includes(newStatus)) {
           let data = result.data || []
-          // Flatten arrays-of-arrays (one sub-array per query)
-          if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) {
-            data = data.flat()
-          }
+          if (data.length > 0 && Array.isArray(data[0]) && !data[0]?.name) data = data.flat()
           snapshot[i] = { ...t, status: 'completed', resultData: data, recordCount: data.length, completedAt: new Date().toISOString() }
           changed = true
           onCompleteRef.current?.(snapshot[i])
@@ -94,7 +155,7 @@ export function useOutscraper() {
     }
 
     if (changed) {
-      saveOsTasks(snapshot)
+      persistTasks(snapshot)
       _setTasks([...snapshot])
     }
     return new Date()
@@ -147,7 +208,7 @@ export function useOutscraper() {
     setTasks(prev => {
       const localById = Object.fromEntries(prev.map(t => [t.taskId, t]))
       const merged = remote.map(r => {
-        const taskId  = r.id || r.task_id || r.taskId
+        const taskId  = extractTaskId(r.id || r.task_id || r.taskId)
         const local   = localById[taskId] || {}
         const status  = (r.status || '').toLowerCase()
         const isFin   = ['success', 'finished', 'done', 'completed'].includes(status)
