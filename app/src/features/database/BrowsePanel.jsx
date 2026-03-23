@@ -1,18 +1,26 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
-import { uid } from '../../data/helpers.js'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import Button from '../../components/Button.jsx'
 
-function statusBadge(st) {
-  if (st === 'unworked')   return <span style={{ background: 'var(--bg2)', color: 'var(--text2)', padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>Unworked</span>
-  if (st === 'in_canvass') return <span style={{ background: 'var(--purple-bg)', color: 'var(--purple-text)', padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>In canvass</span>
-  if (st === 'canvassed')  return <span style={{ background: 'var(--yellow-bg)', color: 'var(--yellow-text)', padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>Canvassed</span>
-  if (st === 'converted')  return <span style={{ background: 'var(--green-bg)',  color: 'var(--green-text)',  padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>Converted</span>
-  if (st === 'lead')       return <span style={{ background: 'var(--blue-bg)',   color: 'var(--blue-text)',   padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }}>Lead</span>
-  return null
+const badgeBase = { padding: '2px 7px', borderRadius: '20px', fontSize: '11px', fontWeight: 500 }
+const badges = {
+  unworked:   { ...badgeBase, background: 'var(--bg2)',        color: 'var(--text2)' },
+  in_canvass: { ...badgeBase, background: 'var(--purple-bg)',  color: 'var(--purple-text)' },
+  canvassed:  { ...badgeBase, background: 'var(--yellow-bg)',  color: 'var(--yellow-text)' },
+  converted:  { ...badgeBase, background: 'var(--green-bg)',   color: 'var(--green-text)' },
+  lead:       { ...badgeBase, background: 'var(--blue-bg)',    color: 'var(--blue-text)' },
 }
+const badgeLabel = { unworked: 'Unworked', in_canvass: 'In canvass', canvassed: 'Canvassed', converted: 'Converted', lead: 'Lead' }
+
+function statusBadge(st) {
+  const s = badges[st]; if (!s) return null
+  return <span style={s}>{badgeLabel[st]}</span>
+}
+
+const ROW_HEIGHT = 52 // estimated px per row
 
 export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const db           = useDatabase()
@@ -32,6 +40,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
 
   const areas = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
   const zips  = useMemo(() => [...new Set(db.dbRecords.map(r => r.zi).filter(Boolean))].sort(), [db.dbRecords])
+  const recordById = useMemo(() => new Map(db.dbRecords.map(r => [r.id, r])), [db.dbRecords])
 
   const filtered = useMemo(() => {
     const q = filterSearch.toLowerCase()
@@ -44,6 +53,15 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
       (!q || (r.n || '').toLowerCase().includes(q) || (r.a || '').toLowerCase().includes(q))
     ).sort((a, b) => b.sc - a.sc)
   }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterSearch])
+
+  // Virtualizer
+  const scrollRef = useRef(null)
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  })
 
   function toggle(id) {
     setSelected(prev => {
@@ -64,7 +82,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     const dbUpdates = []
 
     ids.forEach(id => {
-      const r = db.dbRecords.find(x => x.id === id); if (!r) return
+      const r = recordById.get(id); if (!r) return
       if (existingNames.has((r.n || '').toLowerCase())) return
       stops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
@@ -148,29 +166,39 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
 
       {msg && <div style={{ fontSize: '12px', marginBottom: '8px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>{msg.text}</div>}
 
-      <div style={{ maxHeight: 'min(460px, 60vh)', overflowY: 'auto', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-        {filtered.map(r => (
-          <div key={r.id}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderBottom: '0.5px solid var(--border)', fontSize: '13px', background: selected.has(r.id) ? 'var(--bg2)' : 'transparent', cursor: 'pointer' }}
-            onClick={() => toggle(r.id)}>
-            <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)}
-              style={{ width: '15px', height: '15px', flexShrink: 0, accentColor: 'var(--accent)' }}
-              onClick={e => e.stopPropagation()} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.n}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.a}</div>
-              {r.nt && <div style={{ fontSize: '11px', color: 'var(--text3)', whiteSpace: 'pre-line', marginTop: '2px' }}>{r.nt}</div>}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px', flexShrink: 0 }}>
-              <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr] }}>{PRIORITY_EMOJI[r.pr]} {r.pr} {r.sc}</span>
-                {r.rt > 0 && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>★{r.rt}</span>}
-                {statusBadge(r.st)}
+      <div ref={scrollRef} style={{ maxHeight: 'min(460px, 60vh)', overflowY: 'auto', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+          {virtualizer.getVirtualItems().map(vRow => {
+            const r = filtered[vRow.index]
+            return (
+              <div key={r.id}
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vRow.start}px)` }}
+                ref={virtualizer.measureElement}
+                data-index={vRow.index}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderBottom: '0.5px solid var(--border)', fontSize: '13px', background: selected.has(r.id) ? 'var(--bg2)' : 'transparent', cursor: 'pointer' }}
+                  onClick={() => toggle(r.id)}>
+                  <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)}
+                    style={{ width: '15px', height: '15px', flexShrink: 0, accentColor: 'var(--accent)' }}
+                    onClick={e => e.stopPropagation()} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.n}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.a}</div>
+                    {r.nt && <div style={{ fontSize: '11px', color: 'var(--text3)', whiteSpace: 'pre-line', marginTop: '2px' }}>{r.nt}</div>}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 500, color: PRIORITY_COLOR[r.pr] }}>{PRIORITY_EMOJI[r.pr]} {r.pr} {r.sc}</span>
+                      {r.rt > 0 && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>★{r.rt}</span>}
+                      {statusBadge(r.st)}
+                    </div>
+                    {r.ph && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.ph}</span>}
+                  </div>
+                </div>
               </div>
-              {r.ph && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.ph}</span>}
-            </div>
-          </div>
-        ))}
+            )
+          })}
+        </div>
       </div>
     </div>
   )
