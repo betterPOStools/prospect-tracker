@@ -14,8 +14,8 @@ test('page title and header visible', async ({ page }) => {
   await expect(page.getByText('Value Systems')).toBeVisible()
 })
 
-test('all 6 main tabs are present', async ({ page }) => {
-  for (const tab of ['Database', 'Canvass', 'My Leads', 'Route', 'Export / Import', 'Free Sources']) {
+test('all 5 main tabs are present', async ({ page }) => {
+  for (const tab of ['My Leads', 'Canvass', 'Route', 'Database', 'Utilities']) {
     await expect(page.getByRole('tab', { name: tab })).toBeVisible()
   }
 })
@@ -45,7 +45,7 @@ test('theme persists across reload', async ({ page }) => {
 
 test('Database tab is navigable and shows content', async ({ page }) => {
   await goTab(page, 'Database')
-  await expect(page.getByText('Database Snapshots')).toBeVisible()
+  await expect(page.getByText('Browse')).toBeVisible()
 })
 
 test('Canvass tab is navigable', async ({ page }) => {
@@ -63,15 +63,9 @@ test('Route tab is navigable', async ({ page }) => {
   await expect(page.getByText(/No canvass stops yet|No stops for today|Today's Route/)).toBeVisible()
 })
 
-test('Export / Import tab is navigable', async ({ page }) => {
-  await goTab(page, 'Export / Import')
+test('Utilities tab is navigable', async ({ page }) => {
+  await goTab(page, 'Utilities')
   await expect(page.getByText('Full Backup (JSON)')).toBeVisible()
-})
-
-test('Free Sources tab is navigable', async ({ page }) => {
-  await goTab(page, 'Free Sources')
-  // Just verify we can navigate there without errors
-  await expect(page.getByRole('tab', { name: 'Free Sources' })).toHaveAttribute('aria-selected', 'true')
 })
 
 // ── Tab badge counts ──────────────────────────────────────────────────────────

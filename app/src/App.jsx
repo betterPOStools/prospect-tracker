@@ -6,18 +6,16 @@ import CanvassTab  from './features/canvass/CanvassTab.jsx'
 import LeadsTab    from './features/leads/LeadsTab.jsx'
 import RouteTab    from './features/route/RouteTab.jsx'
 import ExportTab   from './features/export/ExportTab.jsx'
-import SourcesTab  from './features/sources/SourcesTab.jsx'
 import styles from './App.module.css'
 
 const BUILD = '2026-03-24 10:00'
 
 const TABS = [
-  { id: 'db',      label: 'Database',       badge: 'db' },
-  { id: 'canvass', label: 'Canvass',         badge: null },
-  { id: 'leads',   label: 'My Leads',        badge: 'leads' },
-  { id: 'route',   label: 'Route',           badge: null },
-  { id: 'export',  label: 'Export / Import', badge: null },
-  { id: 'sources', label: 'Free Sources',    badge: null },
+  { id: 'leads',   label: 'My Leads',   badge: 'leads' },
+  { id: 'canvass', label: 'Canvass',    badge: null },
+  { id: 'route',   label: 'Route',      badge: null },
+  { id: 'db',      label: 'Database',   badge: 'db' },
+  { id: 'export',  label: 'Utilities',  badge: null },
 ]
 
 const TabBadge = memo(function TabBadge({ id }) {
@@ -102,7 +100,7 @@ function SaveIndicator() {
 
 function AppShell() {
   const { toggleTheme } = useTheme()
-  const [activeTab, setActiveTab] = useState('canvass')
+  const [activeTab, setActiveTab] = useState('leads')
 
   return (
     <div>
@@ -137,12 +135,11 @@ function AppShell() {
         </div>
 
         <div className={styles.panel} role="tabpanel">
-          {activeTab === 'db'      && <DatabaseTab />}
-          {activeTab === 'canvass' && <CanvassTab />}
           {activeTab === 'leads'   && <LeadsTab />}
+          {activeTab === 'canvass' && <CanvassTab />}
           {activeTab === 'route'   && <RouteTab />}
+          {activeTab === 'db'      && <DatabaseTab />}
           {activeTab === 'export'  && <ExportTab />}
-          {activeTab === 'sources' && <SourcesTab />}
         </div>
       </div>
     </div>
