@@ -30,6 +30,40 @@ export default function WeekPlannerPanel() {
     db.dbRecords.filter(r => r.st === 'unworked' && !r.da).length,
   [db.dbRecords])
 
+  const todayDayName = DAYS[new Date().getDay() - 1] // getDay(): 0=Sun, 1=Mon...
+
+  function handleAutoFillToday() {
+    if (!todayDayName) { flash('Today is not a weekday.', 'err'); return }
+    const assignments = autoAssignDay(db.dbRecords, todayDayName, stopsPerDay, areaFilter)
+    if (!assignments.length) { flash('No unworked records available for today.', 'err'); return }
+    // Assign the day
+    dbDispatch({ type: 'WEEK_ASSIGN', assignments })
+    // Load straight to canvass
+    const existingNames = new Set(canvass.map(c => c.name.toLowerCase()))
+    const newStops = []
+    const dbUpdates = []
+    assignments.forEach(({ id }) => {
+      const r = db.dbRecords.find(x => x.id === id); if (!r) return
+      if (existingNames.has((r.n || '').toLowerCase())) return
+      newStops.push({
+        id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
+        notes: r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : '',
+        website: r.web, menu: r.mn, email: r.em,
+        openTime: '', closeTime: '',
+        status: 'Not visited yet',
+        date: new Date().toLocaleDateString(),
+        added: new Date().toISOString(),
+        fromDb: r.id, score: r.sc, priority: r.pr,
+      })
+      dbUpdates.push(id)
+    })
+    if (newStops.length) {
+      cDispatch({ type: 'ADD_MANY', stops: newStops })
+      dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
+    }
+    flash(`${assignments.length} stops assigned to ${todayDayName} and loaded to canvass.`, 'ok')
+  }
+
   function handleAutoFillWeek() {
     if (!db.dbRecords.some(r => r.st === 'unworked' && !r.da)) {
       flash('No unworked records available to assign.', 'err'); return
@@ -106,6 +140,7 @@ export default function WeekPlannerPanel() {
             <option value="all">All areas</option>
             {areas.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
+          <Button size="sm" variant="primary" onClick={handleAutoFillToday} disabled={!todayDayName}>Today → Canvass</Button>
           <Button size="sm" variant="primary" onClick={handleAutoFillWeek}>Auto-fill Week</Button>
           <Button size="sm" variant="danger" onClick={handleClearWeek}>Clear Week</Button>
           <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text2)' }}>{unworkedCount} unassigned</span>

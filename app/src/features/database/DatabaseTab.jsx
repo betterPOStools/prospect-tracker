@@ -10,7 +10,7 @@ import ZonesPanel       from './ZonesPanel.jsx'
 import WeekPlannerPanel from './WeekPlannerPanel.jsx'
 import OutscraperPanel  from './OutscraperPanel.jsx'
 
-const SUB_TABS = ['Browse', 'Zones', 'Week Planner', 'Outscraper API']
+const SUB_TABS = ['Browse', 'Zones', 'Planner', 'Outscraper API']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
@@ -60,7 +60,7 @@ export default function DatabaseTab() {
 
       {subTab === 'Browse'        && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
       {subTab === 'Zones'         && <ZonesPanel onBrowseZone={handleBrowseZone} />}
-      {subTab === 'Week Planner'  && <WeekPlannerPanel />}
+      {subTab === 'Planner'       && <WeekPlannerPanel />}
       {subTab === 'Outscraper API' && <OutscraperPanel />}
     </div>
   )

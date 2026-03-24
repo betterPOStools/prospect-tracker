@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useCanvass } from '../../data/store.jsx'
+import { useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { CANVASS_ACTIVE, FOLLOWUP_STATUSES } from './constants.js'
 import StatBar from '../../components/StatBar.jsx'
+import Button  from '../../components/Button.jsx'
 import TodayPanel    from './TodayPanel.jsx'
 import FollowUpPanel from './FollowUpPanel.jsx'
 import AllActivePanel from './AllActivePanel.jsx'
@@ -22,6 +23,7 @@ const SUBTABS = [
 
 export default function CanvassTab() {
   const canvassStops = useCanvass()
+  const canvassDispatch = useCanvassDispatch()
   const [activeTab, setActiveTab]   = useState('today')
   const [converting,   setConverting]   = useState(null)
   const [buildRunStop, setBuildRunStop] = useState(null) // null = closed, false = open (no trigger), stop = open (with trigger)
@@ -52,6 +54,13 @@ export default function CanvassTab() {
     if (name) flash(`${name} converted to lead.`, 'ok')
   }
 
+  function handleRemoveAll() {
+    if (!canvassStops.length) { flash('No stops to remove.', 'err'); return }
+    if (!confirm(`Remove all ${canvassStops.length} canvass stops? This cannot be undone.`)) return
+    canvassDispatch({ type: '_REPLACE_ALL', items: [] })
+    flash(`${canvassStops.length} stops removed.`, 'ok')
+  }
+
   function handleBuildRun(stop) { setBuildRunStop(stop || false) }
 
   function handleRunBuilt(count) {
@@ -65,6 +74,10 @@ export default function CanvassTab() {
   return (
     <div>
       <StatBar stats={stats} />
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+        <Button size="sm" variant="danger" onClick={handleRemoveAll}>Remove All Stops</Button>
+      </div>
 
       <div className={styles.subtabs}>
         {SUBTABS.map(t => {

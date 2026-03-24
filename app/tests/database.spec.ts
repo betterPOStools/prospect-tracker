@@ -374,9 +374,9 @@ test.describe('Zones panel', () => {
   })
 })
 
-// ── Week Planner Panel ────────────────────────────────────────────────────────
+// ── Planner Panel ────────────────────────────────────────────────────────
 
-test.describe('Week Planner panel', () => {
+test.describe('Planner panel', () => {
   test.beforeEach(async ({ page }) => {
     // Seed enough records to fill a week
     const records = Array.from({ length: 20 }, (_, i) =>
@@ -385,7 +385,7 @@ test.describe('Week Planner panel', () => {
     await seedDatabase(page, records)
     await page.reload()
     await goTab(page, 'Database')
-    await page.getByRole('button', { name: 'Week Planner' }).click()
+    await page.getByRole('button', { name: 'Planner' }).click()
   })
 
   test('shows all 5 weekday rows', async ({ page }) => {
@@ -436,14 +436,14 @@ test.describe('Week Planner panel', () => {
   })
 
   test('→ Canvass button for a day with no stops shows error', async ({ page }) => {
-    // No stops assigned yet
-    await page.locator('button').filter({ hasText: '→ Canvass' }).first().click()
+    // No stops assigned yet — use exact text to skip the "Today → Canvass" header button
+    await page.getByRole('button', { name: '→ Canvass', exact: true }).first().click()
     await expect(page.getByText(/No stops assigned to/)).toBeVisible()
   })
 
   test('→ Canvass button after filling a day loads to canvass', async ({ page }) => {
     await page.getByRole('button', { name: 'Auto-fill' }).first().click()
-    await page.locator('button').filter({ hasText: '→ Canvass' }).first().click()
+    await page.getByRole('button', { name: '→ Canvass', exact: true }).first().click()
     await expect(page.getByText(/stops from .* loaded to canvass/)).toBeVisible()
   })
 
@@ -473,14 +473,14 @@ test.describe('Database subtab navigation', () => {
     await goTab(page, 'Database')
   })
 
-  test('Browse → Zones → Week Planner navigation', async ({ page }) => {
+  test('Browse → Zones → Planner navigation', async ({ page }) => {
     await page.getByRole('button', { name: 'Browse' }).click()
     await expect(page.getByText('Nav Test Restaurant')).toBeVisible()
 
     await page.getByRole('button', { name: 'Zones' }).click()
     await expect(page.getByText('Zone 1')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Week Planner' }).click()
+    await page.getByRole('button', { name: 'Planner' }).click()
     await expect(page.getByText('Monday')).toBeVisible()
   })
 })
@@ -501,8 +501,8 @@ test.describe('Empty states', () => {
     await expect(page.getByText(/No zones yet/)).toBeVisible()
   })
 
-  test('Week Planner shows empty state with no records', async ({ page }) => {
-    await page.getByRole('button', { name: 'Week Planner' }).click()
+  test('Planner shows empty state with no records', async ({ page }) => {
+    await page.getByRole('button', { name: 'Planner' }).click()
     await expect(page.getByText(/No records yet/)).toBeVisible()
   })
 })

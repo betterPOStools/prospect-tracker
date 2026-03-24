@@ -9,7 +9,7 @@ import ExportTab   from './features/export/ExportTab.jsx'
 import SourcesTab  from './features/sources/SourcesTab.jsx'
 import styles from './App.module.css'
 
-const BUILD = '2026-03-23 12:45'
+const BUILD = '2026-03-24 10:00'
 
 const TABS = [
   { id: 'db',      label: 'Database',       badge: 'db' },
