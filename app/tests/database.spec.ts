@@ -11,7 +11,8 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('ImportBar', () => {
   test.beforeEach(async ({ page }) => {
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Import' }).first().click()
   })
 
   test('Import XLSX button/label is present', async ({ page }) => {
@@ -28,7 +29,8 @@ test.describe('ImportBar', () => {
 
 test.describe('Snapshot Manager', () => {
   test.beforeEach(async ({ page }) => {
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
   })
 
   test('shows Database Snapshots header', async ({ page }) => {
@@ -57,7 +59,8 @@ test.describe('Snapshot Manager', () => {
     ]
     await seedDatabase(page, records)
     await page.reload()
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
     await page.getByRole('button', { name: 'Save Snapshot' }).click()
     await expect(page.getByText('Snapshot saved.')).toBeVisible()
   })
@@ -66,7 +69,8 @@ test.describe('Snapshot Manager', () => {
     const records = [makeDbRecord({ id: 'snap-2', n: 'History Test' })]
     await seedDatabase(page, records)
     await page.reload()
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
     await page.getByRole('button', { name: 'Save Snapshot' }).click()
     // History should auto-open
     await expect(page.getByRole('button', { name: 'Restore' })).toBeVisible()
@@ -77,7 +81,8 @@ test.describe('Snapshot Manager', () => {
     const records = [makeDbRecord({ id: 'snap-3', n: 'Delete Snapshot Test' })]
     await seedDatabase(page, records)
     await page.reload()
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
     await page.getByRole('button', { name: 'Save Snapshot' }).click()
     await page.getByRole('button', { name: 'Delete' }).first().click()
     await expect(page.getByText(/No snapshots yet/)).toBeVisible()
@@ -87,20 +92,23 @@ test.describe('Snapshot Manager', () => {
     const records = [makeDbRecord({ id: 'snap-4', n: 'Restore Me Restaurant' })]
     await seedDatabase(page, records)
     await page.reload()
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
     await page.getByRole('button', { name: 'Save Snapshot' }).click()
 
     // Clear the DB
     await clearStorage(page)
     await page.evaluate(() => localStorage.removeItem('vs_db'))
     await page.reload()
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Backups' }).click()
 
     // Restore (snapshots are in their own key, should survive clear)
     await page.getByRole('button', { name: /History/ }).click()
     if (await page.getByRole('button', { name: 'Restore' }).isVisible()) {
       await page.getByRole('button', { name: 'Restore' }).first().click()
-      // DB should show records now
+      // DB should show records now — navigate to Database to verify
+      await goTab(page, 'Database')
       await expect(page.getByText('Total')).toBeVisible()
     }
   })
@@ -110,7 +118,8 @@ test.describe('Snapshot Manager', () => {
 
 test.describe('Chain Blocklist Manager', () => {
   test.beforeEach(async ({ page }) => {
-    await goTab(page, 'Database')
+    await goTab(page, 'Utilities')
+    await page.getByRole('button', { name: 'Blocklist' }).click()
     await page.getByRole('button', { name: /Manage/ }).click()
   })
 

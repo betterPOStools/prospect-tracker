@@ -2,15 +2,11 @@ import { useState, useMemo } from 'react'
 import { useDatabase } from '../../data/store.jsx'
 import { PRIORITIES, PRIORITY_EMOJI } from '../../data/scoring.js'
 import StatBar    from '../../components/StatBar.jsx'
-import ImportBar  from './ImportBar.jsx'
-import BlocklistManager from './BlocklistManager.jsx'
-import SnapshotManager  from './SnapshotManager.jsx'
 import BrowsePanel      from './BrowsePanel.jsx'
 import ZonesPanel       from './ZonesPanel.jsx'
 import WeekPlannerPanel from './WeekPlannerPanel.jsx'
-import OutscraperPanel  from './OutscraperPanel.jsx'
 
-const SUB_TABS = ['Browse', 'Zones', 'Planner', 'Outscraper API']
+const SUB_TABS = ['Browse', 'Zones', 'Planner']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
@@ -37,10 +33,6 @@ export default function DatabaseTab() {
 
   return (
     <div>
-      <ImportBar onImported={() => setSubTab('Browse')} />
-      <SnapshotManager />
-      <BlocklistManager />
-
       {dbRecords.length > 0 && <StatBar stats={stats} />}
 
       {/* Sub-tab bar */}
@@ -58,10 +50,9 @@ export default function DatabaseTab() {
         ))}
       </div>
 
-      {subTab === 'Browse'        && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
-      {subTab === 'Zones'         && <ZonesPanel onBrowseZone={handleBrowseZone} />}
-      {subTab === 'Planner'       && <WeekPlannerPanel />}
-      {subTab === 'Outscraper API' && <OutscraperPanel />}
+      {subTab === 'Browse'  && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
+      {subTab === 'Zones'   && <ZonesPanel onBrowseZone={handleBrowseZone} />}
+      {subTab === 'Planner' && <WeekPlannerPanel />}
     </div>
   )
 }

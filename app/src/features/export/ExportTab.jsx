@@ -1,8 +1,13 @@
 import { useRef, useState } from 'react'
 import { useProspects, useProspectsDispatch, useCanvass, useCanvassDispatch, useDatabase, useDatabaseDispatch, useFileSync, useCurrentStatePayload } from '../../data/store.jsx'
+import { useTheme } from '../../hooks/useTheme.js'
 import { loadSnapshots } from '../../data/storage.js'
 import { exportKmz } from '../../data/kmzExport.js'
 import Button from '../../components/Button.jsx'
+import ImportBar        from '../database/ImportBar.jsx'
+import SnapshotManager  from '../database/SnapshotManager.jsx'
+import BlocklistManager from '../database/BlocklistManager.jsx'
+import OutscraperPanel  from '../database/OutscraperPanel.jsx'
 
 function relativeTime(d) {
   if (!d) return 'never'
@@ -53,37 +58,48 @@ function Section({ title, sub, children }) {
   )
 }
 
-export default function ExportTab() {
-  const prospects   = useProspects()
-  const pDispatch   = useProspectsDispatch()
-  const canvass     = useCanvass()
-  const cDispatch   = useCanvassDispatch()
-  const db          = useDatabase()
-  const dbDispatch  = useDatabaseDispatch()
-  const fileSync    = useFileSync()
-  const payload     = useCurrentStatePayload()
+const SUB_TABS = ['Import', 'Export', 'Backups', 'Blocklist', 'Settings']
+
+// ── Import sub-tab ────────────────────────────────────────────────────────
+function ImportPanel() {
+  return (
+    <div>
+      <ImportBar />
+      <OutscraperPanel />
+    </div>
+  )
+}
+
+// ── Export sub-tab ────────────────────────────────────────────────────────
+function ExportPanel() {
+  const prospects = useProspects()
+  const pDispatch = useProspectsDispatch()
+  const canvass   = useCanvass()
+  const cDispatch = useCanvassDispatch()
+  const db        = useDatabase()
+  const dbDispatch = useDatabaseDispatch()
+  const fileSync  = useFileSync()
+  const payload   = useCurrentStatePayload()
 
   const [msg, setMsg] = useState(null)
   const importRef = useRef()
-
-  async function handleLinkFile() {
-    await fileSync.linkFile()
-    fileSync.flushWrite(payload) // handleRef is set synchronously inside linkFile
-  }
-  async function handleCreateNewFile() {
-    await fileSync.createNewFile()
-    fileSync.flushWrite(payload)
-  }
 
   function flash(text, type = 'ok') {
     setMsg({ text, type })
     setTimeout(() => setMsg(null), 5000)
   }
 
-  // ── Exports ────────────────────────────────────────────────────────────────
+  async function handleLinkFile() {
+    await fileSync.linkFile()
+    fileSync.flushWrite(payload)
+  }
+  async function handleCreateNewFile() {
+    await fileSync.createNewFile()
+    fileSync.flushWrite(payload)
+  }
 
   function exportFullJSON() {
-    const payload = {
+    const data = {
       version: 1,
       exportedAt: new Date().toISOString(),
       prospects,
@@ -94,7 +110,7 @@ export default function ExportTab() {
       dbBlocklist: db.dbBlocklist,
       snapshots:   loadSnapshots(),
     }
-    downloadJSON(payload, `prospect-tracker-backup-${dateTag()}.json`)
+    downloadJSON(data, `prospect-tracker-backup-${dateTag()}.json`)
     flash(`Full backup exported (${prospects.length} leads, ${canvass.length} canvass, ${db.dbRecords.length} DB records).`)
   }
 
@@ -140,22 +156,16 @@ export default function ExportTab() {
     flash(`${rows.length} canvass stops exported to CSV.`)
   }
 
-  // ── Import ─────────────────────────────────────────────────────────────────
-
   async function handleImport(e) {
     const file = e.target.files[0]; if (!file) return
     try {
       const text = await file.text()
       let raw = JSON.parse(text)
-
-      // Handle old export format: bare array of prospects
       if (Array.isArray(raw)) raw = { prospects: raw }
-
       const data = raw
       const dateLabel = data.exportedAt || data.savedAt
         ? `dated ${new Date(data.exportedAt || data.savedAt).toLocaleString()}`
         : `from file "${file.name}"`
-
       if (!confirm(`Restore backup ${dateLabel}?\n\nThis will replace ALL current data. Make sure to export a backup first.`)) {
         e.target.value = ''; return
       }
@@ -173,9 +183,6 @@ export default function ExportTab() {
     e.target.value = ''
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
-  // ── File Sync status helpers ──────────────────────────────────────────────────
   const dotColor = fileSync.status === 'error'  ? 'var(--red-text)'
                  : fileSync.status === 'saving' ? 'var(--yellow-text)'
                  : 'var(--green-text)'
@@ -191,7 +198,6 @@ export default function ExportTab() {
         </div>
       )}
 
-      {/* File Sync */}
       <Section title="Auto File Sync" sub={
         fileSync.isAvailable
           ? fileSync.linked
@@ -248,7 +254,7 @@ export default function ExportTab() {
 
       <Section
         title="Export to KMZ"
-        sub="Export DB records as a Google Earth / Google My Maps file. 5 layers: 🔥 Fire, 🥵 Hot, ☀️ Warm, 🥶 Cold, ☠️ Dead. Only records with GPS coordinates are included.">
+        sub="Export DB records as a Google Earth / Google My Maps file. 5 layers by priority. Only records with GPS coordinates are included.">
         <Button size="sm" variant="primary" onClick={handleExportKmz}>
           Export KMZ ({db.dbRecords.filter(r => r.lt && r.lg).length} mapped)
         </Button>
@@ -257,27 +263,100 @@ export default function ExportTab() {
       <Section
         title="Export to CSV"
         sub="Export individual datasets to CSV for use in Excel or Google Sheets.">
-        <Button size="sm" onClick={exportDbCSV}>
-          DB Records ({db.dbRecords.length})
-        </Button>
-        <Button size="sm" onClick={exportProspectsCSV}>
-          Leads ({prospects.length})
-        </Button>
-        <Button size="sm" onClick={exportCanvassCSV}>
-          Canvass Log ({canvass.length})
-        </Button>
+        <Button size="sm" onClick={exportDbCSV}>DB Records ({db.dbRecords.length})</Button>
+        <Button size="sm" onClick={exportProspectsCSV}>Leads ({prospects.length})</Button>
+        <Button size="sm" onClick={exportCanvassCSV}>Canvass Log ({canvass.length})</Button>
       </Section>
 
       <Section
         title="Git Sync Workflow"
         sub="How to keep data in sync across devices using git:">
         <div style={{ width: '100%', fontSize: '12px', color: 'var(--text2)', lineHeight: 1.7 }}>
-          <div><strong style={{ color: 'var(--text)' }}>1. Export</strong> — Click "Export Backup JSON" → save the file to your repo folder (e.g. <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>data/backup.json</code>)</div>
-          <div><strong style={{ color: 'var(--text)' }}>2. Commit &amp; Push</strong> — <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>git add data/backup.json &amp;&amp; git commit -m "sync" &amp;&amp; git push</code></div>
-          <div><strong style={{ color: 'var(--text)' }}>3. Pull &amp; Import</strong> — On another device: <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>git pull</code> → click "Import from JSON" → select the file</div>
-          <div style={{ marginTop: '4px', color: 'var(--text3)', fontSize: '11px' }}>Per-field timestamps ensure deterministic merge resolution when both devices have changes.</div>
+          <div><strong style={{ color: 'var(--text)' }}>1. Export</strong> — Click "Export Backup JSON" → save the file to your repo folder</div>
+          <div><strong style={{ color: 'var(--text)' }}>2. Commit &amp; Push</strong> — <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>git add &amp;&amp; git commit -m "sync" &amp;&amp; git push</code></div>
+          <div><strong style={{ color: 'var(--text)' }}>3. Pull &amp; Import</strong> — On another device: <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>git pull</code> → "Import from JSON"</div>
         </div>
       </Section>
+    </div>
+  )
+}
+
+// ── Settings sub-tab ──────────────────────────────────────────────────────
+function SettingsPanel() {
+  const { theme, toggleTheme } = useTheme()
+  const [settings, setSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('vs_settings') || '{}') } catch { return {} }
+  })
+
+  function update(key, value) {
+    const next = { ...settings, [key]: value }
+    setSettings(next)
+    localStorage.setItem('vs_settings', JSON.stringify(next))
+  }
+
+  const fieldStyle = { width: '100%', height: '32px', fontSize: '12px', padding: '0 10px', borderRadius: 'var(--radius)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }
+  const labelStyle = { fontSize: '12px', fontWeight: 500, color: 'var(--text)', marginBottom: '4px' }
+
+  return (
+    <div>
+      <Section title="Appearance">
+        <Button size="sm" onClick={toggleTheme}>
+          {theme === 'dark' ? '☀ Switch to Light' : '☾ Switch to Dark'}
+        </Button>
+      </Section>
+
+      <Section title="Route Provider" sub="Default navigation app for 'Start Route' buttons.">
+        <select value={settings.routeProvider || 'google'} onChange={e => update('routeProvider', e.target.value)}
+          style={{ ...fieldStyle, width: '180px' }}>
+          <option value="google">Google Maps</option>
+          <option value="waze">Waze</option>
+        </select>
+      </Section>
+
+      <Section title="Route Endpoints" sub="Set your start/end points for daily routes.">
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div>
+            <div style={labelStyle}>Home Address</div>
+            <input style={fieldStyle} placeholder="e.g. 123 Main St, Myrtle Beach SC 29577"
+              value={settings.homeAddr || ''} onChange={e => update('homeAddr', e.target.value)} />
+          </div>
+          <div>
+            <div style={labelStyle}>Office Address</div>
+            <input style={fieldStyle} placeholder="e.g. 456 Business Park Dr, Myrtle Beach SC 29577"
+              value={settings.officeAddr || ''} onChange={e => update('officeAddr', e.target.value)} />
+          </div>
+        </div>
+      </Section>
+    </div>
+  )
+}
+
+// ── Main Utilities Tab ────────────────────────────────────────────────────
+export default function ExportTab() {
+  const [subTab, setSubTab] = useState('Import')
+
+  return (
+    <div>
+      {/* Sub-tab bar */}
+      <div style={{ display: 'flex', gap: '4px', margin: '0 0 12px', borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
+        {SUB_TABS.map(t => (
+          <button key={t} onClick={() => setSubTab(t)}
+            style={{
+              background: 'none', border: 'none', borderBottom: subTab === t ? '2px solid var(--accent)' : '2px solid transparent',
+              padding: '6px 12px', fontSize: '13px', fontWeight: subTab === t ? 600 : 400,
+              color: subTab === t ? 'var(--text)' : 'var(--text2)', cursor: 'pointer',
+              marginBottom: '-1px', transition: 'color .15s',
+            }}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'Import'    && <ImportPanel />}
+      {subTab === 'Export'    && <ExportPanel />}
+      {subTab === 'Backups'   && <SnapshotManager />}
+      {subTab === 'Blocklist' && <BlocklistManager />}
+      {subTab === 'Settings'  && <SettingsPanel />}
     </div>
   )
 }

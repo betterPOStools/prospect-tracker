@@ -6,6 +6,7 @@ test.beforeEach(async ({ page }) => {
   await clearStorage(page)
   await page.reload()
   await goTab(page, 'Utilities')
+  await page.getByRole('button', { name: 'Export' }).click()
 })
 
 // ── Section visibility ─────────────────────────────────────────────────────────
