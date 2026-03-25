@@ -1,7 +1,7 @@
 # Backlog
 
 ## Bugs
-- **Outscraper webhook** — deployed to Supabase, needs real scrape test to verify end-to-end (2026-03-25)
+- ~~**Outscraper webhook** — verified working end-to-end (2026-03-25)~~
 - **Stuck DB statuses** — records may be stuck as "in_canvass" from earlier demotion bug (fixed in v0.10.0). Use Browse bulk edit to reset to "unworked".
 
 ## Tasks

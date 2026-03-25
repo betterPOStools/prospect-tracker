@@ -15,6 +15,7 @@ export default function WeekPlannerPanel() {
   const { msg, flash } = useFlashMessage()
 
   const [stopsPerDay, setStopsPerDay]   = useState(15)
+  const [stopsInput,  setStopsInput]    = useState('15')
   const [areaFilter,  setAreaFilter]    = useState('all')
   const [expandDay,   setExpandDay]     = useState(null)
 
@@ -136,8 +137,9 @@ export default function WeekPlannerPanel() {
       <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', color: 'var(--text2)' }}>Stops/day:</span>
-          <input type="number" min={1} max={50} value={stopsPerDay}
-            onChange={e => setStopsPerDay(Math.max(1, parseInt(e.target.value) || 15))}
+          <input type="number" min={1} max={50} value={stopsInput}
+            onChange={e => setStopsInput(e.target.value)}
+            onBlur={() => { const n = parseInt(stopsInput) || 15; const c = Math.min(50, Math.max(1, n)); setStopsPerDay(c); setStopsInput(String(c)) }}
             style={{ width: '56px', height: '30px', fontSize: '12px', textAlign: 'center' }} />
           <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)} style={{ height: '30px', fontSize: '12px', minWidth: '140px' }}>
             <option value="all">All areas</option>
