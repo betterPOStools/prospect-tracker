@@ -8,6 +8,7 @@ import ImportBar        from '../database/ImportBar.jsx'
 import SnapshotManager  from '../database/SnapshotManager.jsx'
 import BlocklistManager from '../database/BlocklistManager.jsx'
 import OutscraperPanel  from '../database/OutscraperPanel.jsx'
+import AnalyticsPanel   from './AnalyticsPanel.jsx'
 
 function relativeTime(d) {
   if (!d) return 'never'
@@ -58,7 +59,7 @@ function Section({ title, sub, children }) {
   )
 }
 
-const SUB_TABS = ['Import', 'Export', 'Backups', 'Blocklist', 'Settings']
+const SUB_TABS = ['Analytics', 'Import', 'Export', 'Backups', 'Blocklist', 'Settings']
 
 // ── Import sub-tab ────────────────────────────────────────────────────────
 function ImportPanel() {
@@ -333,7 +334,7 @@ function SettingsPanel() {
 
 // ── Main Utilities Tab ────────────────────────────────────────────────────
 export default function ExportTab() {
-  const [subTab, setSubTab] = useState('Import')
+  const [subTab, setSubTab] = useState('Analytics')
 
   return (
     <div>
@@ -352,6 +353,7 @@ export default function ExportTab() {
         ))}
       </div>
 
+      {subTab === 'Analytics' && <AnalyticsPanel />}
       {subTab === 'Import'    && <ImportPanel />}
       {subTab === 'Export'    && <ExportPanel />}
       {subTab === 'Backups'   && <SnapshotManager />}

@@ -65,7 +65,7 @@ test('Route tab is navigable', async ({ page }) => {
 
 test('Utilities tab is navigable', async ({ page }) => {
   await goTab(page, 'Utilities')
-  await expect(page.getByText('Import Outscraper Data')).toBeVisible()
+  await expect(page.getByText('Pipeline Overview')).toBeVisible()
 })
 
 // ── Tab badge counts ──────────────────────────────────────────────────────────

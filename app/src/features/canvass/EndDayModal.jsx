@@ -1,5 +1,6 @@
 import { useCanvass, useCanvassDispatch, useDatabaseDispatch } from '../../data/store.jsx'
 import { CANVASS_ACTIVE } from './constants.js'
+import { appendDaySummary } from '../../data/canvassLog.js'
 import Modal from '../../components/Modal.jsx'
 import Button from '../../components/Button.jsx'
 
@@ -71,6 +72,7 @@ export default function EndDayModal({ onClose }) {
 
     // Persist accumulated daily totals
     saveTodayAccum({ date: todayStr, total, notVis, noAns, cbl, dmu, notInt, converted })
+    appendDaySummary({ date: todayStr, total, notVis, noAns, cbl, dmu, notInt, converted })
 
     // Batch DB updates
     if (dbUpdates.length) {
