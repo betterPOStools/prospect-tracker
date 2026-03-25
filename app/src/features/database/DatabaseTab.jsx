@@ -5,8 +5,9 @@ import StatBar    from '../../components/StatBar.jsx'
 import BrowsePanel      from './BrowsePanel.jsx'
 import ZonesPanel       from './ZonesPanel.jsx'
 import WeekPlannerPanel from './WeekPlannerPanel.jsx'
+import MapPanel        from './MapPanel.jsx'
 
-const SUB_TABS = ['Browse', 'Zones', 'Planner']
+const SUB_TABS = ['Browse', 'Zones', 'Planner', 'Map']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
@@ -53,6 +54,7 @@ export default function DatabaseTab() {
       {subTab === 'Browse'  && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
       {subTab === 'Zones'   && <ZonesPanel onBrowseZone={handleBrowseZone} />}
       {subTab === 'Planner' && <WeekPlannerPanel />}
+      {subTab === 'Map'     && <MapPanel />}
     </div>
   )
 }
