@@ -13,6 +13,7 @@
 - Browse: "Hide on hold" toggle (on by default) filters out cooldown records so they don't clutter zone browsing
 - Fix: Google Maps route links now start from "My Location" instead of the first stop — enables turn-by-turn navigation
 - Fix: Stops/day input no longer snaps to 1 while typing — parses on blur instead of every keystroke
+- "Fill Near Me" button in Queue — uses GPS to find closest zone and loads stops, spilling to next zones if needed
 
 ## v0.9.0
 - Follow-up date field on canvass stops and leads — set via date picker in edit mode
