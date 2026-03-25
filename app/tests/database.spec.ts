@@ -15,13 +15,13 @@ test.describe('ImportBar', () => {
     await page.getByRole('button', { name: 'Import' }).first().click()
   })
 
-  test('Import XLSX button/label is present', async ({ page }) => {
-    await expect(page.getByText(/Import Outscraper XLSX/).or(page.getByText(/Import XLSX/))).toBeVisible()
+  test('Import Data button/label is present', async ({ page }) => {
+    await expect(page.getByText('Import Outscraper Data')).toBeVisible()
   })
 
-  test('file input accepts .xlsx files', async ({ page }) => {
+  test('file input accepts .json and .xlsx files', async ({ page }) => {
     const fileInput = page.locator('input[type="file"]').first()
-    await expect(fileInput).toHaveAttribute('accept', /xlsx/)
+    await expect(fileInput).toHaveAttribute('accept', /json/)
   })
 })
 

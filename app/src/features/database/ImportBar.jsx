@@ -25,12 +25,20 @@ export default function ImportBar({ onImported }) {
     setMsg({ text: 'Reading file…', type: 'ok' })
 
     try {
-      const xlsxMod = await import('xlsx')
-      const XLSX = xlsxMod.default || xlsxMod
-      const buf  = await file.arrayBuffer()
-      const wb   = XLSX.read(buf, { type: 'array' })
-      const ws   = wb.Sheets[wb.SheetNames[0]]
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      let rows
+      if (file.name.endsWith('.json')) {
+        const text = await file.text()
+        const parsed = JSON.parse(text)
+        rows = Array.isArray(parsed) ? parsed : parsed.data || []
+      } else {
+        // XLSX/CSV fallback for legacy files
+        const xlsxMod = await import('xlsx')
+        const XLSX = xlsxMod.default || xlsxMod
+        const buf  = await file.arrayBuffer()
+        const wb   = XLSX.read(buf, { type: 'array' })
+        const ws   = wb.Sheets[wb.SheetNames[0]]
+        rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      }
 
       if (!rows.length) { setMsg({ text: 'No data found in file.', type: 'err' }); return }
 
@@ -49,11 +57,11 @@ export default function ImportBar({ onImported }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>Import Outscraper Data</div>
-          <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>Upload your Outscraper XLSX — scores, deduplicates, and clusters automatically</div>
+          <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '2px' }}>Upload Outscraper JSON (or legacy XLSX) — scores, deduplicates, and clusters automatically</div>
         </div>
         <label className={`${btnStyles.btn} ${btnStyles.primary}`} style={{ cursor: 'pointer', marginLeft: 'auto' }}>
-          Import XLSX
-          <input ref={inputRef} type="file" accept=".xlsx,.csv" onChange={handleFile} style={{ display: 'none' }} />
+          Import Data
+          <input ref={inputRef} type="file" accept=".json,.xlsx,.csv" onChange={handleFile} style={{ display: 'none' }} />
         </label>
       </div>
       {msg && (

@@ -255,7 +255,7 @@ function buildDownloadUrl(task) {
   if (!id || !task.tags) return null
   const year = id.slice(0, 4), month = id.slice(4, 6), day = id.slice(6, 8)
   const tagPart = task.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).join('_')
-  return `https://s3.us-east-005.backblazeb2.com/shared-data-files/results/${year}/${month}/${day}/Outscraper-${id}_${tagPart}.xlsx`
+  return `https://s3.us-east-005.backblazeb2.com/shared-data-files/results/${year}/${month}/${day}/Outscraper-${id}_${tagPart}.json`
 }
 
 function buildProxiedUrls(task) {
@@ -267,7 +267,7 @@ function buildProxiedUrls(task) {
   for (let offset = 0; offset <= 3; offset++) {
     const d = new Date(base); d.setDate(d.getDate() + offset)
     const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0')
-    urls.push(`/s3-proxy/shared-data-files/results/${y}/${m}/${dd}/Outscraper-${id}_${tagPart}.xlsx`)
+    urls.push(`/s3-proxy/shared-data-files/results/${y}/${m}/${dd}/Outscraper-${id}_${tagPart}.json`)
   }
   return urls
 }
@@ -319,7 +319,7 @@ const TaskCard = memo(function TaskCard({ task, doImport, doFetchAndImport, fetc
         {(isCompleted || isExpired) && buildDownloadUrl(task) && (
           <a href={buildDownloadUrl(task)} download
             style={{ fontSize: 13, padding: '4px 10px', borderRadius: 'var(--radius)', background: 'var(--bg3, var(--bg2))', border: '0.5px solid var(--border)', color: 'var(--text)', textDecoration: 'none', cursor: 'pointer' }}>
-            Download XLSX
+            Download JSON
           </a>
         )}
         {isFailed && <Button size="sm" onClick={() => os.retryTask(task.taskId)}>Retry</Button>}
@@ -365,13 +365,8 @@ function QueueView({ os }) {
         const r = await fetch(url)
         if (r.ok) { resp = r; break }
       }
-      if (!resp) throw new Error('XLSX not found on S3 (tried submission date + 3 days)')
-      const xlsxMod = await import('xlsx')
-      const XLSX = xlsxMod.default || xlsxMod
-      const buf = await resp.arrayBuffer()
-      const wb = XLSX.read(buf, { type: 'array' })
-      const ws = wb.Sheets[wb.SheetNames[0]]
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' })
+      if (!resp) throw new Error('JSON not found on S3 (tried submission date + 3 days)')
+      const rows = await resp.json()
       // Update task with fetched data
       os.setTasks(prev => prev.map(t => t.taskId === task.taskId
         ? { ...t, status: 'completed', resultData: rows, recordCount: rows.length }

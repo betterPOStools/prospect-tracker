@@ -108,7 +108,7 @@ export async function submitScrape(apiKey, title, queries, { useEnrichments = tr
         'business_status', 'working_hours_csv_compatible', 'menu_link',
         'place_id', 'google_id', 'chain_info.chain',
       ],
-      output_extension: 'xlsx',
+      output_extension: 'json',
     },
     tags: title.replace(/\s*[—-]\s*\d{4}-\d{2}-\d{2}.*$/, ''),
     enrichments: enrichmentList,
@@ -169,10 +169,9 @@ export async function pollTask(apiKey, requestId) {
   return await resp.json()
 }
 
-// ── Row processor — shared by XLSX import and API import ───────────────────────
-// Extracted verbatim from ImportBar.jsx to ensure identical dedup/scoring logic.
+// ── Row processor — shared by file import and API import ────────────────────────
 //
-// rows          — raw array from SheetJS or Outscraper API JSON
+// rows          — raw array from JSON file or Outscraper API response
 // area          — string label for this import batch
 // existingRecords — current db.dbRecords
 // blocklist     — current db.dbBlocklist
