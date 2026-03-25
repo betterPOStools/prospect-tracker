@@ -9,7 +9,7 @@ const DatabaseTab = lazy(() => import('./features/database/DatabaseTab.jsx'))
 const RouteTab    = lazy(() => import('./features/route/RouteTab.jsx'))
 const ExportTab   = lazy(() => import('./features/export/ExportTab.jsx'))
 
-const BUILD = '2026-03-24 22:00'
+const BUILD = '2026-03-25 01:00'
 
 const TABS = [
   { id: 'leads',   label: 'My Leads',   badge: 'leads' },
