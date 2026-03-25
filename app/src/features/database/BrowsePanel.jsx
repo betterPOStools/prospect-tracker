@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
-import { PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
+import { calcScore, calcPriority, PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
 import { parseWorkingHours } from '../../data/helpers.js'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Button from '../../components/Button.jsx'
@@ -40,6 +40,9 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const [selected,     setSelected]     = useState(new Set())
   const [assignDay,    setAssignDay]     = useState('')
   const [groupInput,   setGroupInput]   = useState('')
+  const [bulkPriority, setBulkPriority] = useState('')
+  const [bulkArea,     setBulkArea]     = useState('')
+  const [bulkZone,     setBulkZone]     = useState('')
 
   const areas  = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
   const zips   = useMemo(() => [...new Set(db.dbRecords.map(r => r.zi).filter(Boolean))].sort(), [db.dbRecords])
@@ -135,6 +138,36 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     flash(`Group cleared from ${ids.length} records.`, 'ok')
   }
 
+  function applyBulkPriority() {
+    if (!bulkPriority) { flash('Pick a priority first.', 'err'); return }
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    // Compute target score midpoint for the priority tier
+    const scoreMap = { Fire: 98, Hot: 85, Warm: 65, Cold: 45, Dead: 20 }
+    const sc = scoreMap[bulkPriority] || 50
+    dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { pr: bulkPriority, sc } })
+    setBulkPriority('')
+    clearSel()
+    flash(`${ids.length} records set to ${bulkPriority}.`, 'ok')
+  }
+
+  function applyBulkArea() {
+    if (!bulkArea) { flash('Pick an area first.', 'err'); return }
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { ar: bulkArea } })
+    setBulkArea('')
+    clearSel()
+    flash(`${ids.length} records moved to ${bulkArea}.`, 'ok')
+  }
+
+  function applyBulkZone() {
+    if (!bulkZone) { flash('Pick a zone first.', 'err'); return }
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { zo: bulkZone } })
+    setBulkZone('')
+    clearSel()
+    flash(`${ids.length} records moved to zone ${bulkZone}.`, 'ok')
+  }
+
   if (!db.dbRecords.length) {
     return <div style={{ textAlign: 'center', padding: '36px', color: 'var(--text2)', fontSize: '13px' }}>No records yet — import an Outscraper XLSX to get started.</div>
   }
@@ -197,6 +230,27 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
           {groups.length > 0 && <Button size="sm" onClick={clearGroup}>Clear Group</Button>}
         </div>
       </div>
+
+      {selected.size > 0 && (
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap', alignItems: 'center', padding: '8px 10px', background: 'var(--bg2)', borderRadius: 'var(--radius)', border: '0.5px solid var(--border)' }}>
+          <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text2)', marginRight: '4px' }}>Bulk edit:</span>
+          <select value={bulkPriority} onChange={e => setBulkPriority(e.target.value)} style={{ height: '28px', fontSize: '12px' }}>
+            <option value="">Priority…</option>
+            {PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_EMOJI[p]} {p}</option>)}
+          </select>
+          <Button size="sm" onClick={applyBulkPriority}>Set</Button>
+          <select value={bulkArea} onChange={e => setBulkArea(e.target.value)} style={{ height: '28px', fontSize: '12px' }}>
+            <option value="">Area…</option>
+            {areas.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <Button size="sm" onClick={applyBulkArea}>Set</Button>
+          <select value={bulkZone} onChange={e => setBulkZone(e.target.value)} style={{ height: '28px', fontSize: '12px' }}>
+            <option value="">Zone…</option>
+            {db.dbClusters.map(c => <option key={c.id} value={c.id}>{c.nm}</option>)}
+          </select>
+          <Button size="sm" onClick={applyBulkZone}>Set</Button>
+        </div>
+      )}
 
       {msg && <div style={{ fontSize: '12px', marginBottom: '8px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>{msg.text}</div>}
 
