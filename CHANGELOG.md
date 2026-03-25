@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.0
+- Call/SMS activity logging — tap Call or Text on canvass/lead cards to log + dial/message
+- Activity timeline on lead cards with collapsible history
+- Structured `type` field on notesLog entries (call/sms/note) for future Copper CRM sync
+- Visual indicators: 📞 for calls, 💬 for texts in activity timelines
+- Call/SMS entries auto-update lastContact timestamp
+- Browse: bulk status change in batch edit bar (fix stuck "in_canvass" records)
+- Fix: DemoteModal now resets linked DB record status to "in_canvass" on demotion
+
 ## v0.9.0
 - Follow-up date field on canvass stops and leads — set via date picker in edit mode
 - Last contacted timestamp — auto-set on status change and note additions, shown as relative time on cards

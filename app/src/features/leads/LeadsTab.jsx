@@ -12,6 +12,7 @@ import DemoteModal from './DemoteModal.jsx'
 const EMPTY_FORM = {
   name: '', status: 'Open', addr: '', phone: '', email: '',
   current: '', owner: '', website: '', menu: '', notes: '', followUp: '',
+  activityLog: [],
 }
 
 export default function LeadsTab() {

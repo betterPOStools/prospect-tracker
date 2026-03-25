@@ -238,7 +238,7 @@ test.describe('LeadCard view mode', () => {
 
   test('Call button visible when phone present', async ({ page }) => {
     const card = page.locator('[class*="card"]').filter({ hasText: 'Beachfront Bistro' })
-    await expect(card.getByRole('link', { name: 'Call' })).toBeVisible()
+    await expect(card.getByRole('button', { name: 'Call' })).toBeVisible()
   })
 
   test('Navigate link visible when address present', async ({ page }) => {

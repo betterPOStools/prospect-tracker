@@ -264,8 +264,12 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
           {visibleNotes.map((note, i) => {
             const realIdx = showAllNotes ? i : notesLog.length - 3 + i
             const isEditing = editingNoteIdx === realIdx
+            const nType = note.type || 'note'
+            const isActivity = nType === 'call' || nType === 'sms'
+            const actColor = nType === 'call' ? 'var(--blue-text)' : nType === 'sms' ? 'var(--purple-text)' : note.system ? 'var(--text3)' : 'var(--text2)'
+            const actIcon = nType === 'call' ? '📞 ' : nType === 'sms' ? '💬 ' : ''
             return (
-              <div key={realIdx} style={{ fontSize: '12px', color: note.system ? 'var(--text3)' : 'var(--text2)', marginBottom: '3px', fontStyle: note.system ? 'italic' : 'normal' }}>
+              <div key={realIdx} style={{ fontSize: '12px', color: actColor, marginBottom: '3px', fontStyle: note.system ? 'italic' : 'normal' }}>
                 {isEditing ? (
                   <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                     <input type="text" value={editNoteText} onChange={e => setEditNoteText(e.target.value)}
@@ -274,9 +278,9 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
                     <Button size="sm" onClick={saveEditNote} style={{ fontSize: '10px', padding: '2px 6px' }}>OK</Button>
                   </div>
                 ) : (
-                  <span onClick={() => !isArchived && startEditNote(realIdx)} style={{ cursor: isArchived ? 'default' : 'pointer' }}>
+                  <span onClick={() => !isArchived && !isActivity && startEditNote(realIdx)} style={{ cursor: isArchived || isActivity ? 'default' : 'pointer' }}>
                     <span style={{ color: 'var(--text3)', fontSize: '10px' }}>{fmtTs(note.ts)}</span>
-                    {' '}{note.text}
+                    {' '}{actIcon}{note.text}
                   </span>
                 )}
               </div>
@@ -325,7 +329,8 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
       )}
 
       <div className={styles.actions}>
-        {c.phone && !isArchived && <a href={`tel:${c.phone}`} className={`${btnStyles.btn} ${btnStyles.sm}`}>Call</a>}
+        {c.phone && !isArchived && <Button size="sm" onClick={() => { canvassDispatch({ type: 'APPEND_NOTE', id: c.id, text: 'Called ' + c.phone, actType: 'call' }); window.location.href = 'tel:' + c.phone }}>Call</Button>}
+        {c.phone && !isArchived && <Button size="sm" onClick={() => { canvassDispatch({ type: 'APPEND_NOTE', id: c.id, text: 'Texted ' + c.phone, actType: 'sms' }); window.location.href = 'sms:' + c.phone }}>Text</Button>}
         {c.addr  && <a href={navUrl(c.addr)} target="_blank" rel="noreferrer" className={`${btnStyles.btn} ${btnStyles.sm}`}>Navigate ↗</a>}
         {!isArchived && <Button size="sm" onClick={startEdit}>Edit</Button>}
         {!isArchived && c.status !== 'Dropped folder' && (

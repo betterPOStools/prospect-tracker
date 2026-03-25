@@ -9,13 +9,21 @@ import btnStyles from '../../components/Button.module.css'
 
 const STATUSES = ['Open', 'Won', 'Lost', 'Abandoned']
 
+function fmtTs(ts) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 export default function LeadCard({ prospect, onDemote }) {
   const dispatch = useProspectsDispatch()
   const canvass = useCanvass()
   const canvassDispatch = useCanvassDispatch()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
+  const [showAllActivity, setShowAllActivity] = useState(false)
   const p = prospect
+  const activityLog = p.activityLog || []
 
   function startEdit() {
     setForm({ ...p })
@@ -38,6 +46,11 @@ export default function LeadCard({ prospect, onDemote }) {
 
   function handleDelete() {
     if (confirm(`Remove ${p.name}?`)) dispatch({ type: 'DELETE', id: p.id })
+  }
+
+  function logActivity(type, text) {
+    const now = new Date().toISOString()
+    dispatch({ type: 'UPDATE', prospect: { ...p, activityLog: [...activityLog, { text, ts: now, type }], lastContact: now } })
   }
 
   const todayISO = new Date().toISOString().slice(0, 10)
@@ -140,8 +153,36 @@ export default function LeadCard({ prospect, onDemote }) {
         </div>
       )}
 
+      {activityLog.length > 0 && (
+        <div style={{ marginTop: '8px', borderTop: '0.5px solid var(--border)', paddingTop: '6px' }}>
+          {activityLog.length > 3 && !showAllActivity && (
+            <button onClick={() => setShowAllActivity(true)}
+              style={{ background: 'none', border: 'none', color: 'var(--blue-text)', fontSize: '11px', cursor: 'pointer', padding: 0, marginBottom: '4px' }}>
+              View all ({activityLog.length}) activities
+            </button>
+          )}
+          {showAllActivity && activityLog.length > 3 && (
+            <button onClick={() => setShowAllActivity(false)}
+              style={{ background: 'none', border: 'none', color: 'var(--blue-text)', fontSize: '11px', cursor: 'pointer', padding: 0, marginBottom: '4px' }}>
+              Show recent
+            </button>
+          )}
+          {(showAllActivity ? activityLog : activityLog.slice(-3)).map((a, i) => {
+            const icon = a.type === 'call' ? '📞 ' : a.type === 'sms' ? '💬 ' : ''
+            const color = a.type === 'call' ? 'var(--blue-text)' : a.type === 'sms' ? 'var(--purple-text)' : 'var(--text2)'
+            return (
+              <div key={i} style={{ fontSize: '12px', color, marginBottom: '3px' }}>
+                <span style={{ color: 'var(--text3)', fontSize: '10px' }}>{fmtTs(a.ts)}</span>
+                {' '}{icon}{a.text}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       <div className={styles.actions}>
-        {p.phone && <a href={`tel:${p.phone}`} className={`${btnStyles.btn} ${btnStyles.sm}`}>Call</a>}
+        {p.phone && <Button size="sm" onClick={() => { logActivity('call', 'Called ' + p.phone); window.location.href = 'tel:' + p.phone }}>Call</Button>}
+        {p.phone && <Button size="sm" onClick={() => { logActivity('sms', 'Texted ' + p.phone); window.location.href = 'sms:' + p.phone }}>Text</Button>}
         {p.addr  && (
           <a href={navUrl(p.addr)} target="_blank" rel="noreferrer" className={`${btnStyles.btn} ${btnStyles.sm}`}>
             Navigate ↗

@@ -44,6 +44,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const [bulkPriority, setBulkPriority] = useState('')
   const [bulkArea,     setBulkArea]     = useState('')
   const [bulkZone,     setBulkZone]     = useState('')
+  const [bulkStatus,   setBulkStatus]   = useState('')
 
   const areas  = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
   const areaRecords = useMemo(() => filterArea === 'all' ? db.dbRecords : db.dbRecords.filter(r => r.ar === filterArea), [db.dbRecords, filterArea])
@@ -171,6 +172,15 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     flash(`${ids.length} records moved to zone ${bulkZone}.`, 'ok')
   }
 
+  function applyBulkStatus() {
+    if (!bulkStatus) { flash('Pick a status first.', 'err'); return }
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { st: bulkStatus } })
+    setBulkStatus('')
+    clearSel()
+    flash(`${ids.length} records set to ${badgeLabel[bulkStatus]}.`, 'ok')
+  }
+
   function reassignAreas() {
     const byArea = {}
     let skipped = 0
@@ -289,6 +299,15 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
             {areas.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
           <Button size="sm" onClick={applyBulkArea}>Set</Button>
+          <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)} style={{ height: '28px', fontSize: '12px' }}>
+            <option value="">Status…</option>
+            <option value="unworked">Unworked</option>
+            <option value="in_canvass">In canvass</option>
+            <option value="canvassed">Canvassed</option>
+            <option value="converted">Converted</option>
+            <option value="lead">Lead</option>
+          </select>
+          <Button size="sm" onClick={applyBulkStatus}>Set</Button>
           <select value={bulkZone} onChange={e => setBulkZone(e.target.value)} style={{ height: '28px', fontSize: '12px' }}>
             <option value="">Zone…</option>
             {db.dbClusters.map(c => <option key={c.id} value={c.id}>{c.nm}</option>)}

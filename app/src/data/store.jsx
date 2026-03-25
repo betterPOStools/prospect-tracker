@@ -74,7 +74,7 @@ function canvassReducer(state, action) {
       next = state.map(s => s.id === action.id ? {
         ...s,
         lastContact: (action.system ? s.lastContact : new Date().toISOString()) || s.lastContact,
-        notesLog: [...(s.notesLog || []), { text: action.text, ts: new Date().toISOString(), system: action.system || false }],
+        notesLog: [...(s.notesLog || []), { text: action.text, ts: new Date().toISOString(), system: action.system || false, type: action.actType || 'note' }],
       } : s)
       break
     case 'UPDATE_NOTE':

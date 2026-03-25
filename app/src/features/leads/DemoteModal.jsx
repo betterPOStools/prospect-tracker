@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useProspectsDispatch, useCanvassDispatch } from '../../data/store.jsx'
+import { useProspectsDispatch, useCanvassDispatch, useDatabaseDispatch } from '../../data/store.jsx'
 import { uid } from '../../data/helpers.js'
 import Modal from '../../components/Modal.jsx'
 import Button from '../../components/Button.jsx'
@@ -15,6 +15,7 @@ const STATUSES = [
 export default function DemoteModal({ prospect, onClose }) {
   const prospectsDispatch = useProspectsDispatch()
   const canvassDispatch   = useCanvassDispatch()
+  const dbDispatch        = useDatabaseDispatch()
   const [status, setStatus] = useState('Come back later')
   const [notes,  setNotes]  = useState('')
 
@@ -45,6 +46,7 @@ export default function DemoteModal({ prospect, onClose }) {
     }
     canvassDispatch({ type: 'ADD', stop })
     prospectsDispatch({ type: 'DELETE', id: p.id })
+    if (p.fromDb) dbDispatch({ type: 'UPDATE_RECORD_STATUS', id: p.fromDb, status: 'in_canvass' })
     onClose()
   }
 

@@ -10,7 +10,7 @@ const DatabaseTab = lazy(() => import('./features/database/DatabaseTab.jsx'))
 const RouteTab    = lazy(() => import('./features/route/RouteTab.jsx'))
 const ExportTab   = lazy(() => import('./features/export/ExportTab.jsx'))
 
-const BUILD = 'v0.9.0'
+const BUILD = 'v0.10.0'
 
 const TABS = [
   { id: 'leads',   label: 'My Leads',   badge: 'leads' },
