@@ -237,6 +237,8 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
       ar:  area,
       zo:  '',
       da:  '',
+      grp: '',
+      df:  0,
       st:  'unworked',
     }
 
@@ -246,10 +248,12 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
 
     const existing = existingById[id] || existingByName[(name + '|' + zip).toLowerCase()]
     if (existing) {
-      fresh.st = existing.st
-      fresh.zo = existing.zo
-      fresh.da = existing.da
-      fresh.ar = existing.ar || area
+      fresh.st  = existing.st
+      fresh.zo  = existing.zo
+      fresh.da  = existing.da
+      fresh.grp = existing.grp || ''
+      fresh.df  = existing.df  || 0
+      fresh.ar  = existing.ar || area
       updated++
     } else {
       added++

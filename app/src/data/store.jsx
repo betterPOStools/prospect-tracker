@@ -65,7 +65,24 @@ function canvassReducer(state, action) {
       next = state.map(s => s.id === action.stop.id ? action.stop : s)
       break
     case 'UPDATE_STATUS':
-      next = state.map(s => s.id === action.id ? { ...s, status: action.status } : s)
+      next = state.map(s => s.id === action.id ? {
+        ...s, status: action.status,
+        history: [...(s.history || []), { status: action.status, ts: new Date().toISOString() }],
+      } : s)
+      break
+    case 'APPEND_NOTE':
+      next = state.map(s => s.id === action.id ? {
+        ...s,
+        notesLog: [...(s.notesLog || []), { text: action.text, ts: new Date().toISOString(), system: action.system || false }],
+      } : s)
+      break
+    case 'UPDATE_NOTE':
+      next = state.map(s => {
+        if (s.id !== action.id) return s
+        const log = [...(s.notesLog || [])]
+        if (action.noteIdx >= 0 && action.noteIdx < log.length) log[action.noteIdx] = { ...log[action.noteIdx], text: action.text }
+        return { ...s, notesLog: log }
+      })
       break
     case 'DELETE':
       next = state.filter(s => s.id !== action.id)
@@ -164,6 +181,31 @@ function databaseReducer(state, action) {
       next = { ...state, dbRecords: updatedRecords }
       break
     }
+    case 'INCREMENT_DROPPED': {
+      next = { ...state, dbRecords: state.dbRecords.map(r =>
+        r.id === action.id ? { ...r, df: (r.df || 0) + 1 } : r
+      ) }
+      break
+    }
+    case 'SET_GROUP': {
+      next = { ...state, dbRecords: state.dbRecords.map(r =>
+        action.ids.includes(r.id) ? { ...r, grp: action.group } : r
+      ) }
+      break
+    }
+    case 'DELETE_RECORD':
+      next = { ...state, dbRecords: state.dbRecords.filter(r => r.id !== action.id) }
+      break
+    case 'ADD_TO_BLOCKLIST': {
+      const list = state.dbBlocklist || []
+      const name = (action.name || '').toLowerCase().trim()
+      if (name && !list.includes(name)) {
+        next = { ...state, dbBlocklist: [...list, name] }
+      } else {
+        return state
+      }
+      break
+    }
     case 'RENAME_ZONE': {
       const updated = state.dbRecords.map(r =>
         r.zo === action.oldName ? { ...r, zo: action.newName } : r
@@ -231,6 +273,12 @@ function mergeArr(local, incoming) {
 export function DataProvider({ children }) {
   const initial = loadAll()
   if (initial.dbRecords.length) initial.dbRecords = rescoreAll(initial.dbRecords)
+  // Migrate canvass stops: add history + notesLog if missing
+  initial.canvassStops = initial.canvassStops.map(s => ({
+    ...s,
+    history: s.history || [],
+    notesLog: s.notesLog || (s.notes ? [{ text: s.notes, ts: s.added || new Date().toISOString() }] : []),
+  }))
 
   const [prospects, prospectsDispatch] = useReducer(prospectsReducer, initial.prospects)
   const [canvassStops, canvassDispatch] = useReducer(canvassReducer, initial.canvassStops)

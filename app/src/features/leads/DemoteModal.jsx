@@ -21,19 +21,27 @@ export default function DemoteModal({ prospect, onClose }) {
   function confirm() {
     const p = prospect
     const reason = notes.trim()
+    const now = new Date().toISOString()
+    const noteEntries = []
+    if (p.owner) noteEntries.push({ text: 'Contact: ' + p.owner, ts: now, system: true })
+    const demoteText = (reason ? reason + ' — ' : '') + 'Previously a lead' + (p.notes ? ' — ' + p.notes : '')
+    noteEntries.push({ text: demoteText, ts: now, system: true })
     const stop = {
-      id:      p.fromDb ? 'canvass_' + p.fromDb : uid(),
-      name:    p.name,
-      addr:    p.addr    || '',
-      phone:   p.phone   || '',
-      email:   p.email   || '',
-      website: p.website || '',
-      menu:    p.menu    || '',
-      notes:   (reason ? reason + ' — ' : '') + ('Previously a lead' + (p.notes ? ' — ' + p.notes : '')),
+      id:       p.fromDb ? 'canvass_' + p.fromDb : uid(),
+      name:     p.name,
+      addr:     p.addr    || '',
+      phone:    p.phone   || '',
+      email:    p.email   || '',
+      website:  p.website || '',
+      menu:     p.menu    || '',
+      notes:    '',
       status,
+      date:     new Date().toLocaleDateString(),
+      added:    now,
       fromLead: p.id,
       fromDb:   p.fromDb || null,
-      addedDate: new Date().toLocaleDateString(),
+      history:  [],
+      notesLog: noteEntries,
     }
     canvassDispatch({ type: 'ADD', stop })
     prospectsDispatch({ type: 'DELETE', id: p.id })

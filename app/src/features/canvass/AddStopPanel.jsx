@@ -19,19 +19,23 @@ export default function AddStopPanel({ onAdded }) {
 
   function addStop() {
     if (!form.name.trim()) { flash('Business name is required.', 'err'); return }
+    const now = new Date().toISOString()
+    const noteText = form.notes.trim()
     const stop = {
       id:        uid(),
       name:      form.name.trim(),
       status:    form.status,
       addr:      form.addr.trim(),
       phone:     form.phone.trim(),
-      notes:     form.notes.trim(),
+      notes:     '',
       openTime:  form.openTime,
       closeTime: form.closeTime,
       website:   form.website.trim(),
       menu:      form.menu.trim(),
       date:      new Date().toLocaleDateString(),
-      added:     new Date().toISOString(),
+      added:     now,
+      history:   [],
+      notesLog:  noteText ? [{ text: noteText, ts: now, system: false }] : [],
     }
     dispatch({ type: 'ADD', stop })
     setForm(EMPTY)
@@ -77,7 +81,7 @@ export default function AddStopPanel({ onAdded }) {
         </div>
       </div>
       <div className="row" style={{ marginTop: '4px' }}>
-        <Button variant="primary" onClick={addStop}>+ Add Stop</Button>
+        <Button variant="primary" data-testid="submit-stop" onClick={addStop}>+ Add Stop</Button>
         <Button onClick={() => setForm(EMPTY)}>Clear</Button>
       </div>
       {msg && (

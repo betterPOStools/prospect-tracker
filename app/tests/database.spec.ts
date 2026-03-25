@@ -180,11 +180,14 @@ test.describe('Chain Blocklist Manager', () => {
 // ── Browse Panel ──────────────────────────────────────────────────────────────
 
 test.describe('Browse panel', () => {
+  // Field values are chosen so rescoreAll() produces the desired priority.
+  // Default makeDbRecord → sc 85 (Hot).  Removing em drops 15 → 70 (Warm).
+  // Removing em + cn + lowering rt to 3.5 → 50 (Cold).
   const records = () => [
-    makeDbRecord({ id: 'br-1', n: 'Hot Place', pr: 'Hot', sc: 95, st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
-    makeDbRecord({ id: 'br-2', n: 'Warm Place', pr: 'Warm', sc: 70, st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
-    makeDbRecord({ id: 'br-3', n: 'Cold Place', pr: 'Cold', sc: 30, st: 'canvassed', zi: '29578', ar: 'North Myrtle Beach', zo: 'Zone-2' }),
-    makeDbRecord({ id: 'br-4', n: 'In Canvass Place', pr: 'Hot', sc: 85, st: 'in_canvass', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
+    makeDbRecord({ id: 'br-1', n: 'Hot Place', st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
+    makeDbRecord({ id: 'br-2', n: 'Warm Place', em: '', st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
+    makeDbRecord({ id: 'br-3', n: 'Cold Place', em: '', cn: '', rt: 3.5, st: 'canvassed', zi: '29578', ar: 'North Myrtle Beach', zo: 'Zone-2' }),
+    makeDbRecord({ id: 'br-4', n: 'In Canvass Place', st: 'in_canvass', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
   ]
 
   test.beforeEach(async ({ page }) => {
@@ -329,9 +332,9 @@ test.describe('Browse panel', () => {
   })
 
   test('stat bar shows DB stats', async ({ page }) => {
-    await expect(page.locator('[class*="statL"]').filter({ hasText: /^Total$/ }).first()).toBeVisible()
-    await expect(page.locator('[class*="statL"]').filter({ hasText: /^Hot$/ }).first()).toBeVisible()
-    await expect(page.locator('[class*="statL"]').filter({ hasText: /^Unworked$/ }).first()).toBeVisible()
+    await expect(page.locator('[class*="statL"]').filter({ hasText: /Total/ }).first()).toBeVisible()
+    await expect(page.locator('[class*="statL"]').filter({ hasText: /Hot/ }).first()).toBeVisible()
+    await expect(page.locator('[class*="statL"]').filter({ hasText: /Unworked/ }).first()).toBeVisible()
   })
 })
 

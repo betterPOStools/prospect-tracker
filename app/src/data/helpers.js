@@ -2,6 +2,16 @@ export function uid() {
   return Date.now() + '_' + Math.random().toString(36).slice(2, 6)
 }
 
+export function getRouteProvider() {
+  try { return JSON.parse(localStorage.getItem('vs_settings') || '{}').routeProvider || 'google' } catch { return 'google' }
+}
+
+export function navUrl(addr) {
+  const p = getRouteProvider()
+  if (p === 'waze') return `https://waze.com/ul?q=${encodeURIComponent(addr)}&navigate=yes`
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
+}
+
 export const POS_OPTIONS = [
   'Toast',
   'Square for Restaurants',
@@ -35,6 +45,30 @@ function parseTime(t) {
   if (mer === 'pm' && h < 12) h += 12
   if (mer === 'am' && h === 12) h = 0
   return h * 60 + min
+}
+
+// Parse Outscraper working_hours_csv_compatible → { openTime, closeTime } for today
+// Format: "Monday: 11:00 AM - 10:00 PM | Tuesday: 9:00 AM - 11:00 PM | ..."
+export function parseWorkingHours(hrCsv) {
+  if (!hrCsv) return { openTime: '', closeTime: '' }
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()]
+  const parts = hrCsv.split('|').map(s => s.trim())
+  const today = parts.find(p => p.startsWith(dayName + ':'))
+  if (!today) return { openTime: '', closeTime: '' }
+  const range = today.slice(today.indexOf(':') + 1).trim()
+  if (/closed/i.test(range)) return { openTime: '', closeTime: '' }
+  const m = range.match(/^([\d:]+\s*[APap][Mm]?)\s*[-–]\s*([\d:]+\s*[APap][Mm]?)$/)
+  if (!m) return { openTime: '', closeTime: '' }
+  const to24 = (s) => {
+    const p = s.trim().match(/^(\d{1,2}):(\d{2})\s*([APap][Mm]?)$/i)
+    if (!p) return ''
+    let h = parseInt(p[1]), min = p[2]
+    const mer = (p[3] || '').toUpperCase()
+    if (mer === 'PM' && h < 12) h += 12
+    if (mer === 'AM' && h === 12) h = 0
+    return String(h).padStart(2, '0') + ':' + min
+  }
+  return { openTime: to24(m[1]), closeTime: to24(m[2]) }
 }
 
 function isOpenNow(openTime, closeTime) {

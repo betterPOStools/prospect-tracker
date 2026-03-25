@@ -1,8 +1,51 @@
-import { useState, useMemo } from 'react'
-import { useCanvass } from '../../data/store.jsx'
-import { hoursChip } from '../../data/helpers.js'
+import { useState, useMemo, useCallback } from 'react'
+import { useCanvass, useCanvassDispatch } from '../../data/store.jsx'
+import { hoursChip, navUrl, getRouteProvider } from '../../data/helpers.js'
+import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
+
+// ── Geocoding ────────────────────────────────────────────────────────────────
+const _geoCache = new Map()
+
+async function geocodeAddr(addr) {
+  if (_geoCache.has(addr)) return _geoCache.get(addr)
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`,
+      { headers: { 'Accept-Language': 'en', 'User-Agent': 'ValueSystems-ProspectTracker/1.0' } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data[0]) return null
+    const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
+    _geoCache.set(addr, coords)
+    return coords
+  } catch { return null }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+// ── RouteXL helpers ──────────────────────────────────────────────────────────
+const RXL_USER_KEY = 'vs_rxl_user'
+const RXL_PASS_KEY = 'vs_rxl_pass'
+
+async function callRouteXL(user, pass, locations) {
+  const body = 'locations=' + encodeURIComponent(JSON.stringify(locations))
+  const res = await fetch('https://api.routexl.com/tour/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + btoa(user + ':' + pass),
+    },
+    body,
+  })
+  if (res.status === 401) throw new Error('Invalid RouteXL credentials.')
+  if (res.status === 403) throw new Error('Too many stops for your RouteXL plan (max 20 free).')
+  if (res.status === 429) throw new Error('RouteXL is busy — wait a moment and try again.')
+  if (!res.ok) throw new Error('RouteXL error: ' + res.status)
+  return res.json()
+}
 
 const STATUS_COLOR = {
   'Not visited yet':          'var(--text3)',
@@ -17,8 +60,13 @@ function mapsUrl(addr) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
 }
 
-function routeUrl(stops) {
+function routeUrl(stops, useCoords) {
   if (!stops.length) return ''
+  if (useCoords) {
+    const pts = stops.filter(s => s.lat && s.lng).map(s => `${s.lat},${s.lng}`)
+    if (pts.length < 2) return routeUrl(stops, false) // fallback to addresses
+    return `https://www.google.com/maps/dir/${pts.join('/')}`
+  }
   const addrs = stops.map(s => s.addr).filter(Boolean)
   if (addrs.length === 1) return mapsUrl(addrs[0])
   const origin = encodeURIComponent(addrs[0])
@@ -41,11 +89,13 @@ const stopName = { fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', 
 const stopAddr = { fontSize: '11px', color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
 const statusBox = { textAlign: 'right', flexShrink: 0 }
 const arrowCol = { display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }
-const mapsLink = { fontSize: '11px', color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }
+const navLinkStyle = { fontSize: '11px', color: 'var(--accent)', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }
 const footer = { fontSize: '12px', color: 'var(--text3)', marginTop: '8px', textAlign: 'right' }
 
 export default function RouteTab() {
   const canvass = useCanvass()
+  const canvassDispatch = useCanvassDispatch()
+  const { msg, flash } = useFlashMessage()
 
   const today = useMemo(() => new Date().toLocaleDateString(), [])
 
@@ -58,6 +108,30 @@ export default function RouteTab() {
   [canvass, today])
 
   const [order, setOrder] = useState(null)  // null = default order
+  const [useCoords, setUseCoords] = useState(true) // true = lat/lng, false = addresses
+
+  // RouteXL state
+  const [showRxlSetup, setShowRxlSetup] = useState(false)
+  const [rxlUser, setRxlUser] = useState(() => localStorage.getItem(RXL_USER_KEY) || '')
+  const [rxlPass, setRxlPass] = useState(() => localStorage.getItem(RXL_PASS_KEY) || '')
+  const [optimizing, setOptimizing] = useState(false)
+  const [optStatus, setOptStatus] = useState('')
+  const hasRxlCreds = Boolean(rxlUser && rxlPass)
+
+  function saveRxlCreds() {
+    localStorage.setItem(RXL_USER_KEY, rxlUser)
+    localStorage.setItem(RXL_PASS_KEY, rxlPass)
+    flash('RouteXL credentials saved.', 'ok')
+    setShowRxlSetup(false)
+  }
+
+  function clearRxlCreds() {
+    localStorage.removeItem(RXL_USER_KEY)
+    localStorage.removeItem(RXL_PASS_KEY)
+    setRxlUser('')
+    setRxlPass('')
+    flash('RouteXL credentials removed.', 'ok')
+  }
 
   const stops = useMemo(() => {
     if (!order) return [...todayStops].sort((a, b) => (b.score || 0) - (a.score || 0))
@@ -93,6 +167,78 @@ export default function RouteTab() {
 
   function resetOrder() { setOrder(null) }
 
+  function copyAddresses() {
+    const addrs = stops.map((s, i) => `${i + 1}. ${s.name} — ${s.addr || 'no address'}`).join('\n')
+    navigator.clipboard.writeText(addrs).then(
+      () => flash('Addresses copied — paste into RouteXL.com', 'ok'),
+      () => flash('Copy failed.', 'err')
+    )
+  }
+
+  const optimizeRoute = useCallback(async () => {
+    const withAddr = stops.filter(s => s.addr)
+    if (withAddr.length < 2) { flash('Need at least 2 stops with addresses.', 'err'); return }
+    if (!hasRxlCreds) { setShowRxlSetup(true); return }
+
+    setOptimizing(true)
+    try {
+      // Step 1: Geocode stops that don't have lat/lng yet
+      const geocoded = []  // { stop, lat, lng }
+      const skipped = []
+      for (let i = 0; i < withAddr.length; i++) {
+        const s = withAddr[i]
+        if (s.lat && s.lng) {
+          geocoded.push({ stop: s, lat: s.lat, lng: s.lng })
+          continue
+        }
+        setOptStatus(`Geocoding ${i + 1}/${withAddr.length}: ${s.name}`)
+        const coords = await geocodeAddr(s.addr)
+        if (!coords) { skipped.push(s); continue }
+        // Persist lat/lng on the stop
+        canvassDispatch({ type: 'UPDATE', stop: { ...s, lat: coords.lat, lng: coords.lng } })
+        geocoded.push({ stop: s, lat: coords.lat, lng: coords.lng })
+        if (i < withAddr.length - 1) await sleep(1100) // Nominatim: 1 req/sec
+      }
+
+      if (geocoded.length < 2) {
+        flash(`Need at least 2 geocoded stops. ${skipped.length} failed — try editing their addresses.`, 'err')
+        setOptimizing(false); setOptStatus(''); return
+      }
+
+      // Step 2: Send to RouteXL — use stop ID as address field so we can match back
+      setOptStatus(`Optimizing ${geocoded.length} stops…`)
+      const locations = geocoded.map(g => ({
+        address: g.stop.id,
+        lat: String(g.lat),
+        lng: String(g.lng),
+      }))
+
+      const result = await callRouteXL(rxlUser, rxlPass, locations)
+      if (!result.route) { flash('RouteXL returned no route.', 'err'); setOptimizing(false); setOptStatus(''); return }
+
+      // Step 3: Map optimized order back to stop IDs (RouteXL echoes our ID in `name`)
+      const optimizedIds = Object.keys(result.route)
+        .sort((a, b) => Number(a) - Number(b))
+        .map(k => result.route[k].name)
+
+      // Append skipped + no-address stops at end
+      const optimizedSet = new Set(optimizedIds)
+      const remaining = stops.filter(s => !optimizedSet.has(s.id)).map(s => s.id)
+      setOrder([...optimizedIds, ...remaining])
+
+      const last = result.route[String(Object.keys(result.route).length - 1)]
+      const distKm = last?.distance ? Math.round(last.distance) : null
+      const timeMin = last?.arrival ? Math.round(last.arrival) : null
+      const details = [distKm && `${distKm} km`, timeMin && `${timeMin} min`].filter(Boolean).join(', ')
+      const skipMsg = skipped.length ? ` (${skipped.length} couldn't geocode — at end)` : ''
+      flash(`Route optimized — ${optimizedIds.length} stops${details ? ', ' + details + ' total' : ''}${skipMsg}.`, 'ok')
+    } catch (e) {
+      flash(e.message || 'RouteXL optimization failed.', 'err')
+    }
+    setOptimizing(false)
+    setOptStatus('')
+  }, [stops, hasRxlCreds, rxlUser, rxlPass, canvassDispatch, flash])
+
   if (!canvass.length) {
     return <EmptyState>No canvass stops yet — load stops from the Database or add them manually in the Canvass tab.</EmptyState>
   }
@@ -101,7 +247,8 @@ export default function RouteTab() {
     return <EmptyState>No stops for today's run. Stops added to Today's Canvass will appear here.</EmptyState>
   }
 
-  const url = routeUrl(stops)
+  const url = routeUrl(stops, useCoords)
+  const hasCoords = stops.some(s => s.lat && s.lng)
 
   return (
     <div>
@@ -111,18 +258,59 @@ export default function RouteTab() {
           <div>
             <div style={headerTitle}>Today's Route</div>
             <div style={headerSub}>
-              {stops.length} stop{stops.length !== 1 ? 's' : ''} · Drag to reorder · Opens in Google Maps
+              {stops.length} stop{stops.length !== 1 ? 's' : ''} · Reorder with arrows · Navigate with Maps or Waze
             </div>
           </div>
           <div style={headerActions}>
             <Button size="sm" onClick={resetOrder}>Reset order</Button>
+            <Button size="sm" onClick={copyAddresses}>Copy Addresses</Button>
+            <Button size="sm" variant="primary" onClick={optimizeRoute} disabled={optimizing}>
+              {optimizing ? 'Optimizing…' : 'Optimize Route'}
+            </Button>
             {url && (
               <a href={url} target="_blank" rel="noreferrer" style={routeLink}>
-                Open Full Route ↗
+                Google Maps Route ↗
               </a>
             )}
           </div>
         </div>
+        {optStatus && (
+          <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '8px' }}>{optStatus}</div>
+        )}
+      </div>
+
+      {/* RouteXL credentials */}
+      {showRxlSetup && (
+        <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)', marginBottom: '6px' }}>
+            RouteXL API Setup
+            <span style={{ fontWeight: 400, fontSize: '12px', color: 'var(--text2)' }}> — optimizes stop order for shortest route</span>
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>
+            Sign up at <a href="https://www.routexl.com/register" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>routexl.com/register</a>, then enter your username and password.
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <input type="text" value={rxlUser} placeholder="Username" style={{ width: '140px', fontSize: '12px' }}
+              onChange={e => setRxlUser(e.target.value)} />
+            <input type="password" value={rxlPass} placeholder="Password" style={{ width: '140px', fontSize: '12px' }}
+              onChange={e => setRxlPass(e.target.value)} />
+            <Button size="sm" variant="primary" onClick={saveRxlCreds} disabled={!rxlUser || !rxlPass}>Save</Button>
+            {hasRxlCreds && <Button size="sm" variant="danger" onClick={clearRxlCreds}>Remove</Button>}
+            <Button size="sm" onClick={() => setShowRxlSetup(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Settings row */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '8px', alignItems: 'center' }}>
+        <button onClick={() => setUseCoords(!useCoords)}
+          style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text3)', cursor: 'pointer', padding: 0 }}>
+          Route links: {useCoords ? 'Coordinates' : 'Addresses'}{useCoords && !hasCoords ? ' (needs optimization first)' : ''}
+        </button>
+        <button onClick={() => setShowRxlSetup(!showRxlSetup)}
+          style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text3)', cursor: 'pointer', padding: 0 }}>
+          {hasRxlCreds ? 'RouteXL connected' : 'Set up RouteXL'} ⚙
+        </button>
       </div>
 
       {/* Stop list */}
@@ -164,12 +352,14 @@ export default function RouteTab() {
               </div>
 
               {s.addr && (
-                <a href={mapsUrl(s.addr)} target="_blank" rel="noreferrer" style={mapsLink}>Maps ↗</a>
+                <a href={navUrl(s.addr)} target="_blank" rel="noreferrer" style={navLinkStyle}>Navigate ↗</a>
               )}
             </div>
           )
         })}
       </div>
+
+      {msg && <div style={{ fontSize: '12px', marginTop: '6px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>{msg.text}</div>}
 
       <div style={footer}>
         {stops.filter(s => s.status !== 'Not visited yet').length} of {stops.length} visited today

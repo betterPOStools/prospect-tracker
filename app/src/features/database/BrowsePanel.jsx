@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
+import { parseWorkingHours } from '../../data/helpers.js'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Button from '../../components/Button.jsx'
 
@@ -35,24 +36,28 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const [filterZip,    setFilterZip]    = useState('all')
   const [filterZone,   setFilterZone]   = useState(zoneFilter || 'all')
   const [filterSearch, setFilterSearch] = useState('')
+  const [filterGroup,  setFilterGroup]  = useState('all')
   const [selected,     setSelected]     = useState(new Set())
   const [assignDay,    setAssignDay]     = useState('')
+  const [groupInput,   setGroupInput]   = useState('')
 
-  const areas = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
-  const zips  = useMemo(() => [...new Set(db.dbRecords.map(r => r.zi).filter(Boolean))].sort(), [db.dbRecords])
+  const areas  = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
+  const zips   = useMemo(() => [...new Set(db.dbRecords.map(r => r.zi).filter(Boolean))].sort(), [db.dbRecords])
+  const groups = useMemo(() => [...new Set(db.dbRecords.map(r => r.grp).filter(Boolean))].sort(), [db.dbRecords])
   const recordById = useMemo(() => new Map(db.dbRecords.map(r => [r.id, r])), [db.dbRecords])
 
   const filtered = useMemo(() => {
     const q = filterSearch.toLowerCase()
     return db.dbRecords.filter(r =>
-      (filterPri  === 'all' || r.pr === filterPri) &&
-      (filterSt   === 'all' || r.st === filterSt) &&
-      (filterArea === 'all' || r.ar === filterArea) &&
-      (filterZip  === 'all' || r.zi === filterZip) &&
-      (filterZone === 'all' || r.zo === filterZone) &&
+      (filterPri   === 'all' || r.pr === filterPri) &&
+      (filterSt    === 'all' || r.st === filterSt) &&
+      (filterArea  === 'all' || r.ar === filterArea) &&
+      (filterZip   === 'all' || r.zi === filterZip) &&
+      (filterZone  === 'all' || r.zo === filterZone) &&
+      (filterGroup === 'all' || (r.grp || '') === filterGroup) &&
       (!q || (r.n || '').toLowerCase().includes(q) || (r.a || '').toLowerCase().includes(q))
     ).sort((a, b) => b.sc - a.sc)
-  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterSearch])
+  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterGroup, filterSearch])
 
   // Virtualizer
   const scrollRef = useRef(null)
@@ -84,16 +89,17 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     ids.forEach(id => {
       const r = recordById.get(id); if (!r) return
       if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
       stops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
-        notes: r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : '',
-        website: r.web, menu: r.mn, email: r.em,
-        openTime: '', closeTime: '',
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
         status: 'Not visited yet',
         date: new Date().toLocaleDateString(),
-        added: new Date().toISOString(),
-        fromDb: r.id,
+        added: now, fromDb: r.id,
         score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
       })
       dbUpdates.push(id)
     })
@@ -111,6 +117,22 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     dbDispatch({ type: 'ASSIGN_DAY', ids, day: assignDay })
     clearSel()
     flash(`${ids.length} stops assigned to ${assignDay}.`, 'ok')
+  }
+
+  function setGroup() {
+    const name = groupInput.trim(); if (!name) { flash('Enter a group name first.', 'err'); return }
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    dbDispatch({ type: 'SET_GROUP', ids, group: name })
+    clearSel()
+    setGroupInput('')
+    flash(`${ids.length} records assigned to group "${name}".`, 'ok')
+  }
+
+  function clearGroup() {
+    const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
+    dbDispatch({ type: 'SET_GROUP', ids, group: '' })
+    clearSel()
+    flash(`Group cleared from ${ids.length} records.`, 'ok')
   }
 
   if (!db.dbRecords.length) {
@@ -144,6 +166,12 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
           <option value="all">All zones</option>
           {db.dbClusters.map(c => <option key={c.id} value={c.id}>{c.nm} ({c.cnt})</option>)}
         </select>
+        {groups.length > 0 && (
+          <select value={filterGroup}  onChange={e => setFilterGroup(e.target.value)}  style={{ minWidth: '100px' }}>
+            <option value="all">All groups</option>
+            {groups.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        )}
         <input type="text" value={filterSearch} placeholder="Search name…"
           style={{ flex: 2, minWidth: '140px' }} onChange={e => setFilterSearch(e.target.value)} />
       </div>
@@ -161,6 +189,12 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
             {['Monday','Tuesday','Wednesday','Thursday','Friday'].map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           <Button size="sm" onClick={assignToDay}>Assign</Button>
+          <input type="text" value={groupInput} placeholder="Group name…"
+            style={{ height: '30px', fontSize: '12px', width: '120px' }}
+            onChange={e => setGroupInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') setGroup() }} />
+          <Button size="sm" onClick={setGroup}>Set Group</Button>
+          {groups.length > 0 && <Button size="sm" onClick={clearGroup}>Clear Group</Button>}
         </div>
       </div>
 
@@ -182,7 +216,11 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
                     style={{ width: '15px', height: '15px', flexShrink: 0, accentColor: 'var(--accent)' }}
                     onClick={e => e.stopPropagation()} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.n}</div>
+                    <div style={{ fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {r.n}
+                      {r.grp && <span style={{ marginLeft: '6px', fontSize: '10px', color: 'var(--blue-text)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: '8px' }}>{r.grp}</span>}
+                      {r.df > 0 && <span style={{ marginLeft: '4px', fontSize: '10px', color: 'var(--purple-text)', background: 'var(--purple-bg)', padding: '1px 5px', borderRadius: '8px' }}>{r.df} dropped</span>}
+                    </div>
                     <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.a}</div>
                     {r.nt && <div style={{ fontSize: '11px', color: 'var(--text3)', whiteSpace: 'pre-line', marginTop: '2px' }}>{r.nt}</div>}
                   </div>

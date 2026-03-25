@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { useProspectsDispatch } from '../../data/store.jsx'
+import { useProspectsDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
+import { uid, navUrl } from '../../data/helpers.js'
+import { CANVASS_ACTIVE } from '../canvass/constants.js'
 import Button from '../../components/Button.jsx'
 import PosSelect from '../../components/PosSelect.jsx'
 import styles from './LeadCard.module.css'
@@ -9,6 +11,8 @@ const STATUSES = ['Open', 'Won', 'Lost', 'Abandoned']
 
 export default function LeadCard({ prospect, onDemote }) {
   const dispatch = useProspectsDispatch()
+  const canvass = useCanvass()
+  const canvassDispatch = useCanvassDispatch()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
   const p = prospect
@@ -34,6 +38,29 @@ export default function LeadCard({ prospect, onDemote }) {
 
   function handleDelete() {
     if (confirm(`Remove ${p.name}?`)) dispatch({ type: 'DELETE', id: p.id })
+  }
+
+  const inQueue = canvass.some(c => c.fromLead === p.id && CANVASS_ACTIVE.includes(c.status))
+
+  function addToQueue() {
+    if (inQueue) return
+    const now = new Date().toISOString()
+    canvassDispatch({ type: 'ADD', stop: {
+      id: uid(),
+      name: p.name,
+      addr: p.addr || '',
+      phone: p.phone || '',
+      email: p.email || '',
+      website: p.website || '',
+      menu: p.menu || '',
+      notes: '',
+      status: 'Not visited yet',
+      date: new Date().toLocaleDateString(),
+      added: now,
+      fromLead: p.id,
+      history: [],
+      notesLog: p.owner ? [{ text: 'Contact: ' + p.owner, ts: now, system: true }] : [],
+    }})
   }
 
   if (editing) {
@@ -94,10 +121,14 @@ export default function LeadCard({ prospect, onDemote }) {
       <div className={styles.actions}>
         {p.phone && <a href={`tel:${p.phone}`} className={`${btnStyles.btn} ${btnStyles.sm}`}>Call</a>}
         {p.addr  && (
-          <a href={`https://maps.google.com?q=${encodeURIComponent(p.addr)}`} target="_blank" rel="noreferrer" className={`${btnStyles.btn} ${btnStyles.sm}`}>
-            Map ↗
+          <a href={navUrl(p.addr)} target="_blank" rel="noreferrer" className={`${btnStyles.btn} ${btnStyles.sm}`}>
+            Navigate ↗
           </a>
         )}
+        {inQueue
+          ? <span style={{ fontSize: '11px', color: 'var(--purple-text)', background: 'var(--purple-bg)', padding: '3px 8px', borderRadius: '12px', fontWeight: 500 }}>In queue</span>
+          : <Button size="sm" variant="primary" onClick={addToQueue}>→ Queue</Button>
+        }
         <Button size="sm" onClick={startEdit}>Edit</Button>
         <Button size="sm" variant="warning" onClick={() => onDemote(p)}>↩ Canvass</Button>
         <Button size="sm" variant="danger" onClick={handleDelete}>Remove</Button>

@@ -3,6 +3,7 @@ import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { DAYS, autoAssignDay, autoFillWeek } from '../../data/weekPlanner.js'
 import { PRIORITY_COLOR, PRIORITY_EMOJI } from '../../data/scoring.js'
+import { parseWorkingHours } from '../../data/helpers.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
 
@@ -45,15 +46,16 @@ export default function WeekPlannerPanel() {
     assignments.forEach(({ id }) => {
       const r = db.dbRecords.find(x => x.id === id); if (!r) return
       if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
       newStops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
-        notes: r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : '',
-        website: r.web, menu: r.mn, email: r.em,
-        openTime: '', closeTime: '',
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
         status: 'Not visited yet',
         date: new Date().toLocaleDateString(),
-        added: new Date().toISOString(),
-        fromDb: r.id, score: r.sc, priority: r.pr,
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
       })
       dbUpdates.push(id)
     })
@@ -105,15 +107,16 @@ export default function WeekPlannerPanel() {
     const dbUpdates = []
     stops.forEach(r => {
       if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
       newStops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
-        notes: r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : '',
-        website: r.web, menu: r.mn, email: r.em,
-        openTime: '', closeTime: '',
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
         status: 'Not visited yet',
         date: new Date().toLocaleDateString(),
-        added: new Date().toISOString(),
-        fromDb: r.id, score: r.sc, priority: r.pr,
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
       })
       dbUpdates.push(r.id)
     })

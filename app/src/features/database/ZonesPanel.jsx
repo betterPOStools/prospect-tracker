@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
+import { parseWorkingHours } from '../../data/helpers.js'
 import EmptyState from '../../components/EmptyState.jsx'
 import Button from '../../components/Button.jsx'
 
@@ -49,15 +50,16 @@ export default function ZonesPanel({ onBrowseZone }) {
     (c.mb || []).forEach(id => {
       const r = recordById.get(id); if (!r) return
       if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
       stops.push({
         id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
-        notes: r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : '',
-        website: r.web, menu: r.mn, email: r.em,
-        openTime: '', closeTime: '',
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
         status: 'Not visited yet',
         date: new Date().toLocaleDateString(),
-        added: new Date().toISOString(),
-        fromDb: r.id, score: r.sc, priority: r.pr,
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
       })
       dbUpdates.push(id)
     })

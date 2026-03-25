@@ -50,7 +50,7 @@ test('Database tab is navigable and shows content', async ({ page }) => {
 
 test('Canvass tab is navigable', async ({ page }) => {
   await goTab(page, 'Canvass')
-  await expect(page.getByRole('button', { name: 'Today' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Queue' })).toBeVisible()
 })
 
 test('My Leads tab is navigable', async ({ page }) => {
@@ -65,7 +65,7 @@ test('Route tab is navigable', async ({ page }) => {
 
 test('Utilities tab is navigable', async ({ page }) => {
   await goTab(page, 'Utilities')
-  await expect(page.getByText(/Import Outscraper/).or(page.getByText(/Import XLSX/))).toBeVisible()
+  await expect(page.getByText('Import Outscraper Data')).toBeVisible()
 })
 
 // ── Tab badge counts ──────────────────────────────────────────────────────────

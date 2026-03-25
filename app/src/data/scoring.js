@@ -15,6 +15,11 @@ export function calcScore(r) {
   // Email bonus
   if (r.em) s += 5
 
+  // Enrichment bonuses
+  if (r.mn) s += 3   // menu link
+  if (r.cn) s += 5   // contact name
+  if (r.hr) s += 3   // working hours
+
   // Penalties
   if (r.ch)                    s -= 30
   if ((r.rt || 0) < 3.0)      s -= 20
@@ -29,10 +34,10 @@ export function calcScore(r) {
 }
 
 export function calcPriority(s) {
-  if (s >= 100) return 'Fire'
-  if (s >= 80)  return 'Hot'
-  if (s >= 60)  return 'Warm'
-  if (s >= 40)  return 'Cold'
+  if (s >= 95) return 'Fire'
+  if (s >= 75) return 'Hot'
+  if (s >= 55) return 'Warm'
+  if (s >= 35) return 'Cold'
   return 'Dead'
 }
 

@@ -9,6 +9,8 @@ export const LS_KEYS = [
 ]
 
 export async function clearStorage(page: Page) {
+  // Block Supabase so cloud sync doesn't restore real data during tests
+  await page.route('**supabase.co**', route => route.abort())
   await page.evaluate((keys) => keys.forEach(k => localStorage.removeItem(k)), LS_KEYS)
 }
 
@@ -36,8 +38,9 @@ export async function addStop(page: Page, name: string, opts: {
   if (opts.phone)  await page.getByPlaceholder('Phone number').fill(opts.phone)
   if (opts.notes)  await page.getByPlaceholder('Notes / first impression').fill(opts.notes)
   if (opts.status) await page.locator('select').first().selectOption(opts.status)
-  await page.getByRole('button', { name: '+ Add Stop' }).last().click()
-  await page.getByText(name).waitFor({ state: 'visible' })
+  await page.getByTestId('submit-stop').click()
+  // After adding, app redirects to Queue subtab — wait for card to appear.
+  await page.locator('[class*="card"]').filter({ hasText: name }).first().waitFor({ state: 'visible' })
 }
 
 // Seed a canvass stop directly in localStorage (no UI interaction)

@@ -31,9 +31,12 @@ test('shows empty state when canvass stops exist but none for today', async ({ p
 
 test.describe('with today\'s stops', () => {
   test.beforeEach(async ({ page }) => {
-    await addStop(page, 'Route Stop Alpha', { addr: '100 Ocean Blvd, Myrtle Beach SC 29577' })
-    await addStop(page, 'Route Stop Beta',  { addr: '200 Kings Hwy, Myrtle Beach SC 29577' })
-    await addStop(page, 'Route Stop Gamma', { addr: '300 Broadway St, Myrtle Beach SC 29577' })
+    const today = new Date().toLocaleDateString()
+    const now   = new Date().toISOString()
+    await seedCanvassStop(page, { id: 'r-a', name: 'Route Stop Alpha', addr: '100 Ocean Blvd, Myrtle Beach SC 29577', status: 'Not visited yet', date: today, added: now })
+    await seedCanvassStop(page, { id: 'r-b', name: 'Route Stop Beta',  addr: '200 Kings Hwy, Myrtle Beach SC 29577',  status: 'Not visited yet', date: today, added: now })
+    await seedCanvassStop(page, { id: 'r-c', name: 'Route Stop Gamma', addr: '300 Broadway St, Myrtle Beach SC 29577', status: 'Not visited yet', date: today, added: now })
+    await page.reload()
     await goTab(page, 'Route')
   })
 
@@ -53,16 +56,16 @@ test.describe('with today\'s stops', () => {
     await expect(page.getByText('3', { exact: true })).toBeVisible()
   })
 
-  test('Open Full Route link is present and points to Google Maps', async ({ page }) => {
-    const link = page.getByRole('link', { name: /Open Full Route/ })
+  test('Google Maps Route link is present and points to Google Maps', async ({ page }) => {
+    const link = page.getByRole('link', { name: /Google Maps Route/ })
     await expect(link).toBeVisible()
     await expect(link).toHaveAttribute('href', /google\.com\/maps/)
   })
 
-  test('Maps ↗ link on each stop with address', async ({ page }) => {
-    const mapsLinks = page.getByRole('link', { name: /Maps/ })
-    await expect(mapsLinks.first()).toBeVisible()
-    await expect(mapsLinks.first()).toHaveAttribute('href', /google\.com/)
+  test('Navigate ↗ link on each stop with address', async ({ page }) => {
+    const navLinks = page.getByRole('link', { name: /Navigate/ })
+    await expect(navLinks.first()).toBeVisible()
+    await expect(navLinks.first()).toHaveAttribute('href', /google\.com|waze\.com/)
   })
 
   test('▲ move up disabled on first stop', async ({ page }) => {

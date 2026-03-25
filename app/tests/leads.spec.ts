@@ -241,9 +241,9 @@ test.describe('LeadCard view mode', () => {
     await expect(card.getByRole('link', { name: 'Call' })).toBeVisible()
   })
 
-  test('Map link visible when address present', async ({ page }) => {
+  test('Navigate link visible when address present', async ({ page }) => {
     const card = page.locator('[class*="card"]').filter({ hasText: 'Beachfront Bistro' })
-    await expect(card.getByRole('link', { name: /Map/ })).toBeVisible()
+    await expect(card.getByRole('link', { name: /Navigate/ })).toBeVisible()
   })
 
   test('Website link visible', async ({ page }) => {
@@ -408,9 +408,9 @@ test.describe('Demote to Canvass modal', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible()
     // Lead should be gone from My Leads
     await expect(page.getByText('Demote Me Restaurant')).not.toBeVisible()
-    // Should appear in Canvass (demoted stop goes to All Active, not Today)
+    // Should appear in Canvass Queue (as overdue since no date field is set)
     await goTab(page, 'Canvass')
-    await goCanvassSubtab(page, 'All Active')
+    await goCanvassSubtab(page, 'Queue')
     await expect(page.getByText('Demote Me Restaurant')).toBeVisible()
   })
 })

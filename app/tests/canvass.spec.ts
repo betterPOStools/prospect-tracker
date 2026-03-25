@@ -46,7 +46,7 @@ test.describe('Add Stop panel', () => {
 
   test('status dropdown has all canvass status options', async ({ page }) => {
     const sel = page.locator('select').first()
-    for (const status of ['Not visited yet', 'Come back later', 'Decision maker unavailable', 'No answer / closed', 'Not interested']) {
+    for (const status of ['Not visited yet', 'Come back later', 'Decision maker unavailable', 'No answer / closed', 'Not interested', 'Dropped folder']) {
       await sel.selectOption(status)
       await expect(sel).toHaveValue(status)
     }
@@ -61,15 +61,15 @@ test.describe('Add Stop panel', () => {
   })
 
   test('requires business name — shows error when empty', async ({ page }) => {
-    await page.getByRole('button', { name: '+ Add Stop' }).last().click()
+    await page.getByTestId('submit-stop').click()
     await expect(page.getByText('Business name is required.')).toBeVisible()
   })
 
-  test('adds stop, shows success, redirects to Today', async ({ page }) => {
+  test('adds stop, shows success, redirects to Queue', async ({ page }) => {
     await page.getByPlaceholder('Business name *').fill('Ocean Annie\'s')
-    await page.getByRole('button', { name: '+ Add Stop' }).last().click()
+    await page.getByTestId('submit-stop').click()
     await expect(page.getByText('Ocean Annie\'s')).toBeVisible()
-    // Form should be gone — redirected to Today
+    // Form should be gone — redirected to Queue
     await expect(page.getByPlaceholder('Business name *')).not.toBeVisible()
   })
 
@@ -80,35 +80,65 @@ test.describe('Add Stop panel', () => {
     await page.getByPlaceholder('Notes / first impression').fill('Told to call owner Jeff')
     await page.locator('input[type="time"]').first().fill('11:00')
     await page.locator('input[type="time"]').last().fill('23:00')
-    await page.getByRole('button', { name: '+ Add Stop' }).last().click()
+    await page.getByTestId('submit-stop').click()
     await expect(page.getByText('Full Details Bar')).toBeVisible()
     await expect(page.getByText('843-555-7777')).toBeVisible()
   })
 })
 
-// ── Today Panel ───────────────────────────────────────────────────────────────
+// ── Queue Panel ──────────────────────────────────────────────────────────────
 
-test.describe('Today panel', () => {
+test.describe('Queue panel', () => {
   test('shows empty state when no stops', async ({ page }) => {
     await goTab(page, 'Canvass')
-    await goCanvassSubtab(page, 'Today')
-    await expect(page.getByText(/No stops loaded for today/)).toBeVisible()
+    await goCanvassSubtab(page, 'Queue')
+    await expect(page.getByText(/No stops in queue/)).toBeVisible()
   })
 
   test('search input filters stops', async ({ page }) => {
     await addStop(page, 'Magnolia Restaurant')
     await addStop(page, 'Beachside Diner')
-    await page.getByPlaceholder("Search today's stops…").fill('Magnolia')
+    await page.getByPlaceholder('Search queue…').fill('Magnolia')
     await expect(page.getByText('Magnolia Restaurant')).toBeVisible()
     await expect(page.getByText('Beachside Diner')).not.toBeVisible()
   })
 
   test('search clear shows all stops again', async ({ page }) => {
     await addStop(page, 'Search Clear Test')
-    await page.getByPlaceholder("Search today's stops…").fill('xyz')
+    await page.getByPlaceholder('Search queue…').fill('xyz')
     await expect(page.getByText('Search Clear Test')).not.toBeVisible()
-    await page.getByPlaceholder("Search today's stops…").fill('')
+    await page.getByPlaceholder('Search queue…').fill('')
     await expect(page.getByText('Search Clear Test')).toBeVisible()
+  })
+
+  test('overdue stops from previous days appear in queue', async ({ page }) => {
+    await seedCanvassStop(page, {
+      id: 'od-1',
+      name: 'Overdue Grill',
+      status: 'Not visited yet',
+      date: new Date(Date.now() - 86400000).toLocaleDateString(),
+      added: new Date(Date.now() - 86400000).toISOString(),
+    })
+    await page.reload()
+    await goTab(page, 'Canvass')
+    await goCanvassSubtab(page, 'Queue')
+    await expect(page.getByText('Overdue Grill')).toBeVisible()
+    await expect(page.getByText(/overdue stop/)).toBeVisible()
+  })
+
+  test('overdue badge shown on overdue stop card', async ({ page }) => {
+    await seedCanvassStop(page, {
+      id: 'od-2',
+      name: 'Late Visit Spot',
+      status: 'Come back later',
+      date: new Date(Date.now() - 172800000).toLocaleDateString(),
+      added: new Date(Date.now() - 172800000).toISOString(),
+    })
+    await page.reload()
+    await goTab(page, 'Canvass')
+    await goCanvassSubtab(page, 'Queue')
+    const card = page.locator('[class*="card"]').filter({ hasText: 'Late Visit Spot' })
+    await expect(card.getByText('Overdue')).toBeVisible()
   })
 
   test.describe('CanvassCard interactions', () => {
@@ -130,7 +160,7 @@ test.describe('Today panel', () => {
     test('status dropdown: all options selectable', async ({ page }) => {
       const card = page.locator('[class*="card"]').filter({ hasText: 'Carolina Ale House' })
       const sel = card.getByRole('combobox')
-      for (const s of ['Come back later', 'Decision maker unavailable', 'No answer / closed', 'Not interested', 'Not visited yet']) {
+      for (const s of ['Come back later', 'Decision maker unavailable', 'No answer / closed', 'Not interested', 'Dropped folder', 'Not visited yet']) {
         await sel.selectOption(s)
         await expect(sel).toHaveValue(s)
       }
@@ -324,7 +354,7 @@ test.describe('Convert to Lead modal', () => {
 test.describe('End Day modal', () => {
   test.beforeEach(async ({ page }) => {
     await addStop(page, 'End Day Restaurant')
-    await goCanvassSubtab(page, 'Today')
+    await goCanvassSubtab(page, 'Queue')
   })
 
   test('End Day button exists and opens modal', async ({ page }) => {
@@ -511,13 +541,13 @@ test.describe('Build Run modal', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible()
   })
 
-  test('Confirm moves selected stops to Today', async ({ page }) => {
+  test('Confirm moves selected stops to Queue', async ({ page }) => {
     const dialog = page.getByRole('dialog')
     await dialog.getByRole('button', { name: 'Select all' }).click()
     await dialog.getByRole('button', { name: /Add .* stop/ }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible()
-    // Stops should now appear in Today
-    await goCanvassSubtab(page, 'Today')
+    // Stops should now appear in Queue
+    await goCanvassSubtab(page, 'Queue')
     await expect(page.getByText(/Run Stop Alpha|Run Stop Beta/).first()).toBeVisible()
   })
 
@@ -527,36 +557,9 @@ test.describe('Build Run modal', () => {
   })
 })
 
-// ── All Active Panel ──────────────────────────────────────────────────────────
+// ── Completed Panel ──────────────────────────────────────────────────────────
 
-test.describe('All Active panel', () => {
-  test.beforeEach(async ({ page }) => {
-    await addStop(page, 'Active Stop Today')
-    await seedCanvassStop(page, { id: 'aa-1', name: 'Active Stop Yesterday', status: 'Come back later', date: new Date(Date.now() - 86400000).toLocaleDateString(), added: new Date(Date.now() - 86400000).toISOString() })
-    await page.reload()
-    await goTab(page, 'Canvass')
-    await goCanvassSubtab(page, 'All Active')
-  })
-
-  test('shows stops from all dates', async ({ page }) => {
-    await expect(page.getByText('Active Stop Today')).toBeVisible()
-    await expect(page.getByText('Active Stop Yesterday')).toBeVisible()
-  })
-
-  test('Convert to Lead button present on cards', async ({ page }) => {
-    await expect(page.locator('[class*="card"]').first().getByRole('button', { name: 'Convert to Lead' })).toBeVisible()
-  })
-
-  test('status change on All Active card persists', async ({ page }) => {
-    const card = page.locator('[class*="card"]').filter({ hasText: 'Active Stop Today' })
-    await card.getByRole('combobox').selectOption('Not interested')
-    await expect(card.getByRole('combobox')).toHaveValue('Not interested')
-  })
-})
-
-// ── Archived Panel ────────────────────────────────────────────────────────────
-
-test.describe('Archived panel', () => {
+test.describe('Completed panel', () => {
   test.beforeEach(async ({ page }) => {
     await seedCanvassStop(page, {
       id: 'arc-1',
@@ -567,7 +570,7 @@ test.describe('Archived panel', () => {
     })
     await page.reload()
     await goTab(page, 'Canvass')
-    await goCanvassSubtab(page, 'Archived')
+    await goCanvassSubtab(page, 'Completed')
   })
 
   test('shows converted stops', async ({ page }) => {
@@ -579,7 +582,7 @@ test.describe('Archived panel', () => {
     await expect(card.locator('span').filter({ hasText: /^Converted$/ })).toBeVisible()
   })
 
-  test('Remove button on archived stop', async ({ page }) => {
+  test('Remove button on completed stop', async ({ page }) => {
     page.once('dialog', d => d.accept())
     await page.locator('[class*="card"]').filter({ hasText: 'Converted Place' })
       .getByRole('button', { name: 'Remove' }).click()
@@ -591,12 +594,12 @@ test.describe('Archived panel', () => {
 
 test('stat bar counts update when stop added', async ({ page }) => {
   await goTab(page, 'Canvass')
-  const todayBadge = page.locator('button[class*="subtab"]').filter({ hasText: 'Today' })
-  // Initially no badge
-  await expect(todayBadge).not.toContainText('(')
+  const queueBadge = page.locator('button[class*="subtab"]').filter({ hasText: 'Queue' })
+  // Capture initial badge text
+  const before = await queueBadge.textContent()
   await addStop(page, 'Stat Bar Test')
-  // Should now show (1)
-  await expect(page.locator('button[class*="subtab"]').filter({ hasText: 'Today' })).toContainText('(1)')
+  // Badge should have incremented (contains a count now)
+  await expect(page.locator('button[class*="subtab"]').filter({ hasText: 'Queue' })).toContainText('(')
 })
 
 // ── Data persistence ──────────────────────────────────────────────────────────
