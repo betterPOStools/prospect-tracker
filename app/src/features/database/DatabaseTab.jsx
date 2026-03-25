@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { useDatabase } from '../../data/store.jsx'
 import { PRIORITIES, PRIORITY_EMOJI } from '../../data/scoring.js'
 import StatBar    from '../../components/StatBar.jsx'
 import BrowsePanel      from './BrowsePanel.jsx'
 import ZonesPanel       from './ZonesPanel.jsx'
 import WeekPlannerPanel from './WeekPlannerPanel.jsx'
-import MapPanel        from './MapPanel.jsx'
+
+const MapPanel = lazy(() => import('./MapPanel.jsx'))
 
 const SUB_TABS = ['Browse', 'Zones', 'Planner', 'Map']
 
@@ -54,7 +55,9 @@ export default function DatabaseTab() {
       {subTab === 'Browse'  && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
       {subTab === 'Zones'   && <ZonesPanel onBrowseZone={handleBrowseZone} />}
       {subTab === 'Planner' && <WeekPlannerPanel />}
-      {subTab === 'Map'     && <MapPanel />}
+      <Suspense fallback={<div style={{ padding: '24px', color: 'var(--text2)', fontSize: '13px' }}>Loading map…</div>}>
+        {subTab === 'Map' && <MapPanel />}
+      </Suspense>
     </div>
   )
 }
