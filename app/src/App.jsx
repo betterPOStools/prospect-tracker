@@ -1,6 +1,7 @@
 import { useState, useEffect, memo, useMemo, lazy, Suspense } from 'react'
 import { DataProvider, useProspects, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
+import { useOnlineStatus } from './hooks/useOnlineStatus.js'
 import LeadsTab    from './features/leads/LeadsTab.jsx'
 import CanvassTab  from './features/canvass/CanvassTab.jsx'
 import styles from './App.module.css'
@@ -9,7 +10,7 @@ const DatabaseTab = lazy(() => import('./features/database/DatabaseTab.jsx'))
 const RouteTab    = lazy(() => import('./features/route/RouteTab.jsx'))
 const ExportTab   = lazy(() => import('./features/export/ExportTab.jsx'))
 
-const BUILD = 'v0.6.0'
+const BUILD = 'v0.7.0'
 
 const TABS = [
   { id: 'leads',   label: 'My Leads',   badge: 'leads' },
@@ -99,12 +100,27 @@ function SaveIndicator() {
   )
 }
 
+function OfflineBanner() {
+  const online = useOnlineStatus()
+  if (online) return null
+  return (
+    <div style={{
+      background: 'var(--yellow-bg)', color: 'var(--yellow-text)',
+      fontSize: '12px', fontWeight: 500, textAlign: 'center',
+      padding: '6px 12px', borderRadius: 'var(--radius)', marginBottom: '8px',
+    }}>
+      Offline — viewing cached data. Sync, geocoding, and route optimization unavailable.
+    </div>
+  )
+}
+
 function AppShell() {
   const { toggleTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('leads')
 
   return (
     <div>
+      <OfflineBanner />
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <h1>Restaurant Prospect Tracker</h1>
