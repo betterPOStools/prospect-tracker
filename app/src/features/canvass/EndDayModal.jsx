@@ -56,7 +56,8 @@ export default function EndDayModal({ onClose }) {
         if (c.fromDb) dbUpdates.push({ id: c.fromDb, fields: { st: 'unworked', da: '' } })
         toRemove.push(c.id)
       } else if (c.status === 'Come back later' || c.status === 'Decision maker unavailable') {
-        // Keep in canvass — ages into Follow Up
+        // Move to Follow Up immediately by backdating
+        canvassDispatch({ type: 'UPDATE', stop: { ...c, date: 'ended' } })
       } else {
         // No answer / Not interested — log visit, reset to unworked
         const label = c.status === 'No answer / closed' ? 'No answer' : 'Not interested'
@@ -97,7 +98,7 @@ export default function EndDayModal({ onClose }) {
         {notVis > 0 && <><span style={{ color: 'var(--yellow-text)' }}>Not visited yet: <strong>{notVis}</strong> → remains unworked in database</span><br /></>}
       </div>
       <p style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '16px' }}>
-        Come back later and Decision maker unavailable stops age into <strong>Follow Up</strong> tomorrow.
+        Come back later and Decision maker unavailable stops move to <strong>Follow Up</strong> immediately.
         No answer and Not interested stops are logged and returned to the database pool.
       </p>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

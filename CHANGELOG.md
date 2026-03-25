@@ -8,6 +8,7 @@
 - Call/SMS entries auto-update lastContact timestamp
 - Browse: bulk status change in batch edit bar (fix stuck "in_canvass" records)
 - Fix: DemoteModal now resets linked DB record status to "in_canvass" on demotion
+- Fix: End Day now clears queue immediately — CBL/DMU stops move to Follow Up right away so you can load another queue
 
 ## v0.9.0
 - Follow-up date field on canvass stops and leads — set via date picker in edit mode
