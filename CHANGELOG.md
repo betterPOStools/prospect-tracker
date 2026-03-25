@@ -11,6 +11,7 @@
 - Fix: End Day now clears queue immediately — CBL/DMU stops move to Follow Up right away so you can load another queue
 - 30-day cooldown on "Not interested" stops — skipped in auto-assign, load-to-canvass, and week planner
 - Browse: "Hide on hold" toggle (on by default) filters out cooldown records so they don't clutter zone browsing
+- Fix: Google Maps route links now start from "My Location" instead of the first stop — enables turn-by-turn navigation
 
 ## v0.9.0
 - Follow-up date field on canvass stops and leads — set via date picker in edit mode

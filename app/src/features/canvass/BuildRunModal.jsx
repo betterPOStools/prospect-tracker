@@ -8,11 +8,10 @@ import Button from '../../components/Button.jsx'
 function routeUrl(stops) {
   const addrs = stops.map(s => s.addr).filter(Boolean)
   if (!addrs.length) return ''
-  if (addrs.length === 1) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addrs[0])}`
-  const origin = encodeURIComponent(addrs[0])
+  if (addrs.length === 1) return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(addrs[0])}`
   const dest   = encodeURIComponent(addrs[addrs.length - 1])
-  const wps    = addrs.slice(1, -1).map(a => encodeURIComponent(a)).join('|')
-  return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps ? '&waypoints=' + wps : ''}`
+  const wps    = addrs.slice(0, -1).map(a => encodeURIComponent(a)).join('|')
+  return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${dest}&waypoints=${wps}`
 }
 
 export default function BuildRunModal({ triggerStop, onClose }) {

@@ -65,14 +65,13 @@ function routeUrl(stops, useCoords) {
   if (useCoords) {
     const pts = stops.filter(s => s.lat && s.lng).map(s => `${s.lat},${s.lng}`)
     if (pts.length < 2) return routeUrl(stops, false) // fallback to addresses
-    return `https://www.google.com/maps/dir/${pts.join('/')}`
+    return `https://www.google.com/maps/dir/My+Location/${pts.join('/')}`
   }
   const addrs = stops.map(s => s.addr).filter(Boolean)
-  if (addrs.length === 1) return mapsUrl(addrs[0])
-  const origin = encodeURIComponent(addrs[0])
+  if (addrs.length === 1) return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(addrs[0])}`
   const dest   = encodeURIComponent(addrs[addrs.length - 1])
-  const wps    = addrs.slice(1, -1).map(a => encodeURIComponent(a)).join('|')
-  return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps ? '&waypoints=' + wps : ''}`
+  const wps    = addrs.slice(0, -1).map(a => encodeURIComponent(a)).join('|')
+  return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${dest}&waypoints=${wps}`
 }
 
 // Extracted style constants — avoids re-creating objects on every render
