@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { hoursChip, navUrl, getRouteProvider } from '../../data/helpers.js'
+import { CANVASS_ACTIVE, REMOVAL_STATUSES } from '../canvass/constants.js'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
@@ -102,7 +103,7 @@ export default function RouteTab() {
     canvass.filter(s =>
       s.date === today &&
       s.status !== 'Converted' &&
-      s.status !== 'Not interested'
+      !REMOVAL_STATUSES.includes(s.status)
     ),
   [canvass, today])
 
