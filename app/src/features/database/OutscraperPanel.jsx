@@ -460,13 +460,27 @@ function SettingsView({ os }) {
   const [catsVal,       setCatsVal]       = useState(os.config.categories)
   const [autoImport,    setAutoImport]    = useState(os.config.autoImport)
   const [zipBatchSize,  setZipBatchSize]  = useState(os.config.zipBatchSize ?? 10)
-  const [useEnrichments,setUseEnrichments]= useState(os.config.useEnrichments !== false)
-  const [exactMatch,    setExactMatch]    = useState(os.config.exactMatch === true)
-  const [saved,         setSaved]         = useState(false)
+  const [useEnrichments,   setUseEnrichments]   = useState(os.config.useEnrichments !== false)
+  const [exactMatch,       setExactMatch]       = useState(os.config.exactMatch === true)
+  const [minRating,        setMinRating]        = useState(os.config.minRating ?? 0)
+  const [minReviews,       setMinReviews]       = useState(os.config.minReviews ?? 0)
+  const [webhookUrl,       setWebhookUrl]       = useState(os.config.webhookUrl ?? '')
+  const [usePhoneEnricher, setUsePhoneEnricher] = useState(os.config.usePhoneEnricher === true)
+  const [useCompanyData,   setUseCompanyData]   = useState(os.config.useCompanyData === true)
+  const [saved,            setSaved]            = useState(false)
 
   function handleSave() {
     os.setApiKey(keyVal.trim())
-    os.setConfig({ ...os.config, categories: catsVal.trim(), autoImport, zipBatchSize: Number(zipBatchSize) || 10, useEnrichments, exactMatch })
+    os.setConfig({
+      ...os.config,
+      categories: catsVal.trim(), autoImport,
+      zipBatchSize: Number(zipBatchSize) || 10,
+      useEnrichments, exactMatch,
+      minRating: Number(minRating) || 0,
+      minReviews: Number(minReviews) || 0,
+      webhookUrl: webhookUrl.trim(),
+      usePhoneEnricher, useCompanyData,
+    })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -514,6 +528,35 @@ function SettingsView({ os }) {
             Columbia had 38 ZIPs → 4 tasks of 10
           </div>
         </div>
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 4 }}>Min rating</div>
+          <input
+            type="number"
+            min={0}
+            max={5}
+            step={0.5}
+            value={minRating}
+            onChange={e => setMinRating(e.target.value)}
+            style={{ width: 80 }}
+          />
+          <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3 }}>
+            0 = no filter (default)
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 4 }}>Min reviews</div>
+          <input
+            type="number"
+            min={0}
+            max={1000}
+            value={minReviews}
+            onChange={e => setMinReviews(e.target.value)}
+            style={{ width: 80 }}
+          />
+          <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3 }}>
+            0 = no filter (default)
+          </div>
+        </div>
       </div>
 
       <div style={{ marginBottom: 12 }}>
@@ -533,6 +576,40 @@ function SettingsView({ os }) {
         </label>
         <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3, marginLeft: 20 }}>
           Off (default): Google may include adjacent categories (bars in restaurant searches). On: stricter, fewer but cleaner results.
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+          <input type="checkbox" checked={usePhoneEnricher} onChange={e => setUsePhoneEnricher(e.target.checked)} />
+          Phone validation (carrier type, line type)
+        </label>
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3, marginLeft: 20 }}>
+          Validates phone numbers — identifies carrier and whether landline/mobile/VoIP
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+          <input type="checkbox" checked={useCompanyData} onChange={e => setUseCompanyData(e.target.checked)} />
+          US company data (employee count, revenue, NAICS)
+        </label>
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3, marginLeft: 20 }}>
+          Adds employee count, annual revenue, and NAICS industry codes (US businesses only)
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 4 }}>Webhook URL (optional)</div>
+        <input
+          type="url"
+          value={webhookUrl}
+          onChange={e => setWebhookUrl(e.target.value)}
+          placeholder="https://your-endpoint.com/webhook"
+          style={{ width: '100%', boxSizing: 'border-box' }}
+        />
+        <div style={{ fontSize: 11, color: 'var(--text3, var(--text2))', marginTop: 3 }}>
+          Outscraper POSTs full results to this URL on completion — captures data even when app is closed
         </div>
       </div>
 

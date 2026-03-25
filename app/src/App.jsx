@@ -1,14 +1,15 @@
-import { useState, useEffect, memo, useMemo } from 'react'
+import { useState, useEffect, memo, useMemo, lazy, Suspense } from 'react'
 import { DataProvider, useProspects, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
-import DatabaseTab from './features/database/DatabaseTab.jsx'
-import CanvassTab  from './features/canvass/CanvassTab.jsx'
 import LeadsTab    from './features/leads/LeadsTab.jsx'
-import RouteTab    from './features/route/RouteTab.jsx'
-import ExportTab   from './features/export/ExportTab.jsx'
+import CanvassTab  from './features/canvass/CanvassTab.jsx'
 import styles from './App.module.css'
 
-const BUILD = '2026-03-24 20:00'
+const DatabaseTab = lazy(() => import('./features/database/DatabaseTab.jsx'))
+const RouteTab    = lazy(() => import('./features/route/RouteTab.jsx'))
+const ExportTab   = lazy(() => import('./features/export/ExportTab.jsx'))
+
+const BUILD = '2026-03-24 22:00'
 
 const TABS = [
   { id: 'leads',   label: 'My Leads',   badge: 'leads' },
@@ -137,9 +138,11 @@ function AppShell() {
         <div className={styles.panel} role="tabpanel">
           {activeTab === 'leads'   && <LeadsTab />}
           {activeTab === 'canvass' && <CanvassTab />}
-          {activeTab === 'route'   && <RouteTab />}
-          {activeTab === 'db'      && <DatabaseTab />}
-          {activeTab === 'export'  && <ExportTab />}
+          <Suspense fallback={<div style={{ padding: '24px', color: 'var(--text2)', fontSize: '13px' }}>Loading…</div>}>
+            {activeTab === 'route'   && <RouteTab />}
+            {activeTab === 'db'      && <DatabaseTab />}
+            {activeTab === 'export'  && <ExportTab />}
+          </Suspense>
         </div>
       </div>
     </div>

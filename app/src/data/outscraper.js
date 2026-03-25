@@ -22,11 +22,16 @@ export function saveOsApiKey(key)   { localStorage.setItem(OS_KEYS.apiKey, key) 
 
 export function loadOsConfig() {
   const cfg = parse(OS_KEYS.config, {})
-  if (!cfg.categories)              cfg.categories     = DEFAULT_CATEGORIES
-  if (cfg.autoImport  === undefined) cfg.autoImport    = true
-  if (cfg.zipBatchSize === undefined) cfg.zipBatchSize = 10
+  if (!cfg.categories)                cfg.categories       = DEFAULT_CATEGORIES
+  if (cfg.autoImport  === undefined)   cfg.autoImport      = true
+  if (cfg.zipBatchSize === undefined)  cfg.zipBatchSize    = 10
   if (cfg.useEnrichments === undefined) cfg.useEnrichments = true
-  if (cfg.exactMatch === undefined) cfg.exactMatch = false
+  if (cfg.exactMatch === undefined)    cfg.exactMatch      = false
+  if (cfg.minRating === undefined)     cfg.minRating       = 0
+  if (cfg.minReviews === undefined)    cfg.minReviews      = 0
+  if (cfg.webhookUrl === undefined)    cfg.webhookUrl      = ''
+  if (cfg.usePhoneEnricher === undefined)   cfg.usePhoneEnricher   = false
+  if (cfg.useCompanyData === undefined)     cfg.useCompanyData     = false
   return cfg
 }
 export function saveOsConfig(cfg)   { localStorage.setItem(OS_KEYS.config, JSON.stringify(cfg)) }
@@ -87,10 +92,37 @@ export function buildQueries(zips, city, state, categoriesString) {
 }
 
 // ── API submit & poll ──────────────────────────────────────────────────────────
-export async function submitScrape(apiKey, title, queries, { useEnrichments = true, exactMatch = false } = {}) {
+export async function submitScrape(apiKey, title, queries, {
+  useEnrichments = true, exactMatch = false,
+  minRating = 0, minReviews = 0, webhookUrl = '',
+  usePhoneEnricher = false, useCompanyData = false,
+} = {}) {
   const enrichmentList = useEnrichments
     ? ['contacts_n_leads', 'company_insights_service', 'emails_validator_service']
     : []
+  if (usePhoneEnricher) enrichmentList.push('phones_enricher')
+  if (useCompanyData)   enrichmentList.push('us_companies_data_enricher')
+
+  const outputColumns = [
+    'name', 'subtypes', 'category', 'phone', 'website', 'street', 'city', 'state',
+    'state_code', 'postal_code', 'company_name', 'company_phone', 'company_linkedin',
+    'company_facebook', 'company_instagram', 'company_x', 'company_youtube',
+    'full_name', 'first_name', 'last_name', 'title', 'email',
+    'email.emails_validator.status', 'contact_phone', 'contact_facebook',
+    'contact_instagram', 'latitude', 'longitude', 'rating', 'reviews',
+    'business_status', 'working_hours_csv_compatible', 'menu_link',
+    'place_id', 'google_id', 'chain_info.chain',
+  ]
+  if (usePhoneEnricher) outputColumns.push('phone_enricher.carrier', 'phone_enricher.type')
+  if (useCompanyData)   outputColumns.push('employees', 'annual_revenue', 'naics_code', 'naics_description')
+
+  const filters = [
+    { key: 'business_status', labelKey: 'title.operationalOnly', operator: 'equals', value: ['operational'] },
+    { key: 'phone', labelKey: 'title.withPhone', operator: 'is not blank', value: null },
+  ]
+  if (minRating > 0)  filters.push({ key: 'rating',  operator: 'greater than or equals', value: minRating })
+  if (minReviews > 0) filters.push({ key: 'reviews', operator: 'greater than or equals', value: minReviews })
+
   const payload = {
     service_name: 'google_maps_service_v2',
     title,
@@ -98,16 +130,7 @@ export async function submitScrape(apiKey, title, queries, { useEnrichments = tr
     input_file: null,
     enrich: false,
     settings: {
-      output_columns: [
-        'name', 'subtypes', 'category', 'phone', 'website', 'street', 'city', 'state',
-        'state_code', 'postal_code', 'company_name', 'company_phone', 'company_linkedin',
-        'company_facebook', 'company_instagram', 'company_x', 'company_youtube',
-        'full_name', 'first_name', 'last_name', 'title', 'email',
-        'email.emails_validator.status', 'contact_phone', 'contact_facebook',
-        'contact_instagram', 'latitude', 'longitude', 'rating', 'reviews',
-        'business_status', 'working_hours_csv_compatible', 'menu_link',
-        'place_id', 'google_id', 'chain_info.chain',
-      ],
+      output_columns: outputColumns,
       output_extension: 'json',
     },
     tags: title.replace(/\s*[—-]\s*\d{4}-\d{2}-\d{2}.*$/, ''),
@@ -118,10 +141,7 @@ export async function submitScrape(apiKey, title, queries, { useEnrichments = tr
     region: 'US',
     limit: 500,
     organizationsPerQueryLimit: 500,
-    filters: [
-      { key: 'business_status', labelKey: 'title.operationalOnly', operator: 'equals', value: ['operational'] },
-      { key: 'phone', labelKey: 'title.withPhone', operator: 'is not blank', value: null },
-    ],
+    filters,
     exactMatch,
     useZipCodes: true,
     dropDuplicates: true,
@@ -133,6 +153,7 @@ export async function submitScrape(apiKey, title, queries, { useEnrichments = tr
     } : {},
     org: 'os',
   }
+  if (webhookUrl) payload.webhook = webhookUrl
 
   const resp = await fetch('https://api.outscraper.cloud/tasks', {
     method: 'POST',
@@ -233,6 +254,14 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
       ct:  row.title             || row['Contact Title'] || '',
       hr:  row.working_hours_csv_compatible || '',
       pi:  placeId,
+      // Phone enrichment fields
+      pc:  row['phone_enricher.carrier'] || '',
+      pt:  row['phone_enricher.type']    || '',
+      // US company data fields
+      emp: row.employees       ? parseInt(row.employees) || 0 : 0,
+      rev: row.annual_revenue  || '',
+      nai: row.naics_code      || '',
+      nad: row.naics_description || '',
       ar:  area,
       zo:  '',
       da:  '',

@@ -95,7 +95,15 @@ export function useOutscraper() {
       const suffix  = chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''
       const title   = `${city}, ${state} \u2014 ${today}${suffix}`
       const localTags = `${city}, ${state}`
-      const resp    = await submitScrape(apiKeyRef.current, title, queries, { useEnrichments: config.useEnrichments !== false, exactMatch: config.exactMatch === true })
+      const resp    = await submitScrape(apiKeyRef.current, title, queries, {
+        useEnrichments: config.useEnrichments !== false,
+        exactMatch:     config.exactMatch === true,
+        minRating:      Number(config.minRating)  || 0,
+        minReviews:     Number(config.minReviews)  || 0,
+        webhookUrl:     config.webhookUrl || '',
+        usePhoneEnricher: config.usePhoneEnricher === true,
+        useCompanyData:   config.useCompanyData === true,
+      })
       const taskId  = extractTaskId(resp?.id || resp?.task_id)
       if (!taskId) throw new Error('No task ID returned from Outscraper.')
 

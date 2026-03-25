@@ -19,6 +19,7 @@ export function calcScore(r) {
   if (r.mn) s += 3   // menu link
   if (r.cn) s += 5   // contact name
   if (r.hr) s += 3   // working hours
+  if (r.emp > 0) s += 2  // company data available
 
   // Penalties
   if (r.ch)                    s -= 30
