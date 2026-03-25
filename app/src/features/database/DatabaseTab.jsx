@@ -3,17 +3,15 @@ import { useDatabase } from '../../data/store.jsx'
 import { PRIORITIES, PRIORITY_EMOJI } from '../../data/scoring.js'
 import StatBar    from '../../components/StatBar.jsx'
 import BrowsePanel      from './BrowsePanel.jsx'
-import ZonesPanel       from './ZonesPanel.jsx'
 import WeekPlannerPanel from './WeekPlannerPanel.jsx'
 
 const MapPanel = lazy(() => import('./MapPanel.jsx'))
 
-const SUB_TABS = ['Browse', 'Zones', 'Planner', 'Map']
+const SUB_TABS = ['Browse', 'Planner', 'Map']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
   const [subTab,      setSubTab]      = useState('Browse')
-  const [zoneFilter,  setZoneFilter]  = useState(null)
 
   const stats = useMemo(() => {
     const total    = dbRecords.length
@@ -27,11 +25,6 @@ export default function DatabaseTab() {
       { n: worked,   label: 'Worked' },
     ]
   }, [dbRecords])
-
-  function handleBrowseZone(zoneId) {
-    setZoneFilter(zoneId)
-    setSubTab('Browse')
-  }
 
   return (
     <div>
@@ -52,8 +45,7 @@ export default function DatabaseTab() {
         ))}
       </div>
 
-      {subTab === 'Browse'  && <BrowsePanel zoneFilter={zoneFilter} onClearZoneFilter={() => setZoneFilter(null)} />}
-      {subTab === 'Zones'   && <ZonesPanel onBrowseZone={handleBrowseZone} />}
+      {subTab === 'Browse'  && <BrowsePanel />}
       {subTab === 'Planner' && <WeekPlannerPanel />}
       <Suspense fallback={<div style={{ padding: '24px', color: 'var(--text2)', fontSize: '13px' }}>Loading map…</div>}>
         {subTab === 'Map' && <MapPanel />}

@@ -3,7 +3,6 @@ import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { calcScore, calcPriority, PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
 import { parseWorkingHours } from '../../data/helpers.js'
-import { buildClusters } from '../../data/clustering.js'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Button from '../../components/Button.jsx'
 
@@ -24,7 +23,7 @@ function statusBadge(st) {
 
 const ROW_HEIGHT = 52 // estimated px per row
 
-export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
+export default function BrowsePanel() {
   const db           = useDatabase()
   const dbDispatch   = useDatabaseDispatch()
   const canvass      = useCanvass()
@@ -35,7 +34,6 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const [filterSt,     setFilterSt]     = useState('all')
   const [filterArea,   setFilterArea]   = useState('all')
   const [filterZip,    setFilterZip]    = useState('all')
-  const [filterZone,   setFilterZone]   = useState(zoneFilter || 'all')
   const [filterSearch, setFilterSearch] = useState('')
   const [filterGroup,  setFilterGroup]  = useState('all')
   const [hideHold,     setHideHold]     = useState(true)
@@ -47,7 +45,6 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const areas  = useMemo(() => [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].sort(), [db.dbRecords])
   const areaRecords = useMemo(() => filterArea === 'all' ? db.dbRecords : db.dbRecords.filter(r => r.ar === filterArea), [db.dbRecords, filterArea])
   const zips   = useMemo(() => [...new Set(areaRecords.map(r => r.zi).filter(Boolean))].sort(), [areaRecords])
-  const zones  = useMemo(() => db.dbClusters.filter(c => areaRecords.some(r => r.zo === c.id)), [db.dbClusters, areaRecords])
   const groups = useMemo(() => [...new Set(db.dbRecords.map(r => r.grp).filter(Boolean))].sort(), [db.dbRecords])
   const recordById = useMemo(() => new Map(db.dbRecords.map(r => [r.id, r])), [db.dbRecords])
 
@@ -59,12 +56,11 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
       (filterSt    === 'all' || r.st === filterSt) &&
       (filterArea  === 'all' || r.ar === filterArea) &&
       (filterZip   === 'all' || r.zi === filterZip) &&
-      (filterZone  === 'all' || r.zo === filterZone) &&
       (filterGroup === 'all' || (r.grp || '') === filterGroup) &&
       (!hideHold || !r.co || r.co <= todayISO) &&
       (!q || (r.n || '').toLowerCase().includes(q) || (r.a || '').toLowerCase().includes(q))
     ).sort((a, b) => b.sc - a.sc)
-  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterGroup, filterSearch, hideHold])
+  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterGroup, filterSearch, hideHold])
 
   // Virtualizer
   const scrollRef = useRef(null)
@@ -179,25 +175,9 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
         dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { ar: area } })
       })
     }
-    // Rebuild clusters from updated records
-    const updatedRecords = db.dbRecords.map(r => {
-      const areaForR = Object.entries(byArea).find(([, ids]) => ids.includes(r.id))
-      return areaForR ? { ...r, ar: areaForR[0] } : r
-    })
-    const newClusters = buildClusters(updatedRecords)
-    dbDispatch({ type: 'SET_CLUSTERS', dbClusters: newClusters })
-    // Write zone IDs back onto records from cluster membership
-    const idToZone = {}
-    newClusters.forEach(c => { c.mb.forEach(id => { idToZone[id] = c.id }) })
-    const zoneUpdates = Object.entries(
-      Object.entries(idToZone).reduce((acc, [id, zo]) => { (acc[zo] || (acc[zo] = [])).push(id); return acc }, {})
-    )
-    zoneUpdates.forEach(([zo, ids]) => {
-      dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids, fields: { zo } })
-    })
     const reassigned = Object.values(byArea).flat().length
     const areaCount = Object.keys(byArea).length
-    flash(`${reassigned ? `Reassigned ${reassigned} records across ${areaCount} area${areaCount !== 1 ? 's' : ''}, r` : 'R'}ebuilt ${newClusters.length} zones${skipped ? ` (${skipped} skipped)` : ''}.`, 'ok')
+    flash(`${reassigned ? `Reassigned ${reassigned} records across ${areaCount} area${areaCount !== 1 ? 's' : ''}` : 'No changes needed'}${skipped ? ` (${skipped} skipped)` : ''}.`, 'ok')
   }
 
   if (!db.dbRecords.length) {
@@ -219,17 +199,13 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
           <option value="converted">Converted</option>
           <option value="lead">Lead</option>
         </select>
-        <select value={filterArea}   onChange={e => { setFilterArea(e.target.value); setFilterZip('all'); setFilterZone('all') }}   style={{ minWidth: '140px' }}>
+        <select value={filterArea}   onChange={e => { setFilterArea(e.target.value); setFilterZip('all') }}   style={{ minWidth: '140px' }}>
           <option value="all">All areas</option>
           {areas.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={filterZip}    onChange={e => setFilterZip(e.target.value)}    style={{ minWidth: '90px' }}>
           <option value="all">All ZIPs</option>
           {zips.map(z => <option key={z} value={z}>{z}</option>)}
-        </select>
-        <select value={filterZone}   onChange={e => setFilterZone(e.target.value)}   style={{ minWidth: '130px' }}>
-          <option value="all">All zones</option>
-          {zones.map(c => <option key={c.id} value={c.id}>{c.nm} ({c.cnt})</option>)}
         </select>
         {groups.length > 0 && (
           <select value={filterGroup}  onChange={e => setFilterGroup(e.target.value)}  style={{ minWidth: '100px' }}>

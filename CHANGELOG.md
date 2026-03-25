@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.11.0
+- **Pure geo route planning** — all fill functions (Fill Near Me, Auto-fill Day/Week) now sort by haversine distance only, no score/priority weighting
+- **Zones removed** — no more ZIP-scoped clusters; area dropdown replaces zones for territory selection
+- Fill Near Me: GPS → filter by area → sort by distance → load closest N stops
+- Auto-fill Day: picks densest anchor point (most neighbors in 0.75mi), fills by distance from anchor
+- Auto-fill Week: sequential day fills, each picking the next densest unassigned area
+- RouteXL optimization now starts from your GPS position (injected as home waypoint)
+- Load Day to Canvass: skips already-canvassed records with skip count in flash message
+- ADD_MANY dedup: prevents duplicate stops when loading to canvass
+- Hot badge now counts both "Hot" and "Fire" priority records
+- Fill Near Me skips day-assigned records to avoid conflicts with week planner
+- All fill functions show warnings when records are skipped (missing coordinates, cooldown, etc.)
+
 ## v0.10.0
 - Call/SMS activity logging — tap Call or Text on canvass/lead cards to log + dial/message
 - Activity timeline on lead cards with collapsible history

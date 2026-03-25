@@ -58,9 +58,12 @@ function canvassReducer(state, action) {
     case 'ADD':
       next = [...state, action.stop]
       break
-    case 'ADD_MANY':
-      next = [...state, ...action.stops]
+    case 'ADD_MANY': {
+      const existing = new Set(state.map(s => s.id))
+      const unique = action.stops.filter(s => !existing.has(s.id))
+      next = [...state, ...unique]
       break
+    }
     case 'UPDATE':
       next = state.map(s => s.id === action.stop.id ? action.stop : s)
       break
@@ -115,7 +118,6 @@ function databaseReducer(state, action) {
       next = {
         ...state,
         dbRecords:  action.dbRecords,
-        dbClusters: action.dbClusters,
         dbAreas:    action.dbAreas,
         dbBlocklist: action.dbBlocklist ?? state.dbBlocklist,
       }
@@ -131,9 +133,6 @@ function databaseReducer(state, action) {
       break
     case 'ASSIGN_DAY':
       next = { ...state, dbRecords: state.dbRecords.map(r => action.ids.includes(r.id) ? { ...r, da: action.day } : r) }
-      break
-    case 'SET_CLUSTERS':
-      next = { ...state, dbClusters: action.dbClusters }
       break
     case 'SET_AREAS':
       next = { ...state, dbAreas: action.dbAreas }
@@ -159,7 +158,6 @@ function databaseReducer(state, action) {
     case 'RESTORE_SNAPSHOT':
       next = {
         dbRecords:   action.dbRecords   || [],
-        dbClusters:  action.dbClusters  || [],
         dbAreas:     action.dbAreas     || [],
         dbBlocklist: action.dbBlocklist || state.dbBlocklist,
       }
@@ -205,16 +203,6 @@ function databaseReducer(state, action) {
       } else {
         return state
       }
-      break
-    }
-    case 'RENAME_ZONE': {
-      const updated = state.dbRecords.map(r =>
-        r.zo === action.oldName ? { ...r, zo: action.newName } : r
-      )
-      const updatedClusters = state.dbClusters.map(c =>
-        c.zone === action.oldName ? { ...c, zone: action.newName } : c
-      )
-      next = { ...state, dbRecords: updated, dbClusters: updatedClusters }
       break
     }
     default:
@@ -285,7 +273,7 @@ export function DataProvider({ children }) {
   const [canvassStops, canvassDispatch] = useReducer(canvassReducer, initial.canvassStops)
   const [db, dbDispatch] = useReducer(databaseReducer, {
     dbRecords:   initial.dbRecords,
-    dbClusters:  initial.dbClusters,
+
     dbAreas:     initial.dbAreas,
     dbBlocklist: initial.dbBlocklist,
   })
@@ -309,7 +297,7 @@ export function DataProvider({ children }) {
           const localSavedAt = lsTs ? new Date(lsTs) : null
           if (!localSavedAt || (fileSavedAt && fileSavedAt > localSavedAt)) {
             dbDispatch({ type: 'RESTORE_SNAPSHOT',
-              dbRecords: data.dbRecords, dbClusters: data.dbClusters,
+              dbRecords: data.dbRecords,
               dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: data.prospects })
             canvassDispatch({ type: '_REPLACE_ALL', items: data.canvass })
@@ -330,7 +318,7 @@ export function DataProvider({ children }) {
           if (!localBestTs || (remoteSavedAt && remoteSavedAt > localBestTs)) {
             const p = row.payload
             dbDispatch({ type: 'RESTORE_SNAPSHOT',
-              dbRecords: rescoreAll(p.dbRecords || []), dbClusters: p.dbClusters,
+              dbRecords: rescoreAll(p.dbRecords || []),
               dbAreas: p.dbAreas, dbBlocklist: p.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: p.prospects || [] })
             canvassDispatch({ type: '_REPLACE_ALL', items: p.canvass || [] })
@@ -356,7 +344,7 @@ export function DataProvider({ children }) {
     fileSync.writeToFile({
       version: 1, savedAt: new Date().toISOString(),
       prospects, canvass: canvassStops,
-      dbRecords: db.dbRecords, dbClusters: db.dbClusters,
+      dbRecords: db.dbRecords,
       dbAreas: db.dbAreas, dbBlocklist: db.dbBlocklist,
     })
   }, [prospects, canvassStops, db, fileSync.linked]) // writeToFile is stable (useCallback)
@@ -370,7 +358,6 @@ export function DataProvider({ children }) {
       prospects,
       canvass:     canvassStops,
       dbRecords:   db.dbRecords,
-      dbClusters:  db.dbClusters,
       dbAreas:     db.dbAreas,
       dbBlocklist: db.dbBlocklist,
     })
@@ -384,7 +371,7 @@ export function DataProvider({ children }) {
         if (isInitializingRef.current) return
         if (payload.dbRecords !== undefined) {
           dbDispatch({ type: 'RESTORE_SNAPSHOT',
-            dbRecords: payload.dbRecords, dbClusters: payload.dbClusters,
+            dbRecords: payload.dbRecords,
             dbAreas: payload.dbAreas, dbBlocklist: payload.dbBlocklist })
         }
         if (payload.prospects !== undefined) prospectsDispatch({ type: '_REPLACE_ALL', items: payload.prospects })
@@ -436,7 +423,6 @@ export function useCurrentStatePayload() {
     prospects,
     canvass,
     dbRecords:   db.dbRecords,
-    dbClusters:  db.dbClusters,
     dbAreas:     db.dbAreas,
     dbBlocklist: db.dbBlocklist,
   }

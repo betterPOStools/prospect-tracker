@@ -161,14 +161,11 @@ function CanvassSection({ data }) {
 }
 
 function TerritorySection({ data }) {
-  const { byArea, byZone } = data
-  const [showAllZones, setShowAllZones] = useState(false)
-  const visibleZones = showAllZones ? byZone : byZone.slice(0, 10)
+  const { byArea } = data
 
   return (
-    <Section title="Territory Analysis" sub={`${byArea.length} areas, ${byZone.length} zones`}>
-      {/* Areas */}
-      <div style={{ marginBottom: '12px' }}>
+    <Section title="Territory Analysis" sub={`${byArea.length} areas`}>
+      <div>
         <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text2)', marginBottom: '6px' }}>By Area</div>
         {byArea.map(a => (
           <div key={a.area} style={{ marginBottom: '10px' }}>
@@ -180,31 +177,6 @@ function TerritorySection({ data }) {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Zones */}
-      <div>
-        <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text2)', marginBottom: '6px' }}>Zone Coverage</div>
-        {visibleZones.map(z => (
-          <div key={z.zone} style={{ marginBottom: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '3px' }}>
-              <span style={{ color: 'var(--text)' }}>{z.zone}</span>
-              <span style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>{z.pctWorked}% ({z.worked}/{z.total})</span>
-            </div>
-            <div style={trackStyle}>
-              <div style={{ height: '100%', width: z.pctWorked + '%', background: 'var(--green-text)', borderRadius: '4px', transition: 'width .3s' }} />
-            </div>
-            <div style={{ marginTop: '3px' }}>
-              <StackedBar segments={PRIORITIES.map(p => ({ label: p, count: z.priorityDist[p], color: PRIORITY_COLOR[p] }))} height={4} />
-            </div>
-          </div>
-        ))}
-        {byZone.length > 10 && (
-          <button onClick={() => setShowAllZones(!showAllZones)}
-            style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '12px', cursor: 'pointer', padding: '4px 0' }}>
-            {showAllZones ? 'Show less' : `Show all ${byZone.length} zones`}
-          </button>
-        )}
       </div>
     </Section>
   )
@@ -262,7 +234,7 @@ function LeadSection({ data }) {
 /* ── Main panel ─────────────────────────────────────────────────────── */
 
 export default function AnalyticsPanel() {
-  const { dbRecords, dbClusters } = useDatabase()
+  const { dbRecords } = useDatabase()
   const canvassStops = useCanvass()
   const prospects    = useProspects()
 
@@ -270,7 +242,7 @@ export default function AnalyticsPanel() {
 
   const pipeline    = useMemo(() => calcPipeline(dbRecords),                    [dbRecords])
   const canvassPerf = useMemo(() => calcCanvassPerf(canvassStops, dailyLog),    [canvassStops, dailyLog])
-  const territory   = useMemo(() => calcTerritory(dbRecords, dbClusters),       [dbRecords, dbClusters])
+  const territory   = useMemo(() => calcTerritory(dbRecords),                    [dbRecords])
   const quality     = useMemo(() => calcDataQuality(dbRecords),                 [dbRecords])
   const leadStats   = useMemo(() => calcLeadPipeline(prospects),                [prospects])
 

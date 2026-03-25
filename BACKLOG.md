@@ -17,5 +17,5 @@
 
 ## Ideas
 - Email outreach via Gmail — one-tap pitch email from lead cards
-- Coverage tracker — map/chart showing % of each zone worked
+- Coverage tracker — map/chart showing % of each area worked
 - Demo POS menu extractor (separate project)

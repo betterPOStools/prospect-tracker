@@ -1,5 +1,4 @@
 import { calcScore, calcPriority } from './scoring.js'
-import { buildClusters } from './clustering.js'
 import { isBlocklisted } from './blocklist.js'
 
 // ── localStorage keys (isolated from main store — never synced to Drive/Supabase) ──
@@ -198,7 +197,7 @@ export async function pollTask(apiKey, requestId) {
 // blocklist     — current db.dbBlocklist
 // existingAreas — current db.dbAreas
 //
-// Returns { allRecords, dbClusters, dbAreas, added, updated, dupes }
+// Returns { allRecords, dbAreas, added, updated, dupes }
 
 export function processOutscraperRows(rows, area, existingRecords, blocklist, existingAreas) {
   // Flatten arrays-of-arrays (Outscraper API may return one sub-array per query)
@@ -263,7 +262,6 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
       nai: row.naics_code      || '',
       nad: row.naics_description || '',
       ar:  area,
-      zo:  '',
       da:  '',
       grp: '',
       df:  0,
@@ -277,7 +275,6 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
     const existing = existingById[id] || existingByName[(name + '|' + zip).toLowerCase()]
     if (existing) {
       fresh.st  = existing.st
-      fresh.zo  = existing.zo
       fresh.da  = existing.da
       fresh.grp = existing.grp || ''
       fresh.df  = existing.df  || 0
@@ -294,12 +291,7 @@ export function processOutscraperRows(rows, area, existingRecords, blocklist, ex
   const kept        = existingRecords.filter(r => !importedIds.has(r.id))
   const allRecords  = [...kept, ...newRecords]
 
-  const dbClusters   = buildClusters(allRecords)
-  const memberToZone = {}
-  dbClusters.forEach(c => c.mb.forEach(mid => { memberToZone[mid] = c.id }))
-  allRecords.forEach(r => { if (!r.zo || !existingById[r.id]?.zo) r.zo = memberToZone[r.id] || '' })
-
   const dbAreas = [...new Set([...existingAreas, area])]
 
-  return { allRecords, dbClusters, dbAreas, added, updated, dupes }
+  return { allRecords, dbAreas, added, updated, dupes }
 }

@@ -45,7 +45,7 @@ export function calcCanvassPerf(canvassStops, dailyLog) {
   return { today, dailyLog: recent, avgStopsPerDay, avgConversionRate, totalDaysLogged: days }
 }
 
-export function calcTerritory(dbRecords, dbClusters) {
+export function calcTerritory(dbRecords) {
   // By area
   const areaMap = {}
   for (const r of dbRecords) {
@@ -62,29 +62,7 @@ export function calcTerritory(dbRecords, dbClusters) {
     convRate: (a.total - a.unworked) > 0 ? a.converted / (a.total - a.unworked) : null,
   })).sort((a, b) => b.total - a.total)
 
-  // By zone
-  const recordMap = {}
-  for (const r of dbRecords) recordMap[r.id] = r
-
-  const byZone = (dbClusters || []).map(c => {
-    const members = (c.mb || []).map(id => recordMap[id]).filter(Boolean)
-    const total = members.length
-    const worked = members.filter(r => r.st && r.st !== 'unworked').length
-    const priorityDist = { Fire: 0, Hot: 0, Warm: 0, Cold: 0, Dead: 0 }
-    for (const r of members) {
-      if (priorityDist[r.pr] !== undefined) priorityDist[r.pr]++
-    }
-    return {
-      zone: c.zone || c.id,
-      total,
-      worked,
-      unworked: total - worked,
-      pctWorked: total > 0 ? Math.round((worked / total) * 100) : 0,
-      priorityDist,
-    }
-  }).sort((a, b) => b.total - a.total)
-
-  return { byArea, byZone }
+  return { byArea }
 }
 
 export function calcDataQuality(dbRecords) {

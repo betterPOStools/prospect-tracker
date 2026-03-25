@@ -33,13 +33,11 @@ export function useSnapshots() {
       ts:       now.toISOString(),
       label,
       records:  db.dbRecords.length,
-      clusters: db.dbClusters.length,
       leads:    prospects.length,
       canvass:  canvass.length,
       areas:    [...new Set(db.dbRecords.map(r => r.ar).filter(Boolean))].join(', '),
       data: {
         dbRecords:    structuredClone(db.dbRecords),
-        dbClusters:   structuredClone(db.dbClusters),
         dbAreas:      [...db.dbAreas],
         dbBlocklist:  [...db.dbBlocklist],
         prospects:    structuredClone(prospects),
@@ -66,7 +64,7 @@ export function useSnapshots() {
     const ts = new Date(snap.ts).toLocaleString()
     if (!confirm(
       `Restore snapshot from ${ts}?\n\n` +
-      `${snap.records} DB records, ${snap.clusters} zones, ${snap.leads || 0} leads, ${snap.canvass || 0} canvass stops` +
+      `${snap.records} DB records, ${snap.leads || 0} leads, ${snap.canvass || 0} canvass stops` +
       `${snap.areas ? '\nAreas: ' + snap.areas : ''}` +
       '\n\nAll current data will be replaced. Your current state is auto-saved first.'
     )) return false

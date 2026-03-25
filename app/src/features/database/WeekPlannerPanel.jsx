@@ -36,8 +36,8 @@ export default function WeekPlannerPanel() {
 
   function handleAutoFillToday() {
     if (!todayDayName) { flash('Today is not a weekday.', 'err'); return }
-    const assignments = autoAssignDay(db.dbRecords, todayDayName, stopsPerDay, areaFilter)
-    if (!assignments.length) { flash('No unworked records available for today.', 'err'); return }
+    const { assignments, skippedNoCoords } = autoAssignDay(db.dbRecords, todayDayName, stopsPerDay, areaFilter)
+    if (!assignments.length) { flash('No unworked records available for today.' + (skippedNoCoords ? ` (${skippedNoCoords} missing coordinates)` : ''), 'err'); return }
     // Assign the day
     dbDispatch({ type: 'WEEK_ASSIGN', assignments })
     // Load straight to canvass
@@ -64,24 +64,27 @@ export default function WeekPlannerPanel() {
       cDispatch({ type: 'ADD_MANY', stops: newStops })
       dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
     }
-    flash(`${assignments.length} stops assigned to ${todayDayName} and loaded to canvass.`, 'ok')
+    const skipMsg = skippedNoCoords ? ` (${skippedNoCoords} skipped — no coordinates)` : ''
+    flash(`${assignments.length} stops assigned to ${todayDayName} and loaded to canvass.${skipMsg}`, 'ok')
   }
 
   function handleAutoFillWeek() {
     if (!db.dbRecords.some(r => r.st === 'unworked' && !r.da)) {
       flash('No unworked records available to assign.', 'err'); return
     }
-    const assignments = autoFillWeek(db.dbRecords, db.dbClusters, stopsPerDay)
-    if (!assignments.length) { flash('Not enough data to auto-fill week.', 'err'); return }
+    const { assignments, skippedNoCoords } = autoFillWeek(db.dbRecords, stopsPerDay, areaFilter)
+    if (!assignments.length) { flash('Not enough data to auto-fill week.' + (skippedNoCoords ? ` (${skippedNoCoords} missing coordinates)` : ''), 'err'); return }
     dbDispatch({ type: 'WEEK_ASSIGN', assignments })
-    flash(`Week filled — ${assignments.length} stops assigned across ${DAYS.length} days.`, 'ok')
+    const skipMsg = skippedNoCoords ? ` (${skippedNoCoords} skipped — no coordinates)` : ''
+    flash(`Week filled — ${assignments.length} stops assigned across ${DAYS.length} days.${skipMsg}`, 'ok')
   }
 
   function handleAutoFillDay(day) {
-    const assignments = autoAssignDay(db.dbRecords, day, stopsPerDay, areaFilter)
-    if (!assignments.length) { flash(`No unworked records available for ${day}.`, 'err'); return }
+    const { assignments, skippedNoCoords } = autoAssignDay(db.dbRecords, day, stopsPerDay, areaFilter)
+    if (!assignments.length) { flash(`No unworked records available for ${day}.` + (skippedNoCoords ? ` (${skippedNoCoords} missing coordinates)` : ''), 'err'); return }
     dbDispatch({ type: 'WEEK_ASSIGN', assignments })
-    flash(`${assignments.length} stops assigned to ${day}.`, 'ok')
+    const skipMsg = skippedNoCoords ? ` (${skippedNoCoords} skipped — no coordinates)` : ''
+    flash(`${assignments.length} stops assigned to ${day}.${skipMsg}`, 'ok')
   }
 
   function handleClearDay(day) {
@@ -106,7 +109,9 @@ export default function WeekPlannerPanel() {
     const existingNames = new Set(canvass.map(c => c.name.toLowerCase()))
     const newStops = []
     const dbUpdates = []
+    let skippedStatus = 0
     stops.forEach(r => {
+      if (r.st !== 'unworked') { skippedStatus++; return }
       if (existingNames.has((r.n || '').toLowerCase())) return
       const now = new Date().toISOString()
       const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
@@ -121,10 +126,11 @@ export default function WeekPlannerPanel() {
       })
       dbUpdates.push(r.id)
     })
-    if (!newStops.length) { flash(`All ${day} stops already in canvass.`, 'err'); return }
+    if (!newStops.length) { flash(`All ${day} stops already in canvass.` + (skippedStatus ? ` (${skippedStatus} already canvassed)` : ''), 'err'); return }
     cDispatch({ type: 'ADD_MANY', stops: newStops })
     dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
-    flash(`${newStops.length} stops from ${day} loaded to canvass.`, 'ok')
+    const skipMsg = skippedStatus ? ` (${skippedStatus} skipped — already canvassed)` : ''
+    flash(`${newStops.length} stops from ${day} loaded to canvass.${skipMsg}`, 'ok')
   }
 
   if (!db.dbRecords.length) {
@@ -167,9 +173,9 @@ export default function WeekPlannerPanel() {
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>{day}</span>
                 <span style={{ fontSize: '12px', color: 'var(--text2)', marginLeft: '8px' }}>
                   {stops.length} stop{stops.length !== 1 ? 's' : ''}
-                  {stops.filter(r => r.pr === 'Hot').length > 0 &&
+                  {stops.filter(r => r.pr === 'Hot' || r.pr === 'Fire').length > 0 &&
                     <span style={{ color: 'var(--red-text)', marginLeft: '6px' }}>
-                      {stops.filter(r => r.pr === 'Hot').length} hot
+                      {stops.filter(r => r.pr === 'Hot' || r.pr === 'Fire').length} hot
                     </span>
                   }
                 </span>
@@ -187,7 +193,7 @@ export default function WeekPlannerPanel() {
               <div style={{ borderTop: '0.5px solid var(--border)' }}>
                 {stops.length === 0 ? (
                   <div style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--text2)' }}>
-                    No stops assigned — click Auto-fill or assign stops from Browse/Zones.
+                    No stops assigned — click Auto-fill or assign stops from Browse.
                   </div>
                 ) : stops.sort((a, b) => b.sc - a.sc).map(r => (
                   <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderBottom: '0.5px solid var(--border)', fontSize: '13px' }}>

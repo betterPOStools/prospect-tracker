@@ -175,6 +175,17 @@ export default function RouteTab() {
     )
   }
 
+  function getGPS() {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
+      )
+    })
+  }
+
   const optimizeRoute = useCallback(async () => {
     const withAddr = stops.filter(s => s.addr)
     if (withAddr.length < 2) { flash('Need at least 2 stops with addresses.', 'err'); return }
@@ -182,6 +193,11 @@ export default function RouteTab() {
 
     setOptimizing(true)
     try {
+      // Step 0: Get current GPS position for route starting point
+      setOptStatus('Getting your location…')
+      const home = await getGPS()
+      if (!home) flash('Could not get location — route won\'t be anchored to your position.', 'err')
+
       // Step 1: Geocode stops that don't have lat/lng yet
       const geocoded = []  // { stop, lat, lng }
       const skipped = []
@@ -213,13 +229,19 @@ export default function RouteTab() {
         lng: String(g.lng),
       }))
 
+      // Inject GPS as starting point so RouteXL optimizes from our position
+      if (home) {
+        locations.unshift({ address: '__home__', lat: String(home.lat), lng: String(home.lng) })
+      }
+
       const result = await callRouteXL(rxlUser, rxlPass, locations)
       if (!result.route) { flash('RouteXL returned no route.', 'err'); setOptimizing(false); setOptStatus(''); return }
 
-      // Step 3: Map optimized order back to stop IDs (RouteXL echoes our ID in `name`)
+      // Step 3: Map optimized order back to stop IDs, strip __home__ waypoint
       const optimizedIds = Object.keys(result.route)
         .sort((a, b) => Number(a) - Number(b))
         .map(k => result.route[k].name)
+        .filter(name => name !== '__home__')
 
       // Append skipped + no-address stops at end
       const optimizedSet = new Set(optimizedIds)

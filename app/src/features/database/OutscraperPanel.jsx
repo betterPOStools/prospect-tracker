@@ -349,7 +349,7 @@ function QueueView({ os }) {
       db.dbBlocklist,
       db.dbAreas,
     )
-    dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+    dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
     os.markImported(task.taskId, { added: result.added, updated: result.updated, dupes: result.dupes })
     setMsg({ text: `"${task.city}, ${task.state}" imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped.`, type: 'ok' })
   }, [db, dispatch, takeSnapshot, os]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -382,7 +382,7 @@ function QueueView({ os }) {
         db.dbBlocklist,
         db.dbAreas,
       )
-      dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+      dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
       os.markImported(task.taskId, { added: result.added, updated: result.updated, dupes: result.dupes })
       setMsg({ text: `"${task.city}, ${task.state}" fetched & imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped.`, type: 'ok' })
     } catch (e) {
@@ -440,7 +440,7 @@ function QueueView({ os }) {
 
         takeSnapshot('pre-import')
         const result = processOutscraperRows(resultData, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
-        dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+        dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
         totalAdded += result.added; totalUpdated += result.updated; totalDupes += result.dupes
 
         // Mark as imported in Supabase

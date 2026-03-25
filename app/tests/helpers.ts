@@ -3,7 +3,7 @@ import { type Page } from '@playwright/test'
 // ── Storage keys ──────────────────────────────────────────────────────────────
 
 export const LS_KEYS = [
-  'vs_p3','vs_c1','vs_db','vs_dbc',
+  'vs_p3','vs_c1','vs_db',
   'vs_db_areas','vs_db_block','vs_db_snapshots',
   'vs_drive_fid','vs_endday','vs_theme',
 ]
@@ -107,7 +107,8 @@ export function makeDbRecord(overrides: Record<string, unknown> = {}) {
     sc: 90,
     pr: 'Hot',
     st: 'unworked',
-    zo: 'Zone-1',
+    lt: 33.6891 + Math.random() * 0.02,
+    lg: -78.8867 + Math.random() * 0.02,
     ar: 'Myrtle Beach',
     da: '',
     cn: 'Jane Manager',
@@ -117,13 +118,10 @@ export function makeDbRecord(overrides: Record<string, unknown> = {}) {
   }
 }
 
-export async function seedDatabase(page: Page, records: Record<string, unknown>[], clusters?: Record<string, unknown>[]) {
-  const ids = records.map((r) => r.id)
-  const defaultClusters = clusters || [{ id: 'zone-1', nm: 'Zone 1', cnt: records.length, mb: ids }]
-  await page.evaluate(({ records, clusters }) => {
+export async function seedDatabase(page: Page, records: Record<string, unknown>[]) {
+  await page.evaluate(({ records }) => {
     localStorage.setItem('vs_db',       JSON.stringify(records))
-    localStorage.setItem('vs_dbc',      JSON.stringify(clusters))
     localStorage.setItem('vs_db_areas', JSON.stringify([]))
     localStorage.setItem('vs_db_block', JSON.stringify([]))
-  }, { records, clusters: defaultClusters })
+  }, { records })
 }

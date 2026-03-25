@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Sales prospect tracker for Value Systems (a POS company). Aaron uses this to manage restaurant canvassing — importing Outscraper data, scoring/clustering prospects, scheduling canvass routes, and tracking leads.
+Sales prospect tracker for Value Systems (a POS company). Aaron uses this to manage restaurant canvassing — importing Outscraper data, scoring prospects, scheduling canvass routes, and tracking leads.
 
 ## Build & Test
 
@@ -13,7 +13,7 @@ cd app
 npm run dev         # Dev server on localhost:5173
 npm run build       # Vite build — must pass before committing
 npm run lint        # ESLint
-npx playwright test # E2E tests (~228 tests, Chromium, ~2min)
+npx playwright test # E2E tests (~220 tests, Chromium, ~3.5min)
 ```
 
 Build stamp: `app/src/App.jsx` line 12 — update when making changes.
@@ -34,7 +34,7 @@ src/
     storage.js         — localStorage keys & persistence. DO NOT MODIFY lightly.
     outscraper.js      — Outscraper API (submit, poll, processOutscraperRows)
     scoring.js         — calcScore(), calcPriority(), PRIORITIES, PRIORITY_EMOJI
-    clustering.js      — buildClusters() — geographic ZIP clustering
+    clustering.js      — haversine() distance calculation
     blocklist.js       — isBlocklisted(), DEFAULT_BLOCKLIST (~90 chains)
     helpers.js         — uid(), POS_OPTIONS, hoursChip(), parseTime()
     kmzExport.js       — KMZ/KML map export
@@ -46,7 +46,7 @@ src/
     useSupabaseSync.js — Supabase real-time sync (debounced 1.5s, echo-window 2s)
     useTheme.js        — Light/dark toggle
   features/
-    database/          — DatabaseTab + sub-tabs: Browse, Zones, Week Planner, Outscraper, Blocklist, Snapshots
+    database/          — DatabaseTab + sub-tabs: Browse, Week Planner, Outscraper, Blocklist, Snapshots
     canvass/           — Canvass route management
     leads/             — My Leads (converted prospects)
     route/             — Route optimization
@@ -59,13 +59,13 @@ src/
 ### State & Sync
 
 **Contexts** (all in store.jsx):
-- `useDatabase()` → `{ dbRecords, dbClusters, dbAreas, dbBlocklist }`
+- `useDatabase()` → `{ dbRecords, dbAreas, dbBlocklist }`
 - `useProspects()` → leads array
 - `useCanvass()` → canvass stops array
 
 **Sync flow**: Startup loads File → Supabase → localStorage (newest per-field timestamp wins). On change: auto-save to localStorage (immediate) + File + Supabase (debounced 1.5s). Supabase realtime pushes to other devices.
 
-**Record field abbreviations** (compact for localStorage): `n` (name), `ty` (type), `ci` (city), `zi` (zip), `ph` (phone), `em` (email), `sc` (score), `pr` (priority), `ar` (area), `zo` (zone), `da` (day), `st` (status), `pi` (place_id), `_ts` (per-field timestamps).
+**Record field abbreviations** (compact for localStorage): `n` (name), `ty` (type), `ci` (city), `zi` (zip), `ph` (phone), `em` (email), `sc` (score), `pr` (priority), `ar` (area), `da` (day), `st` (status), `pi` (place_id), `lt` (lat), `lg` (lng), `_ts` (per-field timestamps).
 
 ### Outscraper Integration
 
@@ -96,7 +96,7 @@ Semantic: `--blue-bg/text`, `--green-bg/text`, `--red-bg/text`, `--yellow-bg/tex
 ```js
 import { processOutscraperRows } from '../../data/outscraper.js'
 const result = processOutscraperRows(rows, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
-dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
 ```
 
 ### Add a Database sub-tab

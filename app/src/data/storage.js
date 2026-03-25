@@ -3,7 +3,6 @@ const KEYS = {
   prospects:   'vs_p3',
   canvass:     'vs_c1',
   dbRecords:   'vs_db',
-  dbClusters:  'vs_dbc',
   dbAreas:     'vs_db_areas',
   dbBlocklist: 'vs_db_block',
   snapshots:   'vs_db_snapshots',
@@ -20,7 +19,6 @@ export function loadAll() {
     prospects:   parse(KEYS.prospects,   []),
     canvassStops: parse(KEYS.canvass,    []),
     dbRecords:   parse(KEYS.dbRecords,   []),
-    dbClusters:  parse(KEYS.dbClusters,  []),
     dbAreas:     parse(KEYS.dbAreas,     []),
     dbBlocklist: parse(KEYS.dbBlocklist, []),
   }
@@ -62,9 +60,8 @@ export function saveCanvass(canvassStops) {
   _prevCanvass = canvassStops
 }
 
-export function saveDb({ dbRecords, dbClusters, dbAreas, dbBlocklist }) {
+export function saveDb({ dbRecords, dbAreas, dbBlocklist }) {
   if (dbRecords   !== undefined) localStorage.setItem(KEYS.dbRecords,   JSON.stringify(dbRecords))
-  if (dbClusters  !== undefined) localStorage.setItem(KEYS.dbClusters,  JSON.stringify(dbClusters))
   if (dbAreas     !== undefined) localStorage.setItem(KEYS.dbAreas,     JSON.stringify(dbAreas))
   if (dbBlocklist !== undefined) localStorage.setItem(KEYS.dbBlocklist, JSON.stringify(dbBlocklist))
 }
@@ -83,7 +80,6 @@ export function loadFromFile(data) {
     prospects:   Array.isArray(data.prospects)   ? data.prospects   : [],
     canvass:     Array.isArray(data.canvass)      ? data.canvass     : [],
     dbRecords:   Array.isArray(data.dbRecords)    ? data.dbRecords   : [],
-    dbClusters:  Array.isArray(data.dbClusters)   ? data.dbClusters  : [],
     dbAreas:     Array.isArray(data.dbAreas)      ? data.dbAreas     : [],
     dbBlocklist: Array.isArray(data.dbBlocklist)  ? data.dbBlocklist : [],
     savedAt:     data.savedAt || null,

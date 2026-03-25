@@ -184,10 +184,10 @@ test.describe('Browse panel', () => {
   // Default makeDbRecord → sc 85 (Hot).  Removing em drops 15 → 70 (Warm).
   // Removing em + cn + lowering rt to 3.5 → 50 (Cold).
   const records = () => [
-    makeDbRecord({ id: 'br-1', n: 'Hot Place', st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
-    makeDbRecord({ id: 'br-2', n: 'Warm Place', em: '', st: 'unworked', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
-    makeDbRecord({ id: 'br-3', n: 'Cold Place', em: '', cn: '', rt: 3.5, st: 'canvassed', zi: '29578', ar: 'North Myrtle Beach', zo: 'Zone-2' }),
-    makeDbRecord({ id: 'br-4', n: 'In Canvass Place', st: 'in_canvass', zi: '29577', ar: 'Myrtle Beach', zo: 'Zone-1' }),
+    makeDbRecord({ id: 'br-1', n: 'Hot Place', st: 'unworked', zi: '29577', ar: 'Myrtle Beach' }),
+    makeDbRecord({ id: 'br-2', n: 'Warm Place', em: '', st: 'unworked', zi: '29577', ar: 'Myrtle Beach' }),
+    makeDbRecord({ id: 'br-3', n: 'Cold Place', em: '', cn: '', rt: 3.5, st: 'canvassed', zi: '29578', ar: 'North Myrtle Beach' }),
+    makeDbRecord({ id: 'br-4', n: 'In Canvass Place', st: 'in_canvass', zi: '29577', ar: 'Myrtle Beach' }),
   ]
 
   test.beforeEach(async ({ page }) => {
@@ -344,53 +344,6 @@ test.describe('Browse panel', () => {
   })
 })
 
-// ── Zones Panel ───────────────────────────────────────────────────────────────
-
-test.describe('Zones panel', () => {
-  test.beforeEach(async ({ page }) => {
-    await seedDatabase(page, [
-      makeDbRecord({ id: 'z-1', n: 'Zone A Restaurant', zo: 'Zone-1', ar: 'Myrtle Beach' }),
-      makeDbRecord({ id: 'z-2', n: 'Zone B Restaurant', zo: 'Zone-2', ar: 'North Myrtle Beach' }),
-    ], [
-      { id: 'zone-1', nm: 'Zone 1', cnt: 1, mb: ['z-1'] },
-      { id: 'zone-2', nm: 'Zone 2', cnt: 1, mb: ['z-2'] },
-    ])
-    await page.reload()
-    await goTab(page, 'Database')
-    await page.getByRole('button', { name: 'Zones' }).click()
-  })
-
-  test('shows zone cards', async ({ page }) => {
-    await expect(page.getByText('Zone 1')).toBeVisible()
-    await expect(page.getByText('Zone 2')).toBeVisible()
-  })
-
-  test('area filter dropdown works', async ({ page }) => {
-    await page.locator('select').filter({ hasText: 'All areas' }).selectOption('Myrtle Beach')
-    await expect(page.getByText('Zone 1')).toBeVisible()
-  })
-
-  test('Rename button opens prompt', async ({ page }) => {
-    page.once('dialog', async d => {
-      expect(d.message()).toContain('Rename zone')
-      await d.dismiss()
-    })
-    await page.getByRole('button', { name: 'Rename' }).first().click()
-  })
-
-  test('Load to canvass button loads zone stops to canvass', async ({ page }) => {
-    await page.getByRole('button', { name: 'Load to canvass' }).first().click()
-    await expect(page.getByText(/stops from .* loaded to canvass/)).toBeVisible()
-  })
-
-  test('Assign button opens prompt', async ({ page }) => {
-    page.once('dialog', async d => {
-      expect(d.message()).toContain('Assign this zone')
-      await d.dismiss()
-    })
-    await page.getByRole('button', { name: 'Assign' }).first().click()
-  })
-})
 
 // ── Planner Panel ────────────────────────────────────────────────────────
 
@@ -491,12 +444,9 @@ test.describe('Database subtab navigation', () => {
     await goTab(page, 'Database')
   })
 
-  test('Browse → Zones → Planner navigation', async ({ page }) => {
+  test('Browse → Planner navigation', async ({ page }) => {
     await page.getByRole('button', { name: 'Browse' }).click()
     await expect(page.getByText('Nav Test Restaurant')).toBeVisible()
-
-    await page.getByRole('button', { name: 'Zones' }).click()
-    await expect(page.getByText('Zone 1')).toBeVisible()
 
     await page.getByRole('button', { name: 'Planner' }).click()
     await expect(page.getByText('Monday')).toBeVisible()
@@ -512,11 +462,6 @@ test.describe('Empty states', () => {
 
   test('Browse shows empty state with no records', async ({ page }) => {
     await expect(page.getByText(/No records yet/)).toBeVisible()
-  })
-
-  test('Zones shows empty state with no zones', async ({ page }) => {
-    await page.getByRole('button', { name: 'Zones' }).click()
-    await expect(page.getByText(/No zones yet/)).toBeVisible()
   })
 
   test('Planner shows empty state with no records', async ({ page }) => {

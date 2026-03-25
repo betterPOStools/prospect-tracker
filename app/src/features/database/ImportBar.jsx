@@ -43,7 +43,7 @@ export default function ImportBar({ onImported }) {
       if (!rows.length) { setMsg({ text: 'No data found in file.', type: 'err' }); return }
 
       const result = processOutscraperRows(rows, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
-      dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+      dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
       setMsg({ text: `"${area}" imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped. ${result.allRecords.length} total records.`, type: 'ok' })
       onImported?.()
     } catch (err) {

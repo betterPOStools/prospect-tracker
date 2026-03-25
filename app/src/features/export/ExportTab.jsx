@@ -106,7 +106,6 @@ function ExportPanel() {
       prospects,
       canvass,
       dbRecords:   db.dbRecords,
-      dbClusters:  db.dbClusters,
       dbAreas:     db.dbAreas,
       dbBlocklist: db.dbBlocklist,
       snapshots:   loadSnapshots(),
@@ -121,7 +120,7 @@ function ExportPanel() {
       Name: r.n, Address: r.a, City: r.ci, ZIP: r.zi, Phone: r.ph,
       Website: r.web, Email: r.em, Type: r.ty,
       Rating: r.rt, Reviews: r.rv, Score: r.sc, Priority: r.pr,
-      Status: r.st, Zone: r.zo, Area: r.ar, Day: r.da,
+      Status: r.st, Area: r.ar, Day: r.da,
       ContactName: r.cn, ContactTitle: r.ct, Notes: r.nt,
     }))
     downloadCSV(rows, `db-records-${dateTag()}.csv`)
@@ -172,7 +171,7 @@ function ExportPanel() {
       }
       if (data.dbRecords !== undefined) {
         dbDispatch({ type: 'RESTORE_SNAPSHOT',
-          dbRecords: data.dbRecords, dbClusters: data.dbClusters,
+          dbRecords: data.dbRecords,
           dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
       }
       if (data.prospects !== undefined) pDispatch({ type: '_REPLACE_ALL', items: data.prospects })
@@ -240,7 +239,7 @@ function ExportPanel() {
 
       <Section
         title="Full Backup (JSON)"
-        sub="Export everything — leads, canvass, database, zones, blocklist. Use this for git-based sync: export → commit → push.">
+        sub="Export everything — leads, canvass, database, blocklist. Use this for git-based sync: export → commit → push.">
         <Button size="sm" variant="primary" onClick={exportFullJSON}>Export Backup JSON</Button>
         <label style={{
           display: 'inline-flex', alignItems: 'center', cursor: 'pointer',

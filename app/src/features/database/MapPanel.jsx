@@ -109,16 +109,6 @@ function RecordPopup({ r, colors }) {
   )
 }
 
-function ClusterPopup({ c }) {
-  return (
-    <div style={popupStyle}>
-      <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '4px' }}>{c.nm}</div>
-      <div>{c.cnt} records · {c.hot} hot</div>
-      <div>ZIP: {c.zi}</div>
-    </div>
-  )
-}
-
 function StopPopup({ s, idx }) {
   return (
     <div style={popupStyle}>
@@ -144,7 +134,6 @@ export default function MapPanel() {
   useLeafletTheme()
 
   const [showRecords,  setShowRecords]  = useState(true)
-  const [showClusters, setShowClusters] = useState(false)
   const [showRoute,    setShowRoute]    = useState(true)
   const [filterPri,    setFilterPri]    = useState('all')
   const [filterSt,     setFilterSt]     = useState('all')
@@ -161,21 +150,18 @@ export default function MapPanel() {
       (filterArea === 'all' || r.ar === filterArea)
     ), [db.dbRecords, filterPri, filterSt, filterArea])
 
-  const geoClusters = useMemo(() => db.dbClusters.filter(c => c.lt && c.lg), [db.dbClusters])
-
   const todayStr = new Date().toLocaleDateString()
   const todayStops = useMemo(() => stops.filter(s => s.date === todayStr && s.lat && s.lng), [stops, todayStr])
 
   const bounds = useMemo(() => {
     const pts = []
     if (showRecords)  geoRecords.forEach(r => pts.push([r.lt, r.lg]))
-    if (showClusters) geoClusters.forEach(c => pts.push([c.lt, c.lg]))
     if (showRoute)    todayStops.forEach(s => pts.push([s.lat, s.lng]))
     if (!pts.length) return null
     if (pts.length === 1) return [pts[0], [pts[0][0] + 0.01, pts[0][1] + 0.01]]
     const lats = pts.map(p => p[0]), lngs = pts.map(p => p[1])
     return [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]]
-  }, [geoRecords, geoClusters, todayStops, showRecords, showClusters, showRoute])
+  }, [geoRecords, todayStops, showRecords, showRoute])
 
   if (!db.dbRecords.length) {
     return <div style={{ textAlign: 'center', padding: '36px', color: 'var(--text2)', fontSize: '13px' }}>No records yet — import Outscraper data to see the map.</div>
@@ -191,10 +177,6 @@ export default function MapPanel() {
         <label style={checkLabel}>
           <input type="checkbox" checked={showRecords} onChange={e => setShowRecords(e.target.checked)} />
           Records ({geoRecords.length})
-        </label>
-        <label style={checkLabel}>
-          <input type="checkbox" checked={showClusters} onChange={e => setShowClusters(e.target.checked)} />
-          Zones ({geoClusters.length})
         </label>
         <label style={checkLabel}>
           <input type="checkbox" checked={showRoute} onChange={e => setShowRoute(e.target.checked)} />
@@ -245,22 +227,7 @@ export default function MapPanel() {
             </CircleMarker>
           ))}
 
-          {/* Layer 2: Cluster Centers */}
-          {showClusters && geoClusters.map(c => (
-            <CircleMarker
-              key={c.id}
-              center={[c.lt, c.lg]}
-              radius={Math.max(14, Math.min(28, c.cnt / 2))}
-              fillColor={colors.accent}
-              color={colors.border}
-              fillOpacity={0.2}
-              weight={2}
-            >
-              <Popup><ClusterPopup c={c} /></Popup>
-            </CircleMarker>
-          ))}
-
-          {/* Layer 3: Today's Route */}
+          {/* Layer 2: Today's Route */}
           {showRoute && todayStops.length > 0 && (
             <>
               <Polyline

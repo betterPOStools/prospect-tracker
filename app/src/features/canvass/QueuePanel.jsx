@@ -18,6 +18,7 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
 
   const [search, setSearch] = useState('')
   const [filterGroup, setFilterGroup] = useState('all')
+  const [fillArea, setFillArea] = useState('all')
   const [showEndDay, setShowEndDay] = useState(false)
   const [locating, setLocating] = useState(false)
 
@@ -60,7 +61,7 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
 
   function handleFillNearMe() {
     if (!navigator.geolocation) { flash('Geolocation not supported by this browser.', 'err'); return }
-    if (!db.dbClusters.length) { flash('No zones available — import data first.', 'err'); return }
+    if (!db.dbRecords.length) { flash('No records — import data first.', 'err'); return }
 
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
@@ -69,59 +70,65 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
         const userLng = pos.coords.longitude
         const todayISO = new Date().toISOString().slice(0, 10)
         const existingNames = new Set(canvassStops.map(c => c.name.toLowerCase()))
-        const recordById = new Map(db.dbRecords.map(r => [r.id, r]))
 
-        // Sort zones by distance from user
-        const sorted = db.dbClusters
-          .map(c => ({ ...c, dist: haversine(userLat, userLng, c.lt, c.lg) }))
+        // Pure geo — filter all records, sort by distance from GPS
+        let noCoords = 0
+        const available = db.dbRecords.filter(r => {
+          if (r.st !== 'unworked') return false
+          if (r.da) return false                                    // don't grab day-assigned records
+          if (r.co && r.co > todayISO) return false                 // cooldown
+          if (existingNames.has((r.n || '').toLowerCase())) return false
+          if (fillArea !== 'all' && r.ar !== fillArea) return false  // area filter
+          if (!r.lt || !r.lg) { noCoords++; return false }
+          return true
+        })
+
+        const sorted = available
+          .map(r => ({ r, dist: haversine(userLat, userLng, r.lt, r.lg) }))
           .sort((a, b) => a.dist - b.dist)
 
+        const take = sorted.slice(0, fillCount)
         const newStops = []
         const dbUpdates = []
-        let usedZoneName = ''
-        let usedDist = 0
 
-        for (const zone of sorted) {
-          if (newStops.length >= fillCount) break
-
-          const available = (zone.mb || [])
-            .map(id => recordById.get(id))
-            .filter(r => r && r.st === 'unworked' && (!r.co || r.co <= todayISO) && !existingNames.has((r.n || '').toLowerCase()))
-            .sort((a, b) => b.sc - a.sc)
-
-          if (!available.length) continue
-          if (!usedZoneName) { usedZoneName = zone.nm; usedDist = zone.dist }
-
-          const take = available.slice(0, fillCount - newStops.length)
-          take.forEach(r => {
-            const now = new Date().toISOString()
-            const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
-            newStops.push({
-              id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
-              notes: '', website: r.web, menu: r.mn, email: r.em,
-              ...parseWorkingHours(r.hr),
-              status: 'Not visited yet',
-              date: new Date().toLocaleDateString(),
-              added: now, fromDb: r.id, score: r.sc, priority: r.pr,
-              history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
-            })
-            dbUpdates.push(r.id)
-            existingNames.add((r.n || '').toLowerCase())
+        take.forEach(({ r, dist }) => {
+          const now = new Date().toISOString()
+          const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
+          newStops.push({
+            id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
+            notes: '', website: r.web, menu: r.mn, email: r.em,
+            ...parseWorkingHours(r.hr),
+            status: 'Not visited yet',
+            date: new Date().toLocaleDateString(),
+            added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+            history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
           })
-        }
+          dbUpdates.push(r.id)
+        })
 
         setLocating(false)
-        if (!newStops.length) { flash('No unworked stops nearby.', 'err'); return }
+        if (!newStops.length) {
+          const reasons = []
+          if (noCoords > 0) reasons.push(`${noCoords} missing coordinates`)
+          if (!available.length && !noCoords) reasons.push('no unworked records' + (fillArea !== 'all' ? ` in ${fillArea}` : ''))
+          flash('No stops found' + (reasons.length ? ' — ' + reasons.join(', ') : '') + '.', 'err')
+          return
+        }
 
         cDispatch({ type: 'ADD_MANY', stops: newStops })
         dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
-        flash(`Loaded ${newStops.length} stops from ${usedZoneName} (${usedDist.toFixed(1)} mi away).`, 'ok')
+
+        const farthest = sorted[Math.min(fillCount - 1, sorted.length - 1)]
+        const distLabel = farthest ? ` (${farthest.dist.toFixed(1)} mi radius)` : ''
+        const shortMsg = newStops.length < fillCount && noCoords > 0 ? ` · ${noCoords} skipped (no coords)` : ''
+        flash(`Loaded ${newStops.length} stops${distLabel}${shortMsg}.`, 'ok')
       },
-      () => {
+      err => {
         setLocating(false)
-        flash('Location unavailable — enable GPS and try again.', 'err')
+        const reason = err.code === 1 ? 'permission denied' : err.code === 3 ? 'timed out' : 'unavailable'
+        flash(`Location ${reason} — enable GPS and try again.`, 'err')
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     )
   }
 
@@ -155,6 +162,13 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
           onChange={e => setFillInput(e.target.value)}
           onBlur={handleFillBlur}
           style={{ width: '50px', height: '28px', fontSize: '12px', textAlign: 'center' }} />
+        {db.dbAreas.length > 1 && (
+          <select value={fillArea} onChange={e => setFillArea(e.target.value)}
+            style={{ height: '28px', fontSize: '12px', minWidth: '100px' }}>
+            <option value="all">All areas</option>
+            {db.dbAreas.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        )}
         <Button size="sm" onClick={handleFillNearMe} disabled={locating}>
           {locating ? 'Locating…' : 'Fill Near Me'}
         </Button>
