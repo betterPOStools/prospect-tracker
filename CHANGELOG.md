@@ -4,6 +4,7 @@
 - Fix Outscraper webhook: Edge Function now fetches results from `results_location` instead of expecting inline data
 - App-side fallback: if Edge Function has no API key, app fetches via local key on webhook check
 - Add CHANGELOG.md and BACKLOG.md tracking to every commit
+- Add `docs/` folder with API docs (Outscraper, RouteXL, Nominatim)
 - Bump build stamp to v0.8.1
 
 ## v0.8.0
