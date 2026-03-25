@@ -419,7 +419,19 @@ function QueueView({ os }) {
 
       let totalAdded = 0, totalUpdated = 0, totalDupes = 0
       for (const row of rows) {
-        const resultData = row.result_data || []
+        let resultData = row.result_data || []
+
+        // If Edge Function couldn't fetch results (no API key set), try from the app
+        if (!resultData.length && row.results_location && os.apiKey) {
+          try {
+            const fetched = await pollTask(os.apiKey, row.task_id)
+            if (fetched.data?.length) {
+              resultData = fetched.data
+              if (resultData.length > 0 && Array.isArray(resultData[0]) && !resultData[0]?.name) resultData = resultData.flat()
+            }
+          } catch (e) { console.warn('[Webhook] fallback fetch failed:', e.message) }
+        }
+
         if (!resultData.length) continue
 
         // Parse area from title ("Columbia, SC — 2026-03-24")
