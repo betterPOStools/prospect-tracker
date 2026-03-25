@@ -11,7 +11,7 @@ import DemoteModal from './DemoteModal.jsx'
 
 const EMPTY_FORM = {
   name: '', status: 'Open', addr: '', phone: '', email: '',
-  current: '', owner: '', website: '', menu: '', notes: '',
+  current: '', owner: '', website: '', menu: '', notes: '', followUp: '',
 }
 
 export default function LeadsTab() {
@@ -39,6 +39,7 @@ export default function LeadsTab() {
       website: form.website.trim(),
       menu:    form.menu.trim(),
       notes:   form.notes.trim(),
+      followUp: form.followUp || '',
       status:  form.status || 'Open',
       added:   new Date().toLocaleDateString(),
     }

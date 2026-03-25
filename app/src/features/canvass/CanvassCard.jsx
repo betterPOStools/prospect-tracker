@@ -112,6 +112,7 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
       closeTime: form.closeTime       || '',
       website:   form.website?.trim() || '',
       menu:      form.menu?.trim()    || '',
+      followUp:  form.followUp        || '',
     }
     if (form._lat) { updated.lat = form._lat; updated.lng = form._lng; delete updated._lat; delete updated._lng }
     // Append notes field text as a new log entry inline
@@ -174,6 +175,10 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
               <div className="field-label">Closes</div>
               <input type="time" value={form.closeTime || ''} onChange={e => set('closeTime', e.target.value)} />
             </div>
+            <div style={{ flex: 1 }}>
+              <div className="field-label">Follow up</div>
+              <input type="date" value={form.followUp || ''} onChange={e => set('followUp', e.target.value)} />
+            </div>
           </div>
           <input type="url" value={form.website || ''} placeholder="Website (https://…)"   onChange={e => set('website', e.target.value)} />
           <input type="url" value={form.menu    || ''} placeholder="Menu link (https://…)" onChange={e => set('menu',    e.target.value)} />
@@ -185,6 +190,12 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
       </div>
     )
   }
+
+  const todayISO = new Date().toISOString().slice(0, 10)
+  const followUpOverdue = c.followUp && c.followUp < todayISO
+  const followUpDays = c.followUp ? Math.floor((new Date(c.followUp) - new Date(todayISO)) / 86400000) : null
+  const lastContactDays = c.lastContact ? Math.floor((Date.now() - new Date(c.lastContact)) / 86400000) : null
+  const lastContactLabel = lastContactDays === 0 ? 'today' : lastContactDays === 1 ? 'yesterday' : lastContactDays != null ? lastContactDays + 'd ago' : null
 
   // Show last 3 notes inline, rest behind "View all"
   const visibleNotes = showAllNotes ? notesLog : notesLog.slice(-3)
@@ -202,6 +213,16 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
             <div className={styles.dateLine}>
               {c.date}{ageLabel && <> · <span className={styles.age}>{ageLabel}</span></>}
               {overdue && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 600, color: 'var(--red-text)', background: 'var(--red-bg)', padding: '1px 6px', borderRadius: '10px' }}>Overdue</span>}
+            </div>
+          )}
+          {(c.followUp || lastContactLabel) && (
+            <div style={{ fontSize: '11px', color: 'var(--text3)', display: 'flex', gap: '8px' }}>
+              {c.followUp && (
+                <span style={{ color: followUpOverdue ? 'var(--red-text)' : 'var(--text3)' }}>
+                  Follow up: {c.followUp}{followUpOverdue && ` (${Math.abs(followUpDays)}d overdue)`}{followUpDays === 0 && ' (today)'}{followUpDays > 0 && ` (in ${followUpDays}d)`}
+                </span>
+              )}
+              {lastContactLabel && <span>Last contact: {lastContactLabel}</span>}
             </div>
           )}
         </div>

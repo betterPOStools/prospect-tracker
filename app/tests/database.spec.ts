@@ -314,20 +314,20 @@ test.describe('Browse panel', () => {
 
   test('Assign button with no selection shows error', async ({ page }) => {
     await page.locator('select').filter({ hasText: 'Assign to day' }).selectOption('Monday')
-    await page.getByRole('button', { name: 'Assign' }).click()
+    await page.getByRole('button', { name: 'Assign', exact: true }).click()
     await expect(page.getByText(/Select records first/)).toBeVisible()
   })
 
   test('Assign button with no day selected shows error', async ({ page }) => {
     await page.getByRole('button', { name: 'Select all filtered' }).click()
-    await page.getByRole('button', { name: 'Assign' }).click()
+    await page.getByRole('button', { name: 'Assign', exact: true }).click()
     await expect(page.getByText(/Pick a day first/)).toBeVisible()
   })
 
   test('Assign selected records to a day', async ({ page }) => {
     await page.getByRole('button', { name: 'Select all filtered' }).click()
     await page.locator('select').filter({ hasText: 'Assign to day' }).selectOption('Tuesday')
-    await page.getByRole('button', { name: 'Assign' }).click()
+    await page.getByRole('button', { name: 'Assign', exact: true }).click()
     await expect(page.getByText(/stops assigned to Tuesday/)).toBeVisible()
   })
 

@@ -7,7 +7,7 @@ import Button from '../../components/Button.jsx'
 
 const EMPTY = {
   name: '', status: 'Not visited yet', addr: '', phone: '', notes: '',
-  openTime: '', closeTime: '', website: '', menu: '',
+  openTime: '', closeTime: '', website: '', menu: '', followUp: '',
 }
 
 export default function AddStopPanel({ onAdded }) {
@@ -32,6 +32,7 @@ export default function AddStopPanel({ onAdded }) {
       closeTime: form.closeTime,
       website:   form.website.trim(),
       menu:      form.menu.trim(),
+      followUp:  form.followUp || '',
       date:      new Date().toLocaleDateString(),
       added:     now,
       history:   [],
@@ -68,6 +69,10 @@ export default function AddStopPanel({ onAdded }) {
         <div style={{ flex: 1, minWidth: '140px' }}>
           <div className="field-label">Closes</div>
           <input type="time" value={form.closeTime} onChange={e => set('closeTime', e.target.value)} />
+        </div>
+        <div style={{ flex: 1, minWidth: '140px' }}>
+          <div className="field-label">Follow up</div>
+          <input type="date" value={form.followUp} onChange={e => set('followUp', e.target.value)} />
         </div>
         <div style={{ flex: 2, minWidth: '180px' }}>
           <div className="field-label">Website</div>

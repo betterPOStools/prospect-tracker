@@ -28,8 +28,11 @@ export default function CanvassTab() {
   const { msg, flash } = useFlashMessage()
 
   const todayStr    = new Date().toLocaleDateString()
+  const todayISO    = new Date().toISOString().slice(0, 10)
+  const followupAll = canvassStops.filter(c => c.date !== todayStr && FOLLOWUP_STATUSES.includes(c.status))
   const queueCnt    = canvassStops.filter(c => CANVASS_ACTIVE.includes(c.status)).length
-  const followupCnt = canvassStops.filter(c => c.date !== todayStr && FOLLOWUP_STATUSES.includes(c.status)).length
+  const followupCnt = followupAll.length
+  const overdueCnt  = followupAll.filter(c => c.followUp && c.followUp < todayISO).length
   const completedCnt = canvassStops.filter(c => COMPLETED_STATUSES.includes(c.status) || REMOVAL_STATUSES.includes(c.status)).length
 
   const stats = [
@@ -40,7 +43,7 @@ export default function CanvassTab() {
 
   function getBadge(id) {
     if (id === 'queue')     return queueCnt    || null
-    if (id === 'followup')  return followupCnt || null
+    if (id === 'followup')  return overdueCnt ? `${overdueCnt}!` : (followupCnt || null)
     if (id === 'completed') return completedCnt || null
     return null
   }

@@ -33,12 +33,18 @@ export default function LeadCard({ prospect, onDemote }) {
   function set(field, val) { setForm(f => ({ ...f, [field]: val })) }
 
   function handleStatusChange(e) {
-    dispatch({ type: 'UPDATE', prospect: { ...p, status: e.target.value } })
+    dispatch({ type: 'UPDATE', prospect: { ...p, status: e.target.value, lastContact: new Date().toISOString() } })
   }
 
   function handleDelete() {
     if (confirm(`Remove ${p.name}?`)) dispatch({ type: 'DELETE', id: p.id })
   }
+
+  const todayISO = new Date().toISOString().slice(0, 10)
+  const followUpOverdue = p.followUp && p.followUp < todayISO
+  const followUpDays = p.followUp ? Math.floor((new Date(p.followUp) - new Date(todayISO)) / 86400000) : null
+  const lastContactDays = p.lastContact ? Math.floor((Date.now() - new Date(p.lastContact)) / 86400000) : null
+  const lastContactLabel = lastContactDays === 0 ? 'today' : lastContactDays === 1 ? 'yesterday' : lastContactDays != null ? lastContactDays + 'd ago' : null
 
   const inQueue = canvass.some(c => c.fromLead === p.id && CANVASS_ACTIVE.includes(c.status))
 
@@ -89,6 +95,12 @@ export default function LeadCard({ prospect, onDemote }) {
           <input type="url"  value={form.website || ''} placeholder="Website (https://…)"  onChange={e => set('website', e.target.value)} />
           <input type="url"  value={form.menu    || ''} placeholder="Menu link (https://…)" onChange={e => set('menu',    e.target.value)} />
           <input type="text" value={form.notes   || ''} placeholder="Notes"                onChange={e => set('notes',   e.target.value)} />
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ flex: 1 }}>
+              <div className="field-label">Follow up</div>
+              <input type="date" value={form.followUp || ''} onChange={e => set('followUp', e.target.value)} />
+            </div>
+          </div>
           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
             <Button variant="primary" size="sm" onClick={saveEdit}>Save</Button>
             <Button size="sm" onClick={cancelEdit}>Cancel</Button>
@@ -117,6 +129,16 @@ export default function LeadCard({ prospect, onDemote }) {
       {p.website && <div className={styles.detail}>🌐 <a href={p.website} target="_blank" rel="noreferrer">{p.website}</a></div>}
       {p.menu    && <div className={styles.detail}>🍽 <a href={p.menu} target="_blank" rel="noreferrer">View menu</a></div>}
       {p.notes   && <div className={`${styles.detail} ${styles.italics}`}>{p.notes}</div>}
+      {(p.followUp || lastContactLabel) && (
+        <div style={{ fontSize: '11px', color: 'var(--text3)', display: 'flex', gap: '8px', marginTop: '4px' }}>
+          {p.followUp && (
+            <span style={{ color: followUpOverdue ? 'var(--red-text)' : 'var(--text3)' }}>
+              Follow up: {p.followUp}{followUpOverdue && ` (${Math.abs(followUpDays)}d overdue)`}{followUpDays === 0 && ' (today)'}{followUpDays > 0 && ` (in ${followUpDays}d)`}
+            </span>
+          )}
+          {lastContactLabel && <span>Last contact: {lastContactLabel}</span>}
+        </div>
+      )}
 
       <div className={styles.actions}>
         {p.phone && <a href={`tel:${p.phone}`} className={`${btnStyles.btn} ${btnStyles.sm}`}>Call</a>}

@@ -13,7 +13,6 @@
 
 ## Ideas
 - Email outreach via Gmail — one-tap pitch email from lead cards
-- Follow-up date field on leads/canvass stops, overdue floats to top
 - Copper CRM direct API push (eliminate CSV export step)
 - Coverage tracker — map/chart showing % of each zone worked
 - Demo POS menu extractor (separate project)

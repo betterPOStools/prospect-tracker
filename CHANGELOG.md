@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.0
+- Follow-up date field on canvass stops and leads — set via date picker in edit mode
+- Last contacted timestamp — auto-set on status change and note additions, shown as relative time on cards
+- Follow-up panel: status filter, overdue/today/upcoming/no-date stat summary, smart sort (overdue first)
+- Canvass tab badge shows overdue count with "!" indicator
+- Add stop form includes follow-up date field
+
 ## v0.8.2
 - Browse: area filter cascades into ZIP and zone dropdowns (only shows values for selected area)
 - Browse: "Reassign areas" button — derives area from city field + rebuilds zones with auto-assignment

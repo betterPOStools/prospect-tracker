@@ -66,13 +66,14 @@ function canvassReducer(state, action) {
       break
     case 'UPDATE_STATUS':
       next = state.map(s => s.id === action.id ? {
-        ...s, status: action.status,
+        ...s, status: action.status, lastContact: new Date().toISOString(),
         history: [...(s.history || []), { status: action.status, ts: new Date().toISOString() }],
       } : s)
       break
     case 'APPEND_NOTE':
       next = state.map(s => s.id === action.id ? {
         ...s,
+        lastContact: (action.system ? s.lastContact : new Date().toISOString()) || s.lastContact,
         notesLog: [...(s.notesLog || []), { text: action.text, ts: new Date().toISOString(), system: action.system || false }],
       } : s)
       break
