@@ -1,12 +1,7 @@
 # Backlog
 
 ## Bugs
-- **Outscraper webhook** — Edge Function rewritten to fetch from `results_location`; needs deploy + real scrape test to verify (2026-03-25)
-
-## Deploy Queue
-- Set Supabase secret: `supabase secrets set OUTSCRAPER_API_KEY=...`
-- Run migration 002 (`results_location` column): `supabase db push`
-- Deploy Edge Function: `supabase functions deploy outscraper-webhook --no-verify-jwt`
+- **Outscraper webhook** — deployed to Supabase, needs real scrape test to verify end-to-end (2026-03-25)
 
 ## Tasks
 - Remove SheetJS (`xlsx` package) once all old S3 XLSX files expire

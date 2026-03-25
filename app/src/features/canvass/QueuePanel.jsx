@@ -9,25 +9,24 @@ import EndDayModal from './EndDayModal.jsx'
 export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
   const canvassStops = useCanvass()
   const [search, setSearch] = useState('')
+  const [filterGroup, setFilterGroup] = useState('all')
   const [showEndDay, setShowEndDay] = useState(false)
 
   const todayStr = new Date().toLocaleDateString()
   const q = search.toLowerCase()
+  const groups = [...new Set(canvassStops.map(c => c.grp).filter(Boolean))].sort()
+
+  const matchesFilter = c =>
+    CANVASS_ACTIVE.includes(c.status) &&
+    (!q || c.name.toLowerCase().includes(q)) &&
+    (filterGroup === 'all' || (c.grp || '') === filterGroup)
 
   const todayStops = canvassStops
-    .filter(c =>
-      c.date === todayStr &&
-      CANVASS_ACTIVE.includes(c.status) &&
-      (!q || c.name.toLowerCase().includes(q))
-    )
+    .filter(c => c.date === todayStr && matchesFilter(c))
     .sort((a, b) => new Date(a.added) - new Date(b.added))
 
   const overdueStops = canvassStops
-    .filter(c =>
-      c.date !== todayStr &&
-      CANVASS_ACTIVE.includes(c.status) &&
-      (!q || c.name.toLowerCase().includes(q))
-    )
+    .filter(c => c.date !== todayStr && matchesFilter(c))
     .sort((a, b) => new Date(a.added) - new Date(b.added))
 
   const list = [...overdueStops, ...todayStops]
@@ -53,6 +52,12 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
           style={{ flex: 1, minWidth: '140px' }}
           onChange={e => setSearch(e.target.value)}
         />
+        {groups.length > 0 && (
+          <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} style={{ minWidth: '100px' }}>
+            <option value="all">All groups</option>
+            {groups.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+        )}
         <Button size="sm" variant="primary" onClick={handleEndDay}>End Day ✓</Button>
       </div>
 

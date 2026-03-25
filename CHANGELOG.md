@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.2
+- Browse: area filter cascades into ZIP and zone dropdowns (only shows values for selected area)
+- Browse: "Reassign areas" button — derives area from city field + rebuilds zones with auto-assignment
+- Canvass: group field on each card for tagging stops while canvassing
+- Canvass: group filter in queue panel
+- Browse: removed group assignment controls (moved to canvass cards)
+- Deployed webhook fix + migration to Supabase (Edge Function v2, migration 002)
+
 ## v0.8.1
 - Fix Outscraper webhook: Edge Function now fetches results from `results_location` instead of expecting inline data
 - App-side fallback: if Edge Function has no API key, app fetches via local key on webhook check

@@ -292,6 +292,17 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
         </div>
       )}
 
+      {!isArchived && (
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '6px' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text3)' }}>Group:</span>
+          <input type="text" value={c.grp || ''} placeholder="none"
+            style={{ fontSize: '11px', padding: '2px 6px', width: '100px', height: '24px' }}
+            onChange={e => canvassDispatch({ type: 'UPDATE', stop: { ...c, grp: e.target.value } })} />
+          {c.grp && <button onClick={() => canvassDispatch({ type: 'UPDATE', stop: { ...c, grp: '' } })}
+            style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: '11px', cursor: 'pointer', padding: 0 }}>✕</button>}
+        </div>
+      )}
+
       <div className={styles.actions}>
         {c.phone && !isArchived && <a href={`tel:${c.phone}`} className={`${btnStyles.btn} ${btnStyles.sm}`}>Call</a>}
         {c.addr  && <a href={navUrl(c.addr)} target="_blank" rel="noreferrer" className={`${btnStyles.btn} ${btnStyles.sm}`}>Navigate ↗</a>}
