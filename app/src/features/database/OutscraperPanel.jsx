@@ -3,6 +3,7 @@ import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
 import { lookupZips, loadOsTasks, getTaskConfig, pollTask, processOutscraperRows, saveOsApiKey, saveOsConfig, extractTaskId } from '../../data/outscraper.js'
+import { supabase } from '../../lib/supabase.js'
 import Button from '../../components/Button.jsx'
 
 const VIEWS = ['Search', 'Queue', 'Settings']
@@ -405,8 +406,56 @@ function QueueView({ os }) {
     }
   }
 
-  // On mount: fetch full list from Outscraper, then start polling if anything is pending
+  // Check for webhook results stored in Supabase by the Edge Function
+  const checkWebhookResults = useCallback(async () => {
+    if (!supabase) return
+    try {
+      const { data: rows, error } = await supabase
+        .from('webhook_results')
+        .select('*')
+        .eq('imported', false)
+        .order('received_at', { ascending: true })
+      if (error || !rows?.length) return
+
+      let totalAdded = 0, totalUpdated = 0, totalDupes = 0
+      for (const row of rows) {
+        const resultData = row.result_data || []
+        if (!resultData.length) continue
+
+        // Parse area from title ("Columbia, SC — 2026-03-24")
+        const titleMatch = (row.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
+        const area = titleMatch ? `${titleMatch[1].trim()}, ${titleMatch[2]}` : row.tags || 'Webhook Import'
+
+        takeSnapshot('pre-import')
+        const result = processOutscraperRows(resultData, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
+        dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbClusters: result.dbClusters, dbAreas: result.dbAreas })
+        totalAdded += result.added; totalUpdated += result.updated; totalDupes += result.dupes
+
+        // Mark as imported in Supabase
+        await supabase.from('webhook_results').update({ imported: true, imported_at: new Date().toISOString() }).eq('id', row.id)
+
+        // Update matching local task if exists
+        const matchId = row.task_id
+        os.setTasks(prev => prev.map(t => {
+          if (t.taskId === matchId || t.queueTaskId === matchId) {
+            return { ...t, status: 'completed', resultData, recordCount: resultData.length, imported: true, importCounts: { added: result.added, updated: result.updated, dupes: result.dupes } }
+          }
+          return t
+        }))
+      }
+
+      if (totalAdded || totalUpdated) {
+        setMsg({ text: `Webhook: ${rows.length} task${rows.length !== 1 ? 's' : ''} auto-imported — ${totalAdded} added, ${totalUpdated} updated, ${totalDupes} skipped.`, type: 'ok' })
+      }
+    } catch (e) {
+      console.warn('[Webhook] check failed:', e.message)
+    }
+  }, [db, dispatch, takeSnapshot, os]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On mount: check webhook results, fetch from Outscraper, then start polling
   useEffect(() => {
+    checkWebhookResults()
+
     os.fetchFromOutscraper()
       .then(() => {
         const hasPending = loadOsTasks().some(t => t.status !== 'completed' && t.status !== 'failed' && t.status !== 'expired')
@@ -431,6 +480,7 @@ function QueueView({ os }) {
         <span style={dot(checking ? '#f59e0b' : '#22c55e', checking)} />
         {checking ? 'Checking…' : lastPolled ? `Last checked ${agoSecs}s ago` : hasPending ? 'Polling every 30s' : 'Ready'}
         {hasPending && <Button size="sm" onClick={doCheck} disabled={checking}>Check now</Button>}
+        {supabase && <Button size="sm" onClick={checkWebhookResults}>Check Webhook</Button>}
         <Button size="sm" onClick={doCheck} disabled={checking} style={{ marginLeft: 'auto' }}>
           {checking ? 'Checking…' : 'Refresh'}
         </Button>
