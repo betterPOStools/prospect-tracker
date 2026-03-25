@@ -38,6 +38,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
   const [filterZone,   setFilterZone]   = useState(zoneFilter || 'all')
   const [filterSearch, setFilterSearch] = useState('')
   const [filterGroup,  setFilterGroup]  = useState('all')
+  const [hideHold,     setHideHold]     = useState(true)
   const [selected,     setSelected]     = useState(new Set())
   const [assignDay,    setAssignDay]     = useState('')
   const [groupInput,   setGroupInput]   = useState('')
@@ -52,6 +53,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
 
   const filtered = useMemo(() => {
     const q = filterSearch.toLowerCase()
+    const todayISO = new Date().toISOString().slice(0, 10)
     return db.dbRecords.filter(r =>
       (filterPri   === 'all' || r.pr === filterPri) &&
       (filterSt    === 'all' || r.st === filterSt) &&
@@ -59,9 +61,10 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
       (filterZip   === 'all' || r.zi === filterZip) &&
       (filterZone  === 'all' || r.zo === filterZone) &&
       (filterGroup === 'all' || (r.grp || '') === filterGroup) &&
+      (!hideHold || !r.co || r.co <= todayISO) &&
       (!q || (r.n || '').toLowerCase().includes(q) || (r.a || '').toLowerCase().includes(q))
     ).sort((a, b) => b.sc - a.sc)
-  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterGroup, filterSearch])
+  }, [db.dbRecords, filterPri, filterSt, filterArea, filterZip, filterZone, filterGroup, filterSearch, hideHold])
 
   // Virtualizer
   const scrollRef = useRef(null)
@@ -90,8 +93,10 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
     const stops = []
     const dbUpdates = []
 
+    const todayISO = new Date().toISOString().slice(0, 10)
     ids.forEach(id => {
       const r = recordById.get(id); if (!r) return
+      if (r.co && r.co > todayISO) return // skip cooldown
       if (existingNames.has((r.n || '').toLowerCase())) return
       const now = new Date().toISOString()
       const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
@@ -234,6 +239,10 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
         )}
         <input type="text" value={filterSearch} placeholder="Search name…"
           style={{ flex: 2, minWidth: '140px' }} onChange={e => setFilterSearch(e.target.value)} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text2)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <input type="checkbox" checked={hideHold} onChange={e => setHideHold(e.target.checked)} style={{ accentColor: 'var(--accent)' }} />
+          Hide on hold
+        </label>
         <Button size="sm" onClick={reassignAreas} style={{ fontSize: '11px', opacity: 0.7 }}>Reassign areas</Button>
       </div>
 
@@ -290,6 +299,7 @@ export default function BrowsePanel({ zoneFilter, onClearZoneFilter }) {
                       {r.n}
                       {r.grp && <span style={{ marginLeft: '6px', fontSize: '10px', color: 'var(--blue-text)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: '8px' }}>{r.grp}</span>}
                       {r.df > 0 && <span style={{ marginLeft: '4px', fontSize: '10px', color: 'var(--purple-text)', background: 'var(--purple-bg)', padding: '1px 5px', borderRadius: '8px' }}>{r.df} dropped</span>}
+                      {r.co && r.co > new Date().toISOString().slice(0, 10) && <span style={{ marginLeft: '4px', fontSize: '10px', color: 'var(--orange-text)', background: 'var(--yellow-bg)', padding: '1px 5px', borderRadius: '8px' }}>hold til {r.co}</span>}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.a}</div>
                     {r.nt && <div style={{ fontSize: '11px', color: 'var(--text3)', whiteSpace: 'pre-line', marginTop: '2px' }}>{r.nt}</div>}

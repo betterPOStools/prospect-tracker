@@ -279,14 +279,20 @@ test.describe('Browse panel', () => {
   test('Clear selection button deselects all', async ({ page }) => {
     await page.getByRole('button', { name: 'Select all filtered' }).click()
     await page.getByRole('button', { name: 'Clear selection' }).click()
+    // Skip filter-row checkboxes (e.g. "Hide on hold") — only check record checkboxes
     const checkboxes = page.getByRole('checkbox')
     const count = await checkboxes.count()
-    for (let i = 0; i < count; i++) await expect(checkboxes.nth(i)).not.toBeChecked()
+    for (let i = 0; i < count; i++) {
+      const cb = checkboxes.nth(i)
+      const inFilterRow = await cb.locator('xpath=ancestor::div[contains(@class,"filter-row")]').count()
+      if (inFilterRow) continue
+      await expect(cb).not.toBeChecked()
+    }
   })
 
   test('clicking a row toggles its checkbox', async ({ page }) => {
-    // Click the first restaurant name row to toggle its checkbox
-    const firstCb = page.getByRole('checkbox').first()
+    // Click the first record checkbox (skip filter-row checkboxes like "Hide on hold")
+    const firstCb = page.locator('[style*="border-bottom"] input[type="checkbox"]').first()
     await firstCb.click()
     await expect(firstCb).toBeChecked()
     await firstCb.click()

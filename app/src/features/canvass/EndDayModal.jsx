@@ -64,7 +64,13 @@ export default function EndDayModal({ onClose }) {
         const note  = todayStr + ': ' + label
         if (c.fromDb) {
           const fields = { st: 'unworked', da: '', _note: note }
-          if (c.status === 'Not interested') fields._downgrade = true
+          if (c.status === 'Not interested') {
+            fields._downgrade = true
+            // 30-day cooldown — skip for reassignment until expired
+            const coolDate = new Date()
+            coolDate.setDate(coolDate.getDate() + 30)
+            fields.co = coolDate.toISOString().slice(0, 10)
+          }
           dbUpdates.push({ id: c.fromDb, fields })
         }
         toRemove.push(c.id)

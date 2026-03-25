@@ -4,9 +4,11 @@ export const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
 // Returns array of { id, da } assignments for the given day
 export function autoAssignDay(dbRecords, day, n, areaFilter = 'all') {
+  const todayISO = new Date().toISOString().slice(0, 10)
   const pool = dbRecords.filter(r =>
     r.st === 'unworked' && !r.da &&
     r.lt && r.lg &&
+    (!r.co || r.co <= todayISO) &&
     (areaFilter === 'all' || r.ar === areaFilter)
   )
   if (!pool.length) return []
@@ -53,13 +55,15 @@ export function autoAssignDay(dbRecords, day, n, areaFilter = 'all') {
 
 // Returns array of { id, da } assignments for whole week
 export function autoFillWeek(dbRecords, dbClusters, n) {
+  const todayISO = new Date().toISOString().slice(0, 10)
   const recordById = new Map(dbRecords.map(r => [r.id, r]))
+  const isAvailable = r => r && r.st === 'unworked' && (!r.co || r.co <= todayISO)
   // Score clusters by unworked hot value
   const clusterValue = dbClusters.map(c => ({
     ...c,
     value: (c.mb || []).reduce((s, id) => {
       const r = recordById.get(id)
-      if (!r || r.st !== 'unworked') return s
+      if (!isAvailable(r)) return s
       return s + (r.pr === 'Fire' ? 4 : r.pr === 'Hot' ? 3 : r.pr === 'Warm' ? 1 : 0)
     }, 0)
   })).filter(c => c.value > 0).sort((a, b) => b.value - a.value)
@@ -84,7 +88,7 @@ export function autoFillWeek(dbRecords, dbClusters, n) {
     const day = DAYS[i]
     const members = c.mb
       .map(id => recordById.get(id))
-      .filter(r => r && r.st === 'unworked')
+      .filter(r => isAvailable(r))
       .sort((a, b) => {
         const distA = haversine(c.lt, c.lg, a.lt, a.lg)
         const distB = haversine(c.lt, c.lg, b.lt, b.lg)
