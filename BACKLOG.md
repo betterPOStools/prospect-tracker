@@ -5,7 +5,7 @@
 - **Stuck DB statuses** — records may be stuck as "in_canvass" from earlier demotion bug (fixed in v0.10.0). Use Browse bulk edit to reset to "unworked".
 
 ## Tasks
-- Remove SheetJS (`xlsx` package) once all old S3 XLSX files expire
+- ~~Remove SheetJS (`xlsx` package)~~ — done in v0.11.1
 
 ## Outscraper — Not Yet Implemented
 - Yelp scraper (`yelp_service`) — cross-reference Google Maps records with Yelp for additional coverage
@@ -17,5 +17,5 @@
 
 ## Ideas
 - Email outreach via Gmail — one-tap pitch email from lead cards
-- Coverage tracker — map/chart showing % of each area worked
+- ~~Coverage tracker~~ — done in v0.11.1 (stacked bars in Analytics)
 - Demo POS menu extractor (separate project)

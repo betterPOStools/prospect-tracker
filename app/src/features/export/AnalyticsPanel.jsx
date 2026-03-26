@@ -161,23 +161,36 @@ function CanvassSection({ data }) {
 }
 
 function TerritorySection({ data }) {
-  const { byArea } = data
+  const { byArea, overallCoverage } = data
+
+  const statusSegments = a => [
+    { label: 'In Canvass',  count: a.in_canvass, color: 'var(--blue-text)' },
+    { label: 'Canvassed',   count: a.canvassed,  color: 'var(--yellow-text)' },
+    { label: 'Converted',   count: a.converted,  color: 'var(--green-text)' },
+    { label: 'Lead',        count: a.lead,        color: 'var(--purple-text)' },
+    { label: 'Unworked',    count: a.unworked,    color: 'var(--bg3)' },
+  ]
 
   return (
-    <Section title="Territory Analysis" sub={`${byArea.length} areas`}>
-      <div>
-        <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text2)', marginBottom: '6px' }}>By Area</div>
-        {byArea.map(a => (
-          <div key={a.area} style={{ marginBottom: '10px' }}>
-            <div style={metricRow}>
-              <span style={{ color: 'var(--text)', fontWeight: 500 }}>{a.area}</span>
-              <span style={{ fontSize: '12px', color: 'var(--text2)', fontFamily: 'var(--mono)' }}>
-                {a.total} records · avg {a.avgScore} · {a.convRate !== null ? (a.convRate * 100).toFixed(0) + '% conv' : 'no data'}
-              </span>
-            </div>
+    <Section title="Territory Coverage" sub={`${byArea.length} areas · ${overallCoverage}% overall coverage`}>
+      {byArea.map(a => (
+        <div key={a.area} style={{ marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>{a.area}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text2)', fontFamily: 'var(--mono)' }}>
+              {a.coveragePct}% worked · {a.worked}/{a.total}
+            </span>
           </div>
-        ))}
-      </div>
+          <StackedBar segments={statusSegments(a)} height={6} />
+          <div style={{ display: 'flex', gap: '10px', marginTop: '3px', fontSize: '11px', color: 'var(--text3)' }}>
+            {a.in_canvass > 0 && <span>{a.in_canvass} in canvass</span>}
+            {a.canvassed > 0  && <span>{a.canvassed} canvassed</span>}
+            {a.converted > 0  && <span>{a.converted} converted</span>}
+            {a.lead > 0       && <span>{a.lead} leads</span>}
+            {a.convRate !== null && <span style={{ marginLeft: 'auto' }}>{(a.convRate * 100).toFixed(0)}% conv rate</span>}
+          </div>
+        </div>
+      ))}
     </Section>
   )
 }

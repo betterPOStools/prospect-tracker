@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.1
+- **Remove SheetJS** — dropped `xlsx` dependency; import now accepts JSON only (Outscraper native format)
+- **Territory coverage tracker** — Analytics territory section now shows stacked coverage bars per area (unworked/in canvass/canvassed/converted/lead) with overall coverage percentage
+
 ## v0.11.0
 - **Pure geo route planning** — all fill functions (Fill Near Me, Auto-fill Day/Week) now sort by haversine distance only, no score/priority weighting
 - **Zones removed** — no more ZIP-scoped clusters; area dropdown replaces zones for territory selection

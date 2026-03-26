@@ -50,19 +50,28 @@ export function calcTerritory(dbRecords) {
   const areaMap = {}
   for (const r of dbRecords) {
     const area = r.ar || 'Unknown'
-    if (!areaMap[area]) areaMap[area] = { area, total: 0, unworked: 0, converted: 0, totalScore: 0 }
+    if (!areaMap[area]) areaMap[area] = { area, total: 0, unworked: 0, in_canvass: 0, canvassed: 0, converted: 0, lead: 0, totalScore: 0 }
     areaMap[area].total++
     areaMap[area].totalScore += (r.sc || 0)
-    if (!r.st || r.st === 'unworked') areaMap[area].unworked++
-    if (r.st === 'converted' || r.st === 'lead') areaMap[area].converted++
+    const st = r.st || 'unworked'
+    if (areaMap[area][st] !== undefined) areaMap[area][st]++
   }
-  const byArea = Object.values(areaMap).map(a => ({
-    ...a,
-    avgScore: a.total > 0 ? Math.round(a.totalScore / a.total) : 0,
-    convRate: (a.total - a.unworked) > 0 ? a.converted / (a.total - a.unworked) : null,
-  })).sort((a, b) => b.total - a.total)
+  const byArea = Object.values(areaMap).map(a => {
+    const worked = a.total - a.unworked
+    return {
+      ...a,
+      worked,
+      avgScore: a.total > 0 ? Math.round(a.totalScore / a.total) : 0,
+      coveragePct: a.total > 0 ? Math.round((worked / a.total) * 100) : 0,
+      convRate: worked > 0 ? a.converted / worked : null,
+    }
+  }).sort((a, b) => b.total - a.total)
 
-  return { byArea }
+  const totalRecords = dbRecords.length
+  const totalWorked = byArea.reduce((s, a) => s + a.worked, 0)
+  const overallCoverage = totalRecords > 0 ? Math.round((totalWorked / totalRecords) * 100) : 0
+
+  return { byArea, overallCoverage }
 }
 
 export function calcDataQuality(dbRecords) {

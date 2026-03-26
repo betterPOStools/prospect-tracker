@@ -19,9 +19,9 @@ test.describe('ImportBar', () => {
     await expect(page.getByText('Import Outscraper Data')).toBeVisible()
   })
 
-  test('file input accepts .json and .xlsx files', async ({ page }) => {
+  test('file input accepts JSON only', async ({ page }) => {
     const fileInput = page.locator('input[type="file"]').first()
-    await expect(fileInput).toHaveAttribute('accept', /json/)
+    await expect(fileInput).toHaveAttribute('accept', '.json')
   })
 })
 

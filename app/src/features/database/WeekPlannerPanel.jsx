@@ -134,7 +134,7 @@ export default function WeekPlannerPanel() {
   }
 
   if (!db.dbRecords.length) {
-    return <EmptyState>No records yet — import an Outscraper XLSX to get started.</EmptyState>
+    return <EmptyState>No records yet — import Outscraper data to get started.</EmptyState>
   }
 
   return (

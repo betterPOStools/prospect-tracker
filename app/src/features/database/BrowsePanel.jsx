@@ -181,7 +181,7 @@ export default function BrowsePanel() {
   }
 
   if (!db.dbRecords.length) {
-    return <div style={{ textAlign: 'center', padding: '36px', color: 'var(--text2)', fontSize: '13px' }}>No records yet — import an Outscraper XLSX to get started.</div>
+    return <div style={{ textAlign: 'center', padding: '36px', color: 'var(--text2)', fontSize: '13px' }}>No records yet — import Outscraper data to get started.</div>
   }
 
   return (
