@@ -13,7 +13,7 @@
 - Coordinates as query locations — use lat/lng URLs instead of ZIP codes
 
 ## Upcoming
-- **Copper CRM integration (v0.11.0)** — push leads as Company+Person+Opportunity, sync call/SMS logs as Activities. Needs API key + account-specific pipeline/stage IDs from Aaron.
+- **Copper CRM integration (v0.12.0)** — push leads as Company+Person+Opportunity, sync call/SMS logs as Activities. Needs API key + account-specific pipeline/stage IDs from Aaron.
 
 ## Ideas
 - Email outreach via Gmail — one-tap pitch email from lead cards
