@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.3
+- **Copy DB coordinates to canvass stops** — all 5 stop-creation paths (Fill Near Me, Browse load, Week Planner, Lead→Queue, Demote→Canvass) now carry `lat`/`lng` from the Outscraper DB record, eliminating Nominatim geocoding for imported stops
+- **DB-lookup fallback in route optimizer** — before hitting Nominatim, the optimizer checks the linked DB record for coordinates (instant, no rate limiting); Nominatim only used for manually-added stops
+
 ## v0.11.2
 - **Fix Google Maps route truncation** — route URL now sends only the active leg (up to 9 stops) instead of all stops, fixing the "4 stops + repeating last address" bug caused by Google Maps' waypoint limit
 - **Route legs** — stops are split into legs of 9; breakpoint dividers appear between legs with a "Start Leg N in Maps ↗" button that opens the next leg and tracks the active leg in the header

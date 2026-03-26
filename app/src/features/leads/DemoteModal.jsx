@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useProspectsDispatch, useCanvassDispatch, useDatabaseDispatch } from '../../data/store.jsx'
+import { useProspectsDispatch, useCanvassDispatch, useDatabaseDispatch, useDatabase } from '../../data/store.jsx'
 import { uid } from '../../data/helpers.js'
 import Modal from '../../components/Modal.jsx'
 import Button from '../../components/Button.jsx'
@@ -16,6 +16,7 @@ export default function DemoteModal({ prospect, onClose }) {
   const prospectsDispatch = useProspectsDispatch()
   const canvassDispatch   = useCanvassDispatch()
   const dbDispatch        = useDatabaseDispatch()
+  const db                = useDatabase()
   const [status, setStatus] = useState('Come back later')
   const [notes,  setNotes]  = useState('')
 
@@ -27,6 +28,7 @@ export default function DemoteModal({ prospect, onClose }) {
     if (p.owner) noteEntries.push({ text: 'Contact: ' + p.owner, ts: now, system: true })
     const demoteText = (reason ? reason + ' — ' : '') + 'Previously a lead' + (p.notes ? ' — ' + p.notes : '')
     noteEntries.push({ text: demoteText, ts: now, system: true })
+    const dbRec = p.fromDb ? db.dbRecords.find(r => r.id === p.fromDb) : null
     const stop = {
       id:       p.fromDb ? 'canvass_' + p.fromDb : uid(),
       name:     p.name,
@@ -36,6 +38,7 @@ export default function DemoteModal({ prospect, onClose }) {
       website:  p.website || '',
       menu:     p.menu    || '',
       notes:    '',
+      lat:      dbRec?.lt, lng: dbRec?.lg,
       status,
       date:     new Date().toLocaleDateString(),
       added:    now,

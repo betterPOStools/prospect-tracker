@@ -98,6 +98,7 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
             id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
             notes: '', website: r.web, menu: r.mn, email: r.em,
             ...parseWorkingHours(r.hr),
+            lat: r.lt, lng: r.lg,
             status: 'Not visited yet',
             date: new Date().toLocaleDateString(),
             added: now, fromDb: r.id, score: r.sc, priority: r.pr,

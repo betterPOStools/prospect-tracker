@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useProspectsDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
+import { useProspectsDispatch, useCanvass, useCanvassDispatch, useDatabase } from '../../data/store.jsx'
 import { uid, navUrl } from '../../data/helpers.js'
 import { CANVASS_ACTIVE } from '../canvass/constants.js'
 import Button from '../../components/Button.jsx'
@@ -18,6 +18,7 @@ function fmtTs(ts) {
 export default function LeadCard({ prospect, onDemote }) {
   const dispatch = useProspectsDispatch()
   const canvass = useCanvass()
+  const db = useDatabase()
   const canvassDispatch = useCanvassDispatch()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
@@ -64,6 +65,7 @@ export default function LeadCard({ prospect, onDemote }) {
   function addToQueue() {
     if (inQueue) return
     const now = new Date().toISOString()
+    const dbRec = p.fromDb ? db.dbRecords.find(r => r.id === p.fromDb) : null
     canvassDispatch({ type: 'ADD', stop: {
       id: uid(),
       name: p.name,
@@ -73,6 +75,7 @@ export default function LeadCard({ prospect, onDemote }) {
       website: p.website || '',
       menu: p.menu || '',
       notes: '',
+      lat: dbRec?.lt, lng: dbRec?.lg,
       status: 'Not visited yet',
       date: new Date().toLocaleDateString(),
       added: now,

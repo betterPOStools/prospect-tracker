@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useCanvass, useCanvassDispatch } from '../../data/store.jsx'
+import { useCanvass, useCanvassDispatch, useDatabase } from '../../data/store.jsx'
 import { hoursChip, navUrl, getRouteProvider } from '../../data/helpers.js'
 import { CANVASS_ACTIVE, REMOVAL_STATUSES } from '../canvass/constants.js'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
@@ -98,6 +98,7 @@ const footer = { fontSize: '12px', color: 'var(--text3)', marginTop: '8px', text
 export default function RouteTab() {
   const canvass = useCanvass()
   const canvassDispatch = useCanvassDispatch()
+  const db = useDatabase()
   const { msg, flash } = useFlashMessage()
 
   const today = useMemo(() => new Date().toLocaleDateString(), [])
@@ -221,6 +222,14 @@ export default function RouteTab() {
           geocoded.push({ stop: s, lat: s.lat, lng: s.lng })
           continue
         }
+        // Try DB record coords first (instant, from Outscraper/Google Places)
+        const dbRec = s.fromDb ? db.dbRecords.find(r => r.id === s.fromDb) : null
+        if (dbRec?.lt && dbRec?.lg) {
+          canvassDispatch({ type: 'UPDATE', stop: { ...s, lat: dbRec.lt, lng: dbRec.lg } })
+          geocoded.push({ stop: s, lat: dbRec.lt, lng: dbRec.lg })
+          continue
+        }
+        // Fallback: Nominatim geocoding
         setOptStatus(`Geocoding ${i + 1}/${withAddr.length}: ${s.name}`)
         const coords = await geocodeAddr(s.addr)
         if (!coords) { skipped.push(s); continue }
@@ -274,7 +283,7 @@ export default function RouteTab() {
     }
     setOptimizing(false)
     setOptStatus('')
-  }, [stops, hasRxlCreds, rxlUser, rxlPass, canvassDispatch, flash])
+  }, [stops, hasRxlCreds, rxlUser, rxlPass, canvassDispatch, db.dbRecords, flash])
 
   if (!canvass.length) {
     return <EmptyState>No canvass stops yet — load stops from the Database or add them manually in the Canvass tab.</EmptyState>
