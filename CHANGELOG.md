@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.2
+- **Fix Google Maps route truncation** — route URL now sends only the active leg (up to 9 stops) instead of all stops, fixing the "4 stops + repeating last address" bug caused by Google Maps' waypoint limit
+- **Route legs** — stops are split into legs of 9; breakpoint dividers appear between legs with a "Start Leg N in Maps ↗" button that opens the next leg and tracks the active leg in the header
+
 ## v0.11.1
 - **Remove SheetJS** — dropped `xlsx` dependency; import now accepts JSON only (Outscraper native format)
 - **Territory coverage tracker** — Analytics territory section now shows stacked coverage bars per area (unworked/in canvass/canvassed/converted/lead) with overall coverage percentage

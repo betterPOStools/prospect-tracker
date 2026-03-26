@@ -2,6 +2,7 @@
 
 ## Bugs
 - ~~**Outscraper webhook** — verified working end-to-end (2026-03-25)~~
+- ~~**Google Maps route truncation** — fixed in v0.11.2; route now splits into legs of 9~~
 - **Stuck DB statuses** — records may be stuck as "in_canvass" from earlier demotion bug (fixed in v0.10.0). Use Browse bulk edit to reset to "unworked".
 
 ## Tasks

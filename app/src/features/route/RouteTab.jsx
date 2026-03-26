@@ -75,6 +75,9 @@ function routeUrl(stops, useCoords) {
   return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${dest}&waypoints=${wps}`
 }
 
+// Google Maps web directions limit
+const LEG_SIZE = 9
+
 // Extracted style constants — avoids re-creating objects on every render
 const headerBox = { background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }
 const headerFlex = { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }
@@ -110,6 +113,8 @@ export default function RouteTab() {
   const [order, setOrder] = useState(null)  // null = default order
   const [useCoords, setUseCoords] = useState(true) // true = lat/lng, false = addresses
 
+  const [activeLeg, setActiveLeg] = useState(0)
+
   // RouteXL state
   const [showRxlSetup, setShowRxlSetup] = useState(false)
   const [rxlUser, setRxlUser] = useState(() => localStorage.getItem(RXL_USER_KEY) || '')
@@ -138,6 +143,15 @@ export default function RouteTab() {
     return order.map(id => todayStops.find(s => s.id === id)).filter(Boolean)
   }, [todayStops, order])
 
+  const legs = useMemo(() => {
+    const result = []
+    for (let i = 0; i < stops.length; i += LEG_SIZE) result.push(stops.slice(i, i + LEG_SIZE))
+    return result
+  }, [stops])
+
+  const safeActiveLeg = Math.min(activeLeg, Math.max(0, legs.length - 1))
+  const currentLeg = legs[safeActiveLeg] || []
+
   // Init order from todayStops when it changes and we have no order
   function ensureOrder() {
     if (!order) setOrder(stops.map(s => s.id))
@@ -165,7 +179,7 @@ export default function RouteTab() {
     })
   }
 
-  function resetOrder() { setOrder(null) }
+  function resetOrder() { setOrder(null); setActiveLeg(0) }
 
   function copyAddresses() {
     const addrs = stops.map((s, i) => `${i + 1}. ${s.name} — ${s.addr || 'no address'}`).join('\n')
@@ -247,6 +261,7 @@ export default function RouteTab() {
       const optimizedSet = new Set(optimizedIds)
       const remaining = stops.filter(s => !optimizedSet.has(s.id)).map(s => s.id)
       setOrder([...optimizedIds, ...remaining])
+      setActiveLeg(0)
 
       const last = result.route[String(Object.keys(result.route).length - 1)]
       const distKm = last?.distance ? Math.round(last.distance) : null
@@ -269,8 +284,8 @@ export default function RouteTab() {
     return <EmptyState>No stops for today's run. Stops added to Today's Canvass will appear here.</EmptyState>
   }
 
-  const url = routeUrl(stops, useCoords)
-  const hasCoords = stops.some(s => s.lat && s.lng)
+  const url = routeUrl(currentLeg, useCoords)
+  const hasCoords = currentLeg.some(s => s.lat && s.lng)
 
   return (
     <div>
@@ -280,7 +295,9 @@ export default function RouteTab() {
           <div>
             <div style={headerTitle}>Today's Route</div>
             <div style={headerSub}>
-              {stops.length} stop{stops.length !== 1 ? 's' : ''} · Reorder with arrows · Navigate with Maps or Waze
+              {stops.length} stop{stops.length !== 1 ? 's' : ''}
+              {legs.length > 1 && ` · Leg ${safeActiveLeg + 1} of ${legs.length} (${currentLeg.length} stops)`}
+              {' · Reorder with arrows · Navigate with Maps or Waze'}
             </div>
           </div>
           <div style={headerActions}>
@@ -291,7 +308,7 @@ export default function RouteTab() {
             </Button>
             {url && (
               <a href={url} target="_blank" rel="noreferrer" style={routeLink}>
-                Google Maps Route ↗
+                {legs.length > 1 ? `Leg ${safeActiveLeg + 1} in Maps ↗` : 'Google Maps Route ↗'}
               </a>
             )}
           </div>
@@ -337,48 +354,73 @@ export default function RouteTab() {
 
       {/* Stop list */}
       <div style={listBox}>
-        {stops.map((s, idx) => {
-          const chip = hoursChip(s.openTime, s.closeTime)
-          return (
-            <div key={s.id} style={stopRow}>
-              <div style={posBadge}>{idx + 1}</div>
+        {legs.map((leg, legIdx) => (
+          <div key={legIdx}>
+            {leg.map((s, posInLeg) => {
+              const idx = legIdx * LEG_SIZE + posInLeg
+              const chip = hoursChip(s.openTime, s.closeTime)
+              return (
+                <div key={s.id} style={stopRow}>
+                  <div style={posBadge}>{idx + 1}</div>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={stopName}>{s.name}</div>
-                <div style={stopAddr}>{s.addr}</div>
-                {chip && (
-                  <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '10px', marginTop: '2px', display: 'inline-block',
-                    background: chip.isOpen ? 'var(--green-bg)' : 'var(--bg3)',
-                    color: chip.isOpen ? 'var(--green-text)' : 'var(--text3)' }}>
-                    {chip.label}
-                  </span>
-                )}
-              </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={stopName}>{s.name}</div>
+                    <div style={stopAddr}>{s.addr}</div>
+                    {chip && (
+                      <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '10px', marginTop: '2px', display: 'inline-block',
+                        background: chip.isOpen ? 'var(--green-bg)' : 'var(--bg3)',
+                        color: chip.isOpen ? 'var(--green-text)' : 'var(--text3)' }}>
+                        {chip.label}
+                      </span>
+                    )}
+                  </div>
 
-              <div style={statusBox}>
-                <div style={{ fontSize: '11px', fontWeight: 500, color: STATUS_COLOR[s.status] || 'var(--text3)' }}>
-                  {s.status}
+                  <div style={statusBox}>
+                    <div style={{ fontSize: '11px', fontWeight: 500, color: STATUS_COLOR[s.status] || 'var(--text3)' }}>
+                      {s.status}
+                    </div>
+                    {s.priority && (
+                      <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{s.priority} {s.score || ''}</div>
+                    )}
+                  </div>
+
+                  <div style={arrowCol}>
+                    <button onClick={() => moveUp(idx)} disabled={idx === 0}
+                      style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer',
+                        color: idx === 0 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▲</button>
+                    <button onClick={() => moveDown(idx)} disabled={idx === stops.length - 1}
+                      style={{ background: 'none', border: 'none', cursor: idx === stops.length - 1 ? 'default' : 'pointer',
+                        color: idx === stops.length - 1 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▼</button>
+                  </div>
+
+                  {s.addr && (
+                    <a href={navUrl(s.addr)} target="_blank" rel="noreferrer" style={navLinkStyle}>Navigate ↗</a>
+                  )}
                 </div>
-                {s.priority && (
-                  <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{s.priority} {s.score || ''}</div>
-                )}
-              </div>
+              )
+            })}
 
-              <div style={arrowCol}>
-                <button onClick={() => moveUp(idx)} disabled={idx === 0}
-                  style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer',
-                    color: idx === 0 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▲</button>
-                <button onClick={() => moveDown(idx)} disabled={idx === stops.length - 1}
-                  style={{ background: 'none', border: 'none', cursor: idx === stops.length - 1 ? 'default' : 'pointer',
-                    color: idx === stops.length - 1 ? 'var(--text3)' : 'var(--text2)', fontSize: '12px', padding: '0 4px', lineHeight: 1 }}>▼</button>
+            {/* Leg breakpoint */}
+            {legIdx < legs.length - 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'var(--bg2)', borderBottom: '0.5px solid var(--border)' }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+                <span style={{ fontSize: '11px', color: 'var(--text2)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                  Leg {legIdx + 1} end · {leg.length} stops
+                </span>
+                <a
+                  href={routeUrl(legs[legIdx + 1], useCoords)}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ ...routeLink, fontSize: '11px', height: '26px', padding: '0 9px', flexShrink: 0 }}
+                  onClick={() => setActiveLeg(legIdx + 1)}
+                >
+                  Start Leg {legIdx + 2} in Maps ↗
+                </a>
+                <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
               </div>
-
-              {s.addr && (
-                <a href={navUrl(s.addr)} target="_blank" rel="noreferrer" style={navLinkStyle}>Navigate ↗</a>
-              )}
-            </div>
-          )
-        })}
+            )}
+          </div>
+        ))}
       </div>
 
       {msg && <div style={{ fontSize: '12px', marginTop: '6px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>{msg.text}</div>}
