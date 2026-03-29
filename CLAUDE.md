@@ -70,6 +70,17 @@ src/
 4. **Database** — prospect records (`prospect.records`), Browse/Planner/Map
 5. **Utilities** — Analytics/Import/Export/Backups/Blocklist/Settings
 
+## Context Management
+- Run /compact after every 3 feature branches completed
+- Run /compact before starting any new phase
+- Run /compact if the session exceeds ~50 tool calls
+- When compacting, focus on: approved design doc, completed features, current branch, failing tests
+
+## Autonomous Work
+- Work in parallel whenever tasks are independent — don't wait for permission to parallelize
+- Commit and tag at every phase boundary without being asked
+- Run lint + type-check + tests before every commit; fix failures before committing
+
 ## Legacy Code
 `app/` — the previous JavaScript version. Keep as reference only. Do not develop.
 
