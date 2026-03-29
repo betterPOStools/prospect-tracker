@@ -27,18 +27,6 @@ const STATUS_BADGE_VARIANT: Record<StopStatus, BadgeVariant> = {
   dropped: 'danger',
 }
 
-/** Color dot indicating visit progress */
-function VisitDot({ status }: { status: StopStatus }) {
-  const colorClass =
-    status === 'canvassed' || status === 'converted'
-      ? 'bg-green-500'
-      : status === 'come_back_later' || status === 'dm_unavailable'
-        ? 'bg-yellow-400'
-        : 'bg-gray-300'
-
-  return <span className={`inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ${colorClass}`} />
-}
-
 // ── Navigation helpers ───────────────────────────────────────────────────────
 
 function buildSingleStopUrl(stop: CanvassStop, mapsApp: MapsApp): string {
@@ -88,12 +76,11 @@ export default function RouteStopItem({
 
   return (
     <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
-      {/* Number + dot */}
-      <div className="flex flex-col items-center gap-1 pt-0.5">
+      {/* Number */}
+      <div className="flex flex-col items-center pt-0.5">
         <span className="text-sm font-bold text-gray-700 tabular-nums w-6 text-center">
           {number}
         </span>
-        <VisitDot status={stop.status} />
       </div>
 
       {/* Main content */}

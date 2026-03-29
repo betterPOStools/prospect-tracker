@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { ProspectRecord, Priority, RecordStatus } from '../../types'
-import { PRIORITIES, DAYS, PRIORITY_COLOR } from '../../types'
+import { PRIORITIES, DAYS } from '../../types'
 import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { useStopsDispatch } from '../../store/StopsContext'
 import { supabase } from '../../lib/supabase'
@@ -58,8 +58,14 @@ interface RecordRowProps {
   onClick: () => void
 }
 
+const CANVASS_DOT: Record<string, string> = {
+  converted:  '#22c55e',  // green-500
+  canvassed:  '#86efac',  // green-300
+  in_canvass: '#facc15',  // yellow-400
+  unworked:   '#d1d5db',  // gray-300
+}
+
 function RecordRow({ record, selected, onToggle, onClick }: RecordRowProps) {
-  const color = PRIORITY_COLOR[record.priority]
   return (
     <div
       className={`flex items-center gap-3 border-b border-gray-100 px-4 py-2 transition-colors ${
@@ -77,12 +83,8 @@ function RecordRow({ record, selected, onToggle, onClick }: RecordRowProps) {
         aria-label={`Select ${record.name}`}
       />
 
-      {/* Priority dot */}
-      <span
-        className="shrink-0 h-3 w-3 rounded-full"
-        style={{ background: color }}
-        aria-hidden
-      />
+      {/* Canvass progress dot */}
+      <span className="shrink-0 h-3 w-3 rounded-full" style={{ background: CANVASS_DOT[record.status] ?? '#d1d5db' }} aria-hidden />
 
       {/* Name + details */}
       <button
