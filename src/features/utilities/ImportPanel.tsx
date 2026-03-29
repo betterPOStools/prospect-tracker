@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { supabase } from '../../lib/supabase'
 import { settings } from '../../lib/storage'
@@ -19,6 +19,108 @@ const IMPORT_TABS: { id: ImportSubTab; label: string }[] = [
   { id: 'queue', label: 'Queue' },
   { id: 'settings', label: 'Settings' },
 ]
+
+// ── State abbreviation map ────────────────────────────────────────────────────
+
+const STATE_ABBR: Record<string, string> = {
+  Alabama:'AL',Alaska:'AK',Arizona:'AZ',Arkansas:'AR',California:'CA',
+  Colorado:'CO',Connecticut:'CT',Delaware:'DE',Florida:'FL',Georgia:'GA',
+  Hawaii:'HI',Idaho:'ID',Illinois:'IL',Indiana:'IN',Iowa:'IA',Kansas:'KS',
+  Kentucky:'KY',Louisiana:'LA',Maine:'ME',Maryland:'MD',Massachusetts:'MA',
+  Michigan:'MI',Minnesota:'MN',Mississippi:'MS',Missouri:'MO',Montana:'MT',
+  Nebraska:'NE',Nevada:'NV','New Hampshire':'NH','New Jersey':'NJ',
+  'New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND',
+  Ohio:'OH',Oklahoma:'OK',Oregon:'OR',Pennsylvania:'PA','Rhode Island':'RI',
+  'South Carolina':'SC','South Dakota':'SD',Tennessee:'TN',Texas:'TX',
+  Utah:'UT',Vermont:'VT',Virginia:'VA',Washington:'WA','West Virginia':'WV',
+  Wisconsin:'WI',Wyoming:'WY','District of Columbia':'DC',
+}
+
+interface CitySuggestion { city: string; state: string; display: string }
+
+function CityAutocomplete({
+  city, onCityChange, onStateChange,
+}: {
+  city: string
+  onCityChange: (v: string) => void
+  onStateChange: (v: string) => void
+}) {
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([])
+  const [open, setOpen] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (city.length < 3) { setSuggestions([]); setOpen(false); return }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&addressdetails=1&countrycodes=us&limit=8`
+        const res = await fetch(url, { headers: { 'User-Agent': 'ProspectTracker/1.0' } })
+        const data = await res.json() as Array<{ address: Record<string, string>; type: string }>
+        const seen = new Set<string>()
+        const results: CitySuggestion[] = []
+        for (const item of data) {
+          const a = item.address
+          const cityName = a.city ?? a.town ?? a.village ?? a.municipality ?? a.hamlet
+          const stateName = a.state
+          if (!cityName || !stateName) continue
+          const abbr = STATE_ABBR[stateName]
+          if (!abbr) continue
+          const key = `${cityName}|${abbr}`
+          if (seen.has(key)) continue
+          seen.add(key)
+          results.push({ city: cityName, state: abbr, display: `${cityName}, ${abbr}` })
+        }
+        setSuggestions(results)
+        setOpen(results.length > 0)
+      } catch { /* ignore network errors */ }
+    }, 500)
+  }, [city])
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function select(s: CitySuggestion) {
+    onCityChange(s.city)
+    onStateChange(s.state)
+    setOpen(false)
+    setSuggestions([])
+  }
+
+  return (
+    <div ref={containerRef} className="relative flex-1">
+      <Input
+        label="City"
+        placeholder="Wilmington"
+        value={city}
+        onChange={(e) => { onCityChange(e.target.value); setOpen(true) }}
+        autoComplete="off"
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+          {suggestions.map((s) => (
+            <li key={s.display}>
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 active:bg-blue-100"
+                onMouseDown={(e) => { e.preventDefault(); select(s) }}
+              >
+                {s.display}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 // ── Search Sub-Tab ─────────────────────────────────────────────────────────────
 
@@ -120,14 +222,11 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
         <h3 className="mb-3 text-sm font-semibold text-gray-700">Submit Outscraper Search</h3>
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                label="City"
-                placeholder="Wilmington"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-              />
-            </div>
+            <CityAutocomplete
+              city={city}
+              onCityChange={setCity}
+              onStateChange={setState}
+            />
             <div className="w-20">
               <Input
                 label="State"
