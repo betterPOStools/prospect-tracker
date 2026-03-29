@@ -22,7 +22,7 @@ const IMPORT_TABS: { id: ImportSubTab; label: string }[] = [
 
 // ── Search Sub-Tab ─────────────────────────────────────────────────────────────
 
-function SearchSubTab() {
+function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
   const records = useRecords()
   const recordsDispatch = useRecordsDispatch()
   const { submit, loading, error, config } = useOutscraper()
@@ -33,7 +33,6 @@ function SearchSubTab() {
   const [zips, setZips] = useState<string[]>([])
   const [zipLoading, setZipLoading] = useState(false)
   const [zipError, setZipError] = useState<string | null>(null)
-  const [submitResult, setSubmitResult] = useState<string | null>(null)
 
   // File import
   const [importFile, setImportFile] = useState<File | null>(null)
@@ -65,7 +64,7 @@ function SearchSubTab() {
     const queries = buildQueries(zips, city.trim(), state.trim(), categories)
     const taskId = await submit(title, queries)
     if (taskId) {
-      setSubmitResult(`Task submitted: ${taskId}`)
+      onSwitchToQueue()
     }
   }, [city, state, zips, categories, submit])
 
@@ -171,7 +170,6 @@ function SearchSubTab() {
 
           {zipError && <p className="text-xs text-red-600">{zipError}</p>}
           {error && <p className="text-xs text-red-600">{error}</p>}
-          {submitResult && <p className="text-xs text-green-700">{submitResult}</p>}
 
           {zips.length > 0 && (
             <div className="rounded-lg bg-gray-50 p-3">
@@ -487,7 +485,7 @@ export default function ImportPanel() {
     <div className="flex flex-1 flex-col overflow-hidden">
       <SubTabs tabs={IMPORT_TABS} active={activeTab} onChange={setActiveTab} />
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'search' && <SearchSubTab />}
+        {activeTab === 'search' && <SearchSubTab onSwitchToQueue={() => setActiveTab('queue')} />}
         {activeTab === 'queue' && <QueueSubTab />}
         {activeTab === 'settings' && <OsSettingsSubTab />}
       </div>
