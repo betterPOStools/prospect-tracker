@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import Button from '../../components/Button'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
+import AddressAutocomplete from '../../components/AddressAutocomplete'
 
 interface AddStopModalProps {
   open: boolean
@@ -92,11 +93,10 @@ export default function AddStopModal({ open, onClose }: AddStopModalProps) {
           error={nameError}
           autoFocus
         />
-        <Input
+        <AddressAutocomplete
           label="Address"
-          placeholder="123 Main St, City, ST"
           value={form.address}
-          onChange={(e) => set('address', e.target.value)}
+          onChange={(v) => set('address', v)}
         />
         <Input
           label="Phone"

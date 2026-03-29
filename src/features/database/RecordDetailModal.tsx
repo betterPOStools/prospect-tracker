@@ -7,6 +7,7 @@ import Modal from '../../components/Modal'
 import Button from '../../components/Button'
 import { PriorityBadge, Badge } from '../../components/Badge'
 import Input from '../../components/Input'
+import AddressAutocomplete from '../../components/AddressAutocomplete'
 import Select from '../../components/Select'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -374,10 +375,10 @@ function RecordEditForm({
           onChange={(e) => setField('area', e.target.value)}
         />
       </div>
-      <Input
+      <AddressAutocomplete
         label="Address"
         value={form.address}
-        onChange={(e) => setField('address', e.target.value)}
+        onChange={(v) => setField('address', v)}
       />
       <div className="grid grid-cols-2 gap-3">
         <Input

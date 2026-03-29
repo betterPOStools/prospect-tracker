@@ -7,6 +7,7 @@ import { openUrl } from '../../lib/platform'
 import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
 import Input from '../../components/Input'
+import AddressAutocomplete from '../../components/AddressAutocomplete'
 
 const MENU_IMPORT_URL = 'https://menu-import-tool.vercel.app/'
 
@@ -118,10 +119,10 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
         value={form.phone}
         onChange={(e) => set('phone', e.target.value)}
       />
-      <Input
+      <AddressAutocomplete
         label="Address"
         value={form.address}
-        onChange={(e) => set('address', e.target.value)}
+        onChange={(v) => set('address', v)}
       />
       <Input
         label="POS Type"
