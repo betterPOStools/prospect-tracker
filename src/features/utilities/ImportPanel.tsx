@@ -347,6 +347,8 @@ function QueueSubTab() {
     setFetched(true)
   }, [fetchTasks])
 
+  useEffect(() => { handleRefresh() }, [handleRefresh])
+
   const handlePoll = useCallback(
     async (taskId: string) => {
       setPollingId(taskId)
