@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import type { Lead, LeadStatus } from '../../types'
 import { useLeadsDispatch } from '../../store/LeadsContext'
+import { useRecords } from '../../store/RecordsContext'
 import { supabase } from '../../lib/supabase'
+import { openUrl } from '../../lib/platform'
 import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
 import Input from '../../components/Input'
+
+const MENU_IMPORT_URL = 'https://menu-import-tool.vercel.app/'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -162,9 +166,18 @@ interface LeadCardProps {
 
 export default function LeadCard({ lead }: LeadCardProps) {
   const dispatch = useLeadsDispatch()
+  const records = useRecords()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  function openInMenuImport() {
+    const record = lead.record_id ? records.find((r) => r.id === lead.record_id) : null
+    const params = new URLSearchParams({ name: lead.name })
+    const menuLink = record?.menu_link || record?.website
+    if (menuLink) params.set('url', menuLink)
+    openUrl(MENU_IMPORT_URL + '?' + params.toString())
+  }
 
   async function updateStatus(status: LeadStatus) {
     const label = status === 'Won' ? 'Won' : status === 'Lost' ? 'Lost' : 'Open'
@@ -217,11 +230,14 @@ export default function LeadCard({ lead }: LeadCardProps) {
         <Badge variant={statusBadgeVariant(lead.status)}>{lead.status}</Badge>
       </div>
 
-      {/* Won handoff note */}
+      {/* Won handoff */}
       {lead.status === 'Won' && (
-        <div className="mt-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-800">
-          Ready for Menu Import — handoff URL wiring coming soon.
-        </div>
+        <button
+          onClick={openInMenuImport}
+          className="mt-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 active:bg-green-800"
+        >
+          Open in Menu Import →
+        </button>
       )}
 
       {/* Details */}

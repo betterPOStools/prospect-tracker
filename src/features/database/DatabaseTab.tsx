@@ -42,10 +42,10 @@ function StatsRow() {
       <StatItem label="Total" value={stats.total} color="text-gray-700" />
       <span className="text-gray-200">|</span>
       <StatItem label="Fire" value={stats.fire} color="text-red-500" emoji="🔥" />
-      <StatItem label="Hot" value={stats.hot} color="text-orange-500" />
-      <StatItem label="Warm" value={stats.warm} color="text-yellow-500" />
-      <StatItem label="Cold" value={stats.cold} color="text-blue-500" />
-      <StatItem label="Dead" value={stats.dead} color="text-gray-400" />
+      <StatItem label="Hot" value={stats.hot} color="text-orange-500" emoji="🥵" />
+      <StatItem label="Warm" value={stats.warm} color="text-yellow-500" emoji="☀️" />
+      <StatItem label="Cold" value={stats.cold} color="text-blue-500" emoji="🥶" />
+      <StatItem label="Dead" value={stats.dead} color="text-gray-400" emoji="☠️" />
       <span className="text-gray-200">|</span>
       <StatItem label="Unworked" value={stats.unworked} color="text-gray-600" />
       <StatItem label="Worked" value={stats.worked} color="text-green-600" />

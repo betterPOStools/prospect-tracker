@@ -1,5 +1,5 @@
 import type { Priority } from '../types'
-import { PRIORITY_COLOR } from '../types'
+import { PRIORITY_COLOR, PRIORITY_EMOJI } from '../types'
 
 interface PriorityBadgeProps {
   priority: Priority
@@ -13,7 +13,7 @@ export function PriorityBadge({ priority, score }: PriorityBadgeProps) {
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
       style={{ background: color + '22', color }}
     >
-      {priority}
+      {PRIORITY_EMOJI[priority]} {priority}
       {score !== undefined && <span className="opacity-70">{score}</span>}
     </span>
   )
