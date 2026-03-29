@@ -109,7 +109,7 @@ export function calcTerritory(records: ProspectRecord[]): TerritoryStats {
     areaMap[area].total++
     areaMap[area].totalScore += r.score ?? 0
     const st = r.status ?? 'unworked'
-    if (st in areaMap[area]) (areaMap[area] as Record<string, number>)[st]++
+    if (st in areaMap[area]) (areaMap[area] as unknown as Record<string, number>)[st]++
   }
 
   const byArea = Object.values(areaMap).map((a) => {

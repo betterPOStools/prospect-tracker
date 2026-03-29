@@ -127,7 +127,7 @@ export function useSupabase() {
 
           if (payload.eventType === 'DELETE') {
             const old = payload.old as { id?: string }
-            if (old.id) stopsDispatch({ type: 'DELETE', stop_id: old.id })
+            if (old.id) stopsDispatch({ type: 'DELETE', id: old.id })
           } else if (payload.eventType === 'INSERT') {
             stopsDispatch({ type: 'ADD', stop: payload.new as CanvassStop })
           } else {

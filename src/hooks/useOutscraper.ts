@@ -34,7 +34,7 @@ export function useOutscraper() {
           task_id: taskId,
           title,
           status: 'pending' as TaskStatus,
-          config: config as Record<string, unknown>,
+          config: config as unknown as Record<string, unknown>,
         })
 
         return taskId

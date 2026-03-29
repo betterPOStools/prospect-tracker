@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from 'react'
 import { DataProvider } from './store/DataProvider'
 import TabBar from './components/TabBar'
 import StatusBar from './components/StatusBar'
+import MigrationBanner from './components/MigrationBanner'
 import type { TabId } from './types'
 
 const LeadsTab    = lazy(() => import('./features/leads/LeadsTab'))
@@ -10,7 +11,7 @@ const RouteTab    = lazy(() => import('./features/route/RouteTab'))
 const DatabaseTab = lazy(() => import('./features/database/DatabaseTab'))
 const UtilitiesTab = lazy(() => import('./features/utilities/UtilitiesTab'))
 
-const BUILD = 'v0.1.0'
+const BUILD = 'v0.12.0'
 
 function AppShell() {
   const [activeTab, setActiveTab] = useState<TabId>('leads')
@@ -29,6 +30,9 @@ function AppShell() {
           <span className="text-[10px] text-gray-400">{BUILD}</span>
         </div>
       </header>
+
+      {/* One-time legacy data migration */}
+      <MigrationBanner />
 
       {/* Offline / sync status */}
       <StatusBar />

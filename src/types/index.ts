@@ -85,6 +85,8 @@ export interface CanvassStop {
   status: StopStatus
   area?: string
   day?: string
+  lat?: number
+  lng?: number
   follow_up_date?: string
   last_contact?: string
   group?: string
