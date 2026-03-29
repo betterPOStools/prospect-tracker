@@ -119,18 +119,18 @@ export default function ExportPanel() {
       }
       if (data.records) {
         recordsDispatch({ type: 'SET_ALL', records: data.records })
-        await supabase.from('prospect.records').upsert(data.records.slice(0, 500))
+        await supabase.schema('prospect').from('records').upsert(data.records.slice(0, 500))
         for (let i = 500; i < data.records.length; i += 500) {
-          await supabase.from('prospect.records').upsert(data.records.slice(i, i + 500))
+          await supabase.schema('prospect').from('records').upsert(data.records.slice(i, i + 500))
         }
       }
       if (data.leads) {
         leadsDispatch({ type: 'SET_ALL', leads: data.leads as never[] })
-        await supabase.from('prospect.leads').upsert(data.leads as object[])
+        await supabase.schema('prospect').from('leads').upsert(data.leads as object[])
       }
       if (data.stops) {
         stopsDispatch({ type: 'SET_ALL', stops: data.stops as never[] })
-        await supabase.from('prospect.canvass_stops').upsert(data.stops as object[])
+        await supabase.schema('prospect').from('canvass_stops').upsert(data.stops as object[])
       }
       setRestoreModal(false)
       setRestoreFile(null)

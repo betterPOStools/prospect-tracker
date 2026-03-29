@@ -30,7 +30,7 @@ export function useOutscraper() {
         const taskId = extractTaskId(String(rawId))
 
         // Persist task to Supabase
-        await supabase.from('prospect.outscraper_tasks').insert({
+        await supabase.schema('prospect').from('outscraper_tasks').insert({
           task_id: taskId,
           title,
           status: 'pending' as TaskStatus,

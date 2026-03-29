@@ -126,7 +126,7 @@ export default function CanvassTab() {
       return
     }
 
-    await supabase.from('prospect.canvass_stops').delete().in('id', ids)
+    await supabase.schema('prospect').from('canvass_stops').delete().in('id', ids)
     dispatch({ type: 'DELETE_MANY', ids })
     setClearConfirmOpen(false)
   }

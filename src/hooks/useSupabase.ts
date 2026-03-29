@@ -34,10 +34,10 @@ export function useSupabase() {
     if (cache.isCacheFresh()) return   // skip if cache is <15 min old
 
     const [recordsRes, leadsRes, stopsRes, activitiesRes] = await Promise.all([
-      supabase.from('prospect.records').select('*').order('score', { ascending: false }),
-      supabase.from('prospect.leads').select('*').order('updated_at', { ascending: false }),
-      supabase.from('prospect.canvass_stops').select('*').order('updated_at', { ascending: false }),
-      supabase.from('prospect.activities').select('*').order('created_at', { ascending: true }),
+      supabase.schema('prospect').from('records').select('*').order('score', { ascending: false }),
+      supabase.schema('prospect').from('leads').select('*').order('updated_at', { ascending: false }),
+      supabase.schema('prospect').from('canvass_stops').select('*').order('updated_at', { ascending: false }),
+      supabase.schema('prospect').from('activities').select('*').order('created_at', { ascending: true }),
     ])
 
     if (recordsRes.data) {

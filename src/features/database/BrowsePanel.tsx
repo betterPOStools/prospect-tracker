@@ -235,7 +235,7 @@ export default function BrowsePanel() {
         created_at: now,
         updated_at: now,
       }
-      await supabase.from('prospect.canvass_stops').insert(stop)
+      await supabase.schema('prospect').from('canvass_stops').insert(stop)
       stopsDispatch({ type: 'ADD', stop })
 
       await supabase

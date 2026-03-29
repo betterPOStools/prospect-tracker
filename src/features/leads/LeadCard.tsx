@@ -182,7 +182,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
   async function handleDelete() {
     if (!window.confirm(`Delete lead "${lead.name}"? This cannot be undone.`)) return
     setBusy(true)
-    await supabase.from('prospect.leads').delete().eq('id', lead.id)
+    await supabase.schema('prospect').from('leads').delete().eq('id', lead.id)
     dispatch({ type: 'DELETE', id: lead.id })
   }
 

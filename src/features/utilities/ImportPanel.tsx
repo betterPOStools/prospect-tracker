@@ -98,11 +98,11 @@ function SearchSubTab() {
       // Upsert to Supabase in batches of 500
       const batch = allRecords.slice(0, 500)
       if (batch.length > 0) {
-        await supabase.from('prospect.records').upsert(batch)
+        await supabase.schema('prospect').from('records').upsert(batch)
       }
       if (allRecords.length > 500) {
         for (let i = 500; i < allRecords.length; i += 500) {
-          await supabase.from('prospect.records').upsert(allRecords.slice(i, i + 500))
+          await supabase.schema('prospect').from('records').upsert(allRecords.slice(i, i + 500))
         }
       }
 
@@ -273,7 +273,7 @@ function QueueSubTab() {
     const id = manualTaskId.trim()
     if (!id) return
     setAddingTask(true)
-    await supabase.from('prospect.outscraper_tasks').insert({
+    await supabase.schema('prospect').from('outscraper_tasks').insert({
       task_id: id,
       title: `Manual — ${id}`,
       status: 'pending',

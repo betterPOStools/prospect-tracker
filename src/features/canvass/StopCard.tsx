@@ -152,7 +152,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       system: true,
       created_at: now,
     }
-    await supabase.from('prospect.activities').insert(act)
+    await supabase.schema('prospect').from('activities').insert(act)
     dispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
   }
 
@@ -173,7 +173,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       created_at: new Date().toISOString(),
     }
 
-    const { error: err } = await supabase.from('prospect.activities').insert(act)
+    const { error: err } = await supabase.schema('prospect').from('activities').insert(act)
     if (err) {
       setError(err.message)
     } else {
@@ -200,7 +200,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       updated_at: now,
     }
 
-    const { error: leadErr } = await supabase.from('prospect.leads').insert(lead)
+    const { error: leadErr } = await supabase.schema('prospect').from('leads').insert(lead)
     if (leadErr) {
       setError(leadErr.message)
       setConverting(false)
@@ -240,7 +240,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       system: true,
       created_at: now,
     }
-    await supabase.from('prospect.activities').insert(act)
+    await supabase.schema('prospect').from('activities').insert(act)
     dispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
 
     setConverting(false)

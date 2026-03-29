@@ -70,7 +70,7 @@ export default function AddStopModal({ open, onClose }: AddStopModalProps) {
       updated_at: now,
     }
 
-    const { error } = await supabase.from('prospect.canvass_stops').insert(stop)
+    const { error } = await supabase.schema('prospect').from('canvass_stops').insert(stop)
     if (error) {
       setSaveError(error.message)
       setSaving(false)

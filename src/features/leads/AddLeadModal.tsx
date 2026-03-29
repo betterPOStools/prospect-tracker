@@ -73,7 +73,7 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
       updated_at: now,
     }
 
-    const { error } = await supabase.from('prospect.leads').insert(lead)
+    const { error } = await supabase.schema('prospect').from('leads').insert(lead)
     if (error) {
       setSaveError(error.message)
       setSaving(false)

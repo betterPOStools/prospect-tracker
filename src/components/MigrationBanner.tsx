@@ -35,13 +35,13 @@ export default function MigrationBanner() {
       // Upload in batches
       const batchSize = 200
       for (let i = 0; i < bundle.records.length; i += batchSize) {
-        await supabase.from('prospect.records').upsert(bundle.records.slice(i, i + batchSize))
+        await supabase.schema('prospect').from('records').upsert(bundle.records.slice(i, i + batchSize))
       }
       if (bundle.leads.length > 0) {
-        await supabase.from('prospect.leads').upsert(bundle.leads)
+        await supabase.schema('prospect').from('leads').upsert(bundle.leads)
       }
       if (bundle.stops.length > 0) {
-        await supabase.from('prospect.canvass_stops').upsert(bundle.stops)
+        await supabase.schema('prospect').from('canvass_stops').upsert(bundle.stops)
       }
 
       // Update contexts
