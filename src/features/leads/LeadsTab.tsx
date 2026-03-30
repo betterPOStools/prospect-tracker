@@ -109,7 +109,6 @@ export default function LeadsTab() {
             size="sm"
             variant="primary"
             onClick={() => setShowAddModal(true)}
-            aria-label="Add lead"
           >
             + Add Lead
           </Button>
@@ -117,7 +116,7 @@ export default function LeadsTab() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex border-b border-gray-200 bg-white px-1">
+      <div className="flex border-b border-gray-200 bg-white px-1" data-testid="leads-filter-bar">
         {FILTER_OPTIONS.map((f) => (
           <button
             key={f}

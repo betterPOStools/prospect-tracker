@@ -23,7 +23,9 @@ export default function UtilitiesTab() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <SubTabs tabs={TABS} active={active} onChange={setActive} />
+      <div data-testid="utilities-sub-tabs">
+        <SubTabs tabs={TABS} active={active} onChange={setActive} />
+      </div>
       <div className="flex flex-1 flex-col overflow-hidden">
         {active === 'analytics' && <AnalyticsPanel />}
         {active === 'import' && <ImportPanel />}

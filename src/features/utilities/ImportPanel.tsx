@@ -584,7 +584,9 @@ export default function ImportPanel() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <SubTabs tabs={IMPORT_TABS} active={activeTab} onChange={setActiveTab} />
+      <div data-testid="import-sub-tabs">
+        <SubTabs tabs={IMPORT_TABS} active={activeTab} onChange={setActiveTab} />
+      </div>
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'search' && <SearchSubTab onSwitchToQueue={() => setActiveTab('queue')} />}
         {activeTab === 'queue' && <QueueSubTab />}

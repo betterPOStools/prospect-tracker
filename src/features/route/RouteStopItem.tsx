@@ -78,7 +78,7 @@ export default function RouteStopItem({
     <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
       {/* Number */}
       <div className="flex flex-col items-center pt-0.5">
-        <span className="text-sm font-bold text-gray-700 tabular-nums w-6 text-center">
+        <span data-testid="stop-number" className="text-sm font-bold text-gray-700 tabular-nums w-6 text-center">
           {number}
         </span>
       </div>
