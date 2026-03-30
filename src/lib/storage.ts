@@ -85,7 +85,7 @@ export const mutationQueue = {
 // ── Settings ────────────────────────────────────────────────────────────────
 
 export const settings = {
-  getOsKey: () => localStorage.getItem(KEYS.OS_KEY) ?? '',
+  getOsKey: () => localStorage.getItem(KEYS.OS_KEY) ?? (import.meta.env.VITE_OUTSCRAPER_API_KEY as string | undefined) ?? '',
   setOsKey: (v: string) => localStorage.setItem(KEYS.OS_KEY, v),
 
   getOsCfg: () => getJson<Record<string, unknown>>(KEYS.OS_CFG, {}),

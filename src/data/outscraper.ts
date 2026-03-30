@@ -21,6 +21,11 @@ export interface OsConfig {
   useCompanyData: boolean
 }
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const DEFAULT_WEBHOOK_URL = SUPABASE_URL
+  ? `${SUPABASE_URL}/functions/v1/outscraper-webhook`
+  : ''
+
 export const DEFAULT_OS_CONFIG: OsConfig = {
   categories: 'restaurant, bar and grill, seafood restaurant, pizza restaurant, brewery, bar, night club',
   autoImport: true,
@@ -29,7 +34,7 @@ export const DEFAULT_OS_CONFIG: OsConfig = {
   exactMatch: false,
   minRating: 0,
   minReviews: 0,
-  webhookUrl: '',
+  webhookUrl: DEFAULT_WEBHOOK_URL,
   usePhoneEnricher: false,
   useCompanyData: false,
 }
