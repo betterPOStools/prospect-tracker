@@ -3,7 +3,7 @@ import JSZip from 'jszip'
 import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { useLeads, useLeadsDispatch } from '../../store/LeadsContext'
 import { useStops, useStopsDispatch } from '../../store/StopsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import { exportFile } from '../../lib/platform'
 import { loadCanvassLog } from '../../data/canvassLog'
 import { isLegacyRecord, migrateLegacyFile } from '../../data/migration'
@@ -146,16 +146,16 @@ export default function ExportPanel() {
       if (records.length > 0) {
         recordsDispatch({ type: 'SET_ALL', records })
         for (let i = 0; i < records.length; i += 500) {
-          await supabase.schema('prospect').from('records').upsert(records.slice(i, i + 500))
+          await db.from('records').upsert(records.slice(i, i + 500))
         }
       }
       if (leads.length > 0) {
         leadsDispatch({ type: 'SET_ALL', leads: leads as never[] })
-        await supabase.schema('prospect').from('leads').upsert(leads as object[])
+        await db.from('leads').upsert(leads as object[])
       }
       if (stops.length > 0) {
         stopsDispatch({ type: 'SET_ALL', stops: stops as never[] })
-        await supabase.schema('prospect').from('canvass_stops').upsert(stops as object[])
+        await db.from('canvass_stops').upsert(stops as object[])
       }
 
       setRestoreModal(false)

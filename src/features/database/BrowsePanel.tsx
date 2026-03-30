@@ -4,7 +4,7 @@ import type { ProspectRecord, Priority, RecordStatus } from '../../types'
 import { PRIORITIES, DAYS } from '../../types'
 import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { useStopsDispatch } from '../../store/StopsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import Button from '../../components/Button'
 import { PriorityBadge, Badge } from '../../components/Badge'
 import EmptyState from '../../components/EmptyState'
@@ -237,11 +237,11 @@ export default function BrowsePanel() {
         created_at: now,
         updated_at: now,
       }
-      await supabase.schema('prospect').from('canvass_stops').insert(stop)
+      await db.from('canvass_stops').insert(stop)
       stopsDispatch({ type: 'ADD', stop })
 
-      await supabase
-        .from('prospect.records')
+      await db
+        .from('records')
         .update({ status: 'in_canvass', updated_at: now })
         .eq('id', record.id)
       recordsDispatch({ type: 'UPDATE_STATUS', id: record.id, status: 'in_canvass' })
@@ -257,8 +257,8 @@ export default function BrowsePanel() {
     const ids = Array.from(selectedIds)
     const now = new Date().toISOString()
 
-    await supabase
-      .from('prospect.records')
+    await db
+      .from('records')
       .update({ day: bulkDay, updated_at: now })
       .in('id', ids)
     recordsDispatch({ type: 'ASSIGN_DAY', ids, day: bulkDay })

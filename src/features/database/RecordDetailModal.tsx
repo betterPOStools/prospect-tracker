@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ProspectRecord, Priority, RecordStatus } from '../../types'
 import { PRIORITIES, DAYS } from '../../types'
 import { useRecordsDispatch } from '../../store/RecordsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import Modal from '../../components/Modal'
 import Button from '../../components/Button'
 import { PriorityBadge, Badge } from '../../components/Badge'
@@ -326,8 +326,8 @@ function RecordEditForm({
       is_chain: form.is_chain,
       updated_at: now,
     }
-    const { error: supaErr } = await supabase
-      .from('prospect.records')
+    const { error: supaErr } = await db
+      .from('records')
       .update(patch)
       .eq('id', record.id)
     if (supaErr) {
@@ -342,8 +342,8 @@ function RecordEditForm({
   async function handleDelete() {
     setDeleting(true)
     setError(null)
-    const { error: supaErr } = await supabase
-      .from('prospect.records')
+    const { error: supaErr } = await db
+      .from('records')
       .delete()
       .eq('id', record.id)
     if (supaErr) {

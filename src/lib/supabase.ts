@@ -8,3 +8,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+/** Pre-bound to the `prospect` schema — use for all app table queries */
+export const db = supabase.schema('prospect')

@@ -6,7 +6,7 @@
 // - Echoes from own mutations are ignored via a 2-second echo window
 
 import { useEffect, useCallback, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, db } from '../lib/supabase'
 import { cache } from '../lib/storage'
 import { useRecordsDispatch } from '../store/RecordsContext'
 import { useLeadsDispatch } from '../store/LeadsContext'
@@ -34,10 +34,10 @@ export function useSupabase() {
     if (cache.isCacheFresh()) return   // skip if cache is <15 min old
 
     const [recordsRes, leadsRes, stopsRes, activitiesRes] = await Promise.all([
-      supabase.schema('prospect').from('records').select('*').order('score', { ascending: false }),
-      supabase.schema('prospect').from('leads').select('*').order('updated_at', { ascending: false }),
-      supabase.schema('prospect').from('canvass_stops').select('*').order('updated_at', { ascending: false }),
-      supabase.schema('prospect').from('activities').select('*').order('created_at', { ascending: true }),
+      db.from('records').select('*').order('score', { ascending: false }),
+      db.from('leads').select('*').order('updated_at', { ascending: false }),
+      db.from('canvass_stops').select('*').order('updated_at', { ascending: false }),
+      db.from('activities').select('*').order('created_at', { ascending: true }),
     ])
 
     if (recordsRes.data) {

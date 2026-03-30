@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Lead, LeadStatus } from '../../types'
 import { useLeadsDispatch } from '../../store/LeadsContext'
 import { useRecords } from '../../store/RecordsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import { openUrl } from '../../lib/platform'
 import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
@@ -185,8 +185,8 @@ export default function LeadCard({ lead }: LeadCardProps) {
     if (!window.confirm(`Mark this lead as ${label}?`)) return
     setBusy(true)
     const now = new Date().toISOString()
-    await supabase
-      .from('prospect.leads')
+    await db
+      .from('leads')
       .update({ status, updated_at: now })
       .eq('id', lead.id)
     dispatch({ type: 'UPDATE_STATUS', id: lead.id, status })
@@ -196,7 +196,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
   async function handleDelete() {
     if (!window.confirm(`Delete lead "${lead.name}"? This cannot be undone.`)) return
     setBusy(true)
-    await supabase.schema('prospect').from('leads').delete().eq('id', lead.id)
+    await db.from('leads').delete().eq('id', lead.id)
     dispatch({ type: 'DELETE', id: lead.id })
   }
 
@@ -204,8 +204,8 @@ export default function LeadCard({ lead }: LeadCardProps) {
     setBusy(true)
     const now = new Date().toISOString()
     const updated: Lead = { ...lead, ...updates, updated_at: now }
-    await supabase
-      .from('prospect.leads')
+    await db
+      .from('leads')
       .update({ ...updates, updated_at: now })
       .eq('id', lead.id)
     dispatch({ type: 'UPDATE', lead: updated })

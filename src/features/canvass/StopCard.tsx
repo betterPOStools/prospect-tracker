@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { CanvassStop, StopStatus, Activity, Lead } from '../../types'
 import { useStopsDispatch } from '../../store/StopsContext'
 import { useLeadsDispatch } from '../../store/LeadsContext'
-import { supabase } from '../../lib/supabase'
+import { supabase, db } from '../../lib/supabase'
 import { isNative } from '../../lib/platform'
 import { Badge } from '../../components/Badge'
 import Button from '../../components/Button'
@@ -132,8 +132,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     // Optimistic update
     dispatch({ type: 'UPDATE_STATUS', id: stop.id, status })
 
-    const { error: err } = await supabase
-      .from('prospect.canvass_stops')
+    const { error: err } = await db
+      .from('canvass_stops')
       .update({ status, updated_at: now })
       .eq('id', stop.id)
 
@@ -152,7 +152,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       system: true,
       created_at: now,
     }
-    await supabase.schema('prospect').from('activities').insert(act)
+    await db.from('activities').insert(act)
     dispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
   }
 
@@ -173,7 +173,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       created_at: new Date().toISOString(),
     }
 
-    const { error: err } = await supabase.schema('prospect').from('activities').insert(act)
+    const { error: err } = await db.from('activities').insert(act)
     if (err) {
       setError(err.message)
     } else {
@@ -200,7 +200,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       updated_at: now,
     }
 
-    const { error: leadErr } = await supabase.schema('prospect').from('leads').insert(lead)
+    const { error: leadErr } = await db.from('leads').insert(lead)
     if (leadErr) {
       setError(leadErr.message)
       setConverting(false)
@@ -210,8 +210,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     leadsDispatch({ type: 'ADD', lead })
 
     // Update stop to converted
-    const { error: stopErr } = await supabase
-      .from('prospect.canvass_stops')
+    const { error: stopErr } = await db
+      .from('canvass_stops')
       .update({ status: 'converted', updated_at: now })
       .eq('id', stop.id)
 
@@ -225,8 +225,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
 
     // Update parent record status if record_id exists
     if (stop.record_id) {
-      await supabase
-        .from('prospect.records')
+      await db
+        .from('records')
         .update({ status: 'converted', updated_at: now })
         .eq('id', stop.record_id)
     }
@@ -240,7 +240,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       system: true,
       created_at: now,
     }
-    await supabase.schema('prospect').from('activities').insert(act)
+    await db.from('activities').insert(act)
     dispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
 
     setConverting(false)
@@ -252,8 +252,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     setError('')
 
     const now = new Date().toISOString()
-    const { error: err } = await supabase
-      .from('prospect.canvass_stops')
+    const { error: err } = await db
+      .from('canvass_stops')
       .update({ status: 'dropped', updated_at: now })
       .eq('id', stop.id)
 
@@ -278,8 +278,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     setRemoving(true)
     setError('')
 
-    const { error: err } = await supabase
-      .from('prospect.canvass_stops')
+    const { error: err } = await db
+      .from('canvass_stops')
       .delete()
       .eq('id', stop.id)
 

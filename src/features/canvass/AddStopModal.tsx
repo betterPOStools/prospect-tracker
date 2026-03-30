@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { CanvassStop } from '../../types'
 import { useStopsDispatch } from '../../store/StopsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import Button from '../../components/Button'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -71,7 +71,7 @@ export default function AddStopModal({ open, onClose }: AddStopModalProps) {
       updated_at: now,
     }
 
-    const { error } = await supabase.schema('prospect').from('canvass_stops').insert(stop)
+    const { error } = await db.from('canvass_stops').insert(stop)
     if (error) {
       setSaveError(error.message)
       setSaving(false)

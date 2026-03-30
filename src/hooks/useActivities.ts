@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useStopsDispatch } from '../store/StopsContext'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/supabase'
 import type { ActivityType, Activity } from '../types'
 
 let idCounter = 0
@@ -32,8 +32,8 @@ export function useActivities() {
       dispatch({ type: 'APPEND_ACTIVITY', stop_id: stopId, activity })
 
       // Persist to Supabase
-      const { data, error } = await supabase
-        .from('prospect.activities')
+      const { data, error } = await db
+        .from('activities')
         .insert({
           stop_id: stopId,
           type,

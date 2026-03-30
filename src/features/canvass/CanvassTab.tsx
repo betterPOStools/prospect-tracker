@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStops, useStopsDispatch } from '../../store/StopsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import Button from '../../components/Button'
 import EmptyState from '../../components/EmptyState'
 import Modal from '../../components/Modal'
@@ -92,8 +92,8 @@ export default function CanvassTab() {
     )
 
     for (const stop of toMarkNotVisited) {
-      await supabase
-        .from('prospect.canvass_stops')
+      await db
+        .from('canvass_stops')
         .update({ status: 'not_visited', updated_at: now })
         .eq('id', stop.id)
       dispatch({ type: 'UPDATE_STATUS', id: stop.id, status: 'not_visited' })
@@ -105,8 +105,8 @@ export default function CanvassTab() {
         (s) => s.status === 'come_back_later' || s.status === 'dm_unavailable'
       )
       for (const stop of toCarry) {
-        await supabase
-          .from('prospect.canvass_stops')
+        await db
+          .from('canvass_stops')
           .update({ status: 'queued', updated_at: now })
           .eq('id', stop.id)
         dispatch({ type: 'UPDATE_STATUS', id: stop.id, status: 'queued' })
@@ -126,7 +126,7 @@ export default function CanvassTab() {
       return
     }
 
-    await supabase.schema('prospect').from('canvass_stops').delete().in('id', ids)
+    await db.from('canvass_stops').delete().in('id', ids)
     dispatch({ type: 'DELETE_MANY', ids })
     setClearConfirmOpen(false)
   }

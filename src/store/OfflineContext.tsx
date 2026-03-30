@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import type { PendingMutation } from '../types'
 import { mutationQueue } from '../lib/storage'
 import { getNetworkStatus } from '../lib/platform'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/supabase'
 
 interface OfflineContextValue {
   isOnline: boolean
@@ -25,9 +25,9 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           if (mutation.operation === 'delete') {
-            await supabase.from(mutation.table).delete().eq('id', mutation.record_id)
+            await db.from(mutation.table).delete().eq('id', mutation.record_id)
           } else {
-            await supabase.from(mutation.table).upsert(mutation.payload)
+            await db.from(mutation.table).upsert(mutation.payload)
           }
           success = true
           break

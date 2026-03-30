@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { settings } from '../lib/storage'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/supabase'
 import {
   submitScrape, pollTask, listTasks, getTaskConfig, extractTaskId,
   processOutscraperRows, withDefaults,
@@ -30,7 +30,7 @@ export function useOutscraper() {
         const taskId = extractTaskId(String(rawId))
 
         // Persist task to Supabase
-        await supabase.schema('prospect').from('outscraper_tasks').insert({
+        await db.from('outscraper_tasks').insert({
           task_id: taskId,
           title,
           status: 'pending' as TaskStatus,
@@ -74,7 +74,7 @@ export function useOutscraper() {
           dispatch({ type: 'UPSERT_MANY', records: allRecords })
 
           // Mark task complete in Supabase
-          await supabase.schema('prospect')
+          await supabase
             .from('outscraper_tasks')
             .update({ status: 'completed' as TaskStatus, record_count: added + updated, completed_at: new Date().toISOString() })
             .eq('task_id', requestId)
@@ -83,7 +83,7 @@ export function useOutscraper() {
         }
 
         if (status === 'Error' || status === 'error') {
-          await supabase.schema('prospect')
+          await supabase
             .from('outscraper_tasks')
             .update({ status: 'failed' as TaskStatus })
             .eq('task_id', requestId)
@@ -103,7 +103,7 @@ export function useOutscraper() {
   // ── Fetch stored tasks from Supabase ──────────────────────────────────────
 
   const fetchTasks = useCallback(async (): Promise<OutscraperTask[]> => {
-    const { data, error: err } = await supabase.schema('prospect')
+    const { data, error: err } = await supabase
       .from('outscraper_tasks')
       .select('*')
       .order('created_at', { ascending: false })

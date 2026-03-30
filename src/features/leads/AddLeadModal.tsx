@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Lead } from '../../types'
 import { useLeadsDispatch } from '../../store/LeadsContext'
-import { supabase } from '../../lib/supabase'
+import { db } from '../../lib/supabase'
 import Button from '../../components/Button'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -74,7 +74,7 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
       updated_at: now,
     }
 
-    const { error } = await supabase.schema('prospect').from('leads').insert(lead)
+    const { error } = await db.from('leads').insert(lead)
     if (error) {
       setSaveError(error.message)
       setSaving(false)
