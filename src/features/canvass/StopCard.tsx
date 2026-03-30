@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CanvassStop, StopStatus, Activity, Lead } from '../../types'
 import { useStopsDispatch } from '../../store/StopsContext'
 import { useLeadsDispatch } from '../../store/LeadsContext'
+import { useRecords } from '../../store/RecordsContext'
 import { supabase, db } from '../../lib/supabase'
 import { isNative } from '../../lib/platform'
 import { Badge } from '../../components/Badge'
@@ -114,6 +115,7 @@ interface StopCardProps {
 export default function StopCard({ stop, readOnly = false, showOverdue = false }: StopCardProps) {
   const dispatch = useStopsDispatch()
   const leadsDispatch = useLeadsDispatch()
+  const records = useRecords()
 
   const [noteText, setNoteText] = useState('')
   const [submittingNote, setSubmittingNote] = useState(false)
@@ -189,12 +191,18 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     setError('')
 
     const now = new Date().toISOString()
+    const parentRecord = stop.record_id ? records.find((r) => r.id === stop.record_id) : undefined
     const lead: Lead = {
       id: crypto.randomUUID(),
       name: stop.name,
       status: 'Open',
       phone: stop.phone,
+      email: parentRecord?.email,
       address: stop.address,
+      contact_name: parentRecord?.contact_name,
+      contact_title: parentRecord?.contact_title,
+      website: parentRecord?.website,
+      menu_link: parentRecord?.menu_link,
       record_id: stop.record_id,
       created_at: now,
       updated_at: now,

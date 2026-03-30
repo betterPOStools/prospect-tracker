@@ -15,8 +15,13 @@ interface AddLeadModalProps {
 interface FormState {
   name: string
   phone: string
+  email: string
   address: string
+  contact_name: string
+  contact_title: string
   pos_type: string
+  website: string
+  menu_link: string
   notes: string
   follow_up: string
 }
@@ -24,8 +29,13 @@ interface FormState {
 const INITIAL: FormState = {
   name: '',
   phone: '',
+  email: '',
   address: '',
+  contact_name: '',
+  contact_title: '',
   pos_type: '',
+  website: '',
+  menu_link: '',
   notes: '',
   follow_up: '',
 }
@@ -66,8 +76,13 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
       name: form.name.trim(),
       status: 'Open',
       phone: form.phone.trim() || undefined,
+      email: form.email.trim() || undefined,
       address: form.address.trim() || undefined,
+      contact_name: form.contact_name.trim() || undefined,
+      contact_title: form.contact_title.trim() || undefined,
       pos_type: form.pos_type.trim() || undefined,
+      website: form.website.trim() || undefined,
+      menu_link: form.menu_link.trim() || undefined,
       notes: form.notes.trim() || undefined,
       follow_up: form.follow_up || undefined,
       created_at: now,
@@ -103,16 +118,49 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
           value={form.phone}
           onChange={(e) => set('phone', e.target.value)}
         />
+        <Input
+          label="Email"
+          type="email"
+          placeholder="contact@restaurant.com"
+          value={form.email}
+          onChange={(e) => set('email', e.target.value)}
+        />
         <AddressAutocomplete
           label="Address"
           value={form.address}
           onChange={(v) => set('address', v)}
         />
         <Input
+          label="Contact Name"
+          placeholder="Decision maker / owner"
+          value={form.contact_name}
+          onChange={(e) => set('contact_name', e.target.value)}
+        />
+        <Input
+          label="Contact Title"
+          placeholder="e.g. Owner, GM, Manager"
+          value={form.contact_title}
+          onChange={(e) => set('contact_title', e.target.value)}
+        />
+        <Input
           label="POS Type"
           placeholder="e.g. Aloha, Micros, Custom"
           value={form.pos_type}
           onChange={(e) => set('pos_type', e.target.value)}
+        />
+        <Input
+          label="Website"
+          type="url"
+          placeholder="https://restaurant.com"
+          value={form.website}
+          onChange={(e) => set('website', e.target.value)}
+        />
+        <Input
+          label="Menu Link"
+          type="url"
+          placeholder="https://restaurant.com/menu"
+          value={form.menu_link}
+          onChange={(e) => set('menu_link', e.target.value)}
         />
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-600" htmlFor="add-lead-notes">

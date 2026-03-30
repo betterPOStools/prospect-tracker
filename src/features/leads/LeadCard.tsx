@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import type { Lead, LeadStatus } from '../../types'
+import type { Lead, LeadStatus, Activity } from '../../types'
 import { useLeadsDispatch } from '../../store/LeadsContext'
 import { useRecords } from '../../store/RecordsContext'
 import { db } from '../../lib/supabase'
 import { openUrl } from '../../lib/platform'
+import { useCopper } from '../../hooks/useCopper'
 import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
 import Input from '../../components/Input'
@@ -37,6 +38,11 @@ function relativeTime(iso: string): string {
   return `${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) !== 1 ? 's' : ''} ago`
 }
 
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 function isOverdue(dateStr: string): boolean {
   return new Date(dateStr) < new Date(new Date().toDateString())
 }
@@ -61,13 +67,72 @@ function statusBadgeVariant(status: LeadStatus): 'info' | 'success' | 'danger' {
   return 'danger'
 }
 
+// ── Activity log ─────────────────────────────────────────────────────────────
+
+function ActivityLog({ activities }: { activities: Activity[] }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!activities.length) return null
+
+  const shown = expanded ? activities : activities.slice(-3)
+
+  return (
+    <div className="mt-2 border-t border-gray-100 pt-2">
+      <div className="flex flex-col gap-1">
+        {!expanded && activities.length > 3 && (
+          <button
+            className="text-left text-xs text-blue-600 hover:underline"
+            onClick={() => setExpanded(true)}
+          >
+            Show {activities.length - 3} more
+          </button>
+        )}
+        {shown.map((act) => (
+          <div key={act.id} className="flex items-start gap-2 text-xs text-gray-500">
+            <span className="shrink-0 text-[10px] text-gray-400">
+              {formatTimestamp(act.created_at)}
+            </span>
+            <span
+              className={
+                act.system
+                  ? 'italic'
+                  : act.type === 'call'
+                    ? 'text-blue-600'
+                    : act.type === 'sms'
+                      ? 'text-purple-600'
+                      : ''
+              }
+            >
+              {act.type === 'call' && '\u{1F4DE} '}
+              {act.type === 'sms' && '\u{1F4AC} '}
+              {act.text ?? act.type}
+            </span>
+          </div>
+        ))}
+        {expanded && activities.length > 3 && (
+          <button
+            className="text-left text-xs text-blue-600 hover:underline"
+            onClick={() => setExpanded(false)}
+          >
+            Show less
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Inline edit form ─────────────────────────────────────────────────────────
 
 interface EditFormState {
   name: string
   phone: string
+  email: string
   address: string
+  contact_name: string
+  contact_title: string
   pos_type: string
+  website: string
+  menu_link: string
   notes: string
   follow_up: string
 }
@@ -82,8 +147,13 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
   const [form, setForm] = useState<EditFormState>({
     name: lead.name,
     phone: lead.phone ?? '',
+    email: lead.email ?? '',
     address: lead.address ?? '',
+    contact_name: lead.contact_name ?? '',
+    contact_title: lead.contact_title ?? '',
     pos_type: lead.pos_type ?? '',
+    website: lead.website ?? '',
+    menu_link: lead.menu_link ?? '',
     notes: lead.notes ?? '',
     follow_up: lead.follow_up ?? '',
   })
@@ -98,8 +168,13 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
     onSave({
       name: form.name.trim(),
       phone: form.phone.trim() || undefined,
+      email: form.email.trim() || undefined,
       address: form.address.trim() || undefined,
+      contact_name: form.contact_name.trim() || undefined,
+      contact_title: form.contact_title.trim() || undefined,
       pos_type: form.pos_type.trim() || undefined,
+      website: form.website.trim() || undefined,
+      menu_link: form.menu_link.trim() || undefined,
       notes: form.notes.trim() || undefined,
       follow_up: form.follow_up || undefined,
     })
@@ -119,15 +194,43 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
         value={form.phone}
         onChange={(e) => set('phone', e.target.value)}
       />
+      <Input
+        label="Email"
+        type="email"
+        value={form.email}
+        onChange={(e) => set('email', e.target.value)}
+      />
       <AddressAutocomplete
         label="Address"
         value={form.address}
         onChange={(v) => set('address', v)}
       />
       <Input
+        label="Contact Name"
+        value={form.contact_name}
+        onChange={(e) => set('contact_name', e.target.value)}
+      />
+      <Input
+        label="Contact Title"
+        value={form.contact_title}
+        onChange={(e) => set('contact_title', e.target.value)}
+      />
+      <Input
         label="POS Type"
         value={form.pos_type}
         onChange={(e) => set('pos_type', e.target.value)}
+      />
+      <Input
+        label="Website"
+        type="url"
+        value={form.website}
+        onChange={(e) => set('website', e.target.value)}
+      />
+      <Input
+        label="Menu Link"
+        type="url"
+        value={form.menu_link}
+        onChange={(e) => set('menu_link', e.target.value)}
       />
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-gray-600" htmlFor={`notes-${lead.id}`}>
@@ -168,16 +271,84 @@ interface LeadCardProps {
 export default function LeadCard({ lead }: LeadCardProps) {
   const dispatch = useLeadsDispatch()
   const records = useRecords()
+  const { configured: copperConfigured, pushing: copperPushing, error: copperError, pushLead: copperPush } = useCopper()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [submittingNote, setSubmittingNote] = useState(false)
+  const [error, setError] = useState('')
+
+  const linkedRecord = lead.record_id ? records.find((r) => r.id === lead.record_id) : undefined
+  const activities = lead.activities ?? []
+  const phone = lead.phone ? formatPhone(lead.phone) : null
+  const email = lead.email || linkedRecord?.email
+  const contactName = lead.contact_name || linkedRecord?.contact_name
+  const contactTitle = lead.contact_title || linkedRecord?.contact_title
+  const website = lead.website || linkedRecord?.website
+  const menuLink = lead.menu_link || linkedRecord?.menu_link
+  const followUpOverdue = lead.follow_up ? isOverdue(lead.follow_up) : false
 
   function openInMenuImport() {
-    const record = lead.record_id ? records.find((r) => r.id === lead.record_id) : null
     const params = new URLSearchParams({ name: lead.name })
-    const menuLink = record?.menu_link || record?.website
-    if (menuLink) params.set('url', menuLink)
+    const link = menuLink || website
+    if (link) params.set('url', link)
     openUrl(MENU_IMPORT_URL + '?' + params.toString())
+  }
+
+  async function logActivity(type: 'call' | 'sms' | 'note', text: string) {
+    const now = new Date().toISOString()
+    const act: Activity = {
+      id: crypto.randomUUID(),
+      lead_id: lead.id,
+      type,
+      text,
+      system: false,
+      created_at: now,
+    }
+
+    // Optimistic local update
+    dispatch({ type: 'APPEND_ACTIVITY', lead_id: lead.id, activity: act })
+
+    // Persist activity
+    await db.from('activities').insert(act)
+
+    // Update last_contact
+    await db
+      .from('leads')
+      .update({ last_contact: now, updated_at: now })
+      .eq('id', lead.id)
+    dispatch({ type: 'UPDATE', lead: { ...lead, last_contact: now, updated_at: now } })
+  }
+
+  function handleCall() {
+    if (lead.phone) {
+      logActivity('call', `Called ${formatPhone(lead.phone)}`)
+    }
+  }
+
+  function handleText() {
+    if (lead.phone) {
+      logActivity('sms', `Texted ${formatPhone(lead.phone)}`)
+    }
+  }
+
+  async function handleAddNote(e: React.FormEvent) {
+    e.preventDefault()
+    const text = noteText.trim()
+    if (!text) return
+
+    setSubmittingNote(true)
+    setError('')
+
+    try {
+      await logActivity('note', text)
+      setNoteText('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add note')
+    } finally {
+      setSubmittingNote(false)
+    }
   }
 
   async function updateStatus(status: LeadStatus) {
@@ -187,9 +358,22 @@ export default function LeadCard({ lead }: LeadCardProps) {
     const now = new Date().toISOString()
     await db
       .from('leads')
-      .update({ status, updated_at: now })
+      .update({ status, updated_at: now, last_contact: now })
       .eq('id', lead.id)
     dispatch({ type: 'UPDATE_STATUS', id: lead.id, status })
+
+    // Log status change as system activity
+    const act: Activity = {
+      id: crypto.randomUUID(),
+      lead_id: lead.id,
+      type: 'status_change',
+      text: `Status changed to ${label}`,
+      system: true,
+      created_at: now,
+    }
+    await db.from('activities').insert(act)
+    dispatch({ type: 'APPEND_ACTIVITY', lead_id: lead.id, activity: act })
+
     setBusy(false)
   }
 
@@ -213,18 +397,15 @@ export default function LeadCard({ lead }: LeadCardProps) {
     setBusy(false)
   }
 
-  const phone = lead.phone ? formatPhone(lead.phone) : null
-  const followUpOverdue = lead.follow_up ? isOverdue(lead.follow_up) : false
-
   return (
     <div className="border-b border-gray-200 bg-white px-4 py-3">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="truncate font-semibold text-gray-900">{lead.name}</span>
-          {lead.last_contact && (
-            <span className="text-xs text-gray-400">
-              Last contact: {relativeTime(lead.last_contact)}
+          {contactName && (
+            <span className="text-xs text-gray-500">
+              {contactName}{contactTitle ? ` (${contactTitle})` : ''}
             </span>
           )}
         </div>
@@ -243,35 +424,45 @@ export default function LeadCard({ lead }: LeadCardProps) {
 
       {/* Details */}
       <div className="mt-2 flex flex-col gap-1">
+        {lead.address && (
+          <span className="text-sm text-gray-600">{lead.address}</span>
+        )}
         {phone && (
-          <a
-            href={`tel:${lead.phone}`}
-            className="text-sm text-blue-600 active:opacity-70"
-          >
+          <a href={`tel:${lead.phone}`} className="text-sm text-blue-600 active:opacity-70">
             {phone}
           </a>
         )}
-        {lead.address && (
-          <span className="text-sm text-gray-600">{lead.address}</span>
+        {email && (
+          <a href={`mailto:${email}`} className="text-sm text-blue-600 active:opacity-70">
+            {email}
+          </a>
         )}
         {lead.pos_type && (
           <span className="text-xs text-gray-500">POS: {lead.pos_type}</span>
         )}
-        {lead.follow_up && (
-          <span
-            className={`text-xs font-medium ${
-              followUpOverdue ? 'text-red-600' : 'text-amber-600'
-            }`}
+        {website && (
+          <a
+            href={website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline active:opacity-70"
           >
-            Follow up: {formatFollowUp(lead.follow_up)}
-            {followUpOverdue && ' (overdue)'}
-          </span>
+            {website}
+          </a>
+        )}
+        {menuLink && menuLink !== website && (
+          <a
+            href={menuLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline active:opacity-70"
+          >
+            View menu
+          </a>
         )}
         {lead.notes && (
           <div>
-            <p
-              className={`text-sm text-gray-600 ${expanded ? '' : 'line-clamp-2'}`}
-            >
+            <p className={`text-sm italic text-gray-600 ${expanded ? '' : 'line-clamp-2'}`}>
               {lead.notes}
             </p>
             {lead.notes.length > 100 && (
@@ -286,6 +477,50 @@ export default function LeadCard({ lead }: LeadCardProps) {
         )}
       </div>
 
+      {/* Timestamps */}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
+        {lead.follow_up && (
+          <span className={followUpOverdue ? 'font-medium text-red-500' : 'text-amber-600'}>
+            Follow up: {formatFollowUp(lead.follow_up)}
+            {followUpOverdue && ' (overdue)'}
+          </span>
+        )}
+        {lead.last_contact && (
+          <span>Last contact: {relativeTime(lead.last_contact)}</span>
+        )}
+        <span>Added: {new Date(lead.created_at).toLocaleDateString()}</span>
+      </div>
+
+      {/* Activity log */}
+      <ActivityLog activities={activities} />
+
+      {/* Error */}
+      {error && (
+        <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{error}</p>
+      )}
+
+      {/* Note input */}
+      {!editing && (
+        <form onSubmit={handleAddNote} className="mt-2 flex gap-1.5">
+          <input
+            type="text"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            placeholder="Add a note..."
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+          />
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={!noteText.trim() || submittingNote}
+            className="shrink-0"
+          >
+            {submittingNote ? '...' : 'Add'}
+          </Button>
+        </form>
+      )}
+
       {/* Inline edit form */}
       {editing && (
         <InlineEditForm
@@ -297,13 +532,23 @@ export default function LeadCard({ lead }: LeadCardProps) {
 
       {/* Action buttons */}
       {!editing && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {phone && (
             <a
               href={`tel:${lead.phone}`}
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-200 active:bg-gray-300"
+              onClick={handleCall}
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 active:bg-blue-200"
             >
               Call
+            </a>
+          )}
+          {phone && (
+            <a
+              href={`sms:${lead.phone}`}
+              onClick={handleText}
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 active:bg-purple-200"
+            >
+              Text
             </a>
           )}
           {lead.address && (
@@ -358,6 +603,23 @@ export default function LeadCard({ lead }: LeadCardProps) {
               Reopen
             </Button>
           )}
+          {copperConfigured && (
+            lead.copper_opportunity_id ? (
+              <span className="inline-flex min-h-[36px] items-center px-3 py-1.5 text-xs font-medium text-green-600">
+                Synced to Copper
+              </span>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => copperPush(lead, linkedRecord ?? undefined)}
+                disabled={busy || copperPushing}
+                className="min-h-[36px] text-orange-600 hover:bg-orange-50"
+              >
+                {copperPushing ? 'Pushing...' : 'Push to Copper'}
+              </Button>
+            )
+          )}
           <Button
             size="sm"
             variant="ghost"
@@ -368,6 +630,11 @@ export default function LeadCard({ lead }: LeadCardProps) {
             Delete
           </Button>
         </div>
+      )}
+      {copperError && (
+        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+          {copperError}
+        </p>
       )}
     </div>
   )

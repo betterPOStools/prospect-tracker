@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, type Dispatch } from 'react'
-import type { Lead } from '../types'
+import type { Lead, Activity } from '../types'
 import { cache } from '../lib/storage'
 
 // ── Action types ────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ export type LeadsAction =
   | { type: 'UPDATE'; lead: Lead }
   | { type: 'UPDATE_STATUS'; id: string; status: Lead['status'] }
   | { type: 'DELETE'; id: string }
+  | { type: 'APPEND_ACTIVITY'; lead_id: string; activity: Activity }
 
 // ── Reducer ─────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,13 @@ function leadsReducer(state: Lead[], action: LeadsAction): Lead[] {
       break
     case 'DELETE':
       next = state.filter((l) => l.id !== action.id)
+      break
+    case 'APPEND_ACTIVITY':
+      next = state.map((l) =>
+        l.id === action.lead_id
+          ? { ...l, activities: [...(l.activities ?? []), action.activity] }
+          : l,
+      )
       break
     default:
       return state

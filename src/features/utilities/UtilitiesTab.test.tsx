@@ -38,6 +38,12 @@ vi.mock('../../lib/storage', () => ({
     setTheme: vi.fn(),
     getMapsApp: vi.fn(() => 'google' as const),
     setMapsApp: vi.fn(),
+    getCopperApiKey: vi.fn(() => ''),
+    setCopperApiKey: vi.fn(),
+    getCopperEmail: vi.fn(() => ''),
+    setCopperEmail: vi.fn(),
+    getCopperPipeline: vi.fn(() => null),
+    setCopperPipeline: vi.fn(),
   },
 }))
 

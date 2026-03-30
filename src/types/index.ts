@@ -56,12 +56,21 @@ export interface Lead {
   name: string
   status: LeadStatus
   phone?: string
+  email?: string
   address?: string
+  contact_name?: string
+  contact_title?: string
   pos_type?: string
+  website?: string
+  menu_link?: string
   notes?: string
   follow_up?: string // YYYY-MM-DD
   last_contact?: string // ISO datetime
   record_id?: string
+  copper_company_id?: number
+  copper_person_id?: number
+  copper_opportunity_id?: number
+  activities?: Activity[]
   created_at: string
   updated_at: string
 }

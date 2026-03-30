@@ -1,8 +1,11 @@
 import { useState, useCallback } from 'react'
 import { settings } from '../../lib/storage'
 import { useTheme } from '../../hooks/useTheme'
+import { useCopper } from '../../hooks/useCopper'
 import Select from '../../components/Select'
 import Input from '../../components/Input'
+import Button from '../../components/Button'
+import type { CopperPipeline } from '../../lib/copper'
 
 const MAPS_OPTIONS = [
   { value: 'google', label: 'Google Maps' },
@@ -18,6 +21,13 @@ export default function SettingsPanel() {
   const [rxlUser, setRxlUserState] = useState(() => settings.getRxlUser())
   const [rxlPass, setRxlPassState] = useState(() => settings.getRxlPass())
   const [osKey, setOsKeyState] = useState(() => settings.getOsKey())
+  const [cuKey, setCuKeyState] = useState(() => settings.getCopperApiKey())
+  const [cuEmail, setCuEmailState] = useState(() => settings.getCopperEmail())
+  const [cuPipeline, setCuPipeline] = useState(() => settings.getCopperPipeline())
+  const [pipelines, setPipelines] = useState<CopperPipeline[]>([])
+  const [pipelinesLoading, setPipelinesLoading] = useState(false)
+  const [pipelinesError, setPipelinesError] = useState<string | null>(null)
+  const { loadPipelines } = useCopper()
 
   const handleMapsApp = useCallback((val: string) => {
     const v = val as 'google' | 'waze'
@@ -48,6 +58,48 @@ export default function SettingsPanel() {
   const handleOsKey = useCallback((val: string) => {
     setOsKeyState(val)
     settings.setOsKey(val)
+  }, [])
+
+  const handleCuKey = useCallback((val: string) => {
+    setCuKeyState(val)
+    settings.setCopperApiKey(val)
+  }, [])
+
+  const handleCuEmail = useCallback((val: string) => {
+    setCuEmailState(val)
+    settings.setCopperEmail(val)
+  }, [])
+
+  const handleLoadPipelines = useCallback(async () => {
+    setPipelinesLoading(true)
+    setPipelinesError(null)
+    try {
+      const result = await loadPipelines()
+      setPipelines(result)
+      // Auto-select first pipeline + first stage if none configured
+      if (result.length > 0 && !cuPipeline) {
+        const first = result[0]
+        const stage = first.stages[0]
+        if (stage) {
+          const cfg = { pipeline_id: first.id, stage_id: stage.id }
+          setCuPipeline(cfg)
+          settings.setCopperPipeline(cfg)
+        }
+      }
+    } catch (e) {
+      setPipelinesError(e instanceof Error ? e.message : 'Failed to load pipelines')
+    } finally {
+      setPipelinesLoading(false)
+    }
+  }, [loadPipelines, cuPipeline])
+
+  const handlePipelineSelect = useCallback((val: string) => {
+    const [pipelineId, stageId] = val.split(':').map(Number)
+    if (pipelineId && stageId) {
+      const cfg = { pipeline_id: pipelineId, stage_id: stageId }
+      setCuPipeline(cfg)
+      settings.setCopperPipeline(cfg)
+    }
   }, [])
 
   return (
@@ -149,6 +201,67 @@ export default function SettingsPanel() {
         />
         <p className="mt-1.5 text-xs text-gray-400">
           Also configurable in Import → Settings.
+        </p>
+      </section>
+
+      {/* Copper CRM */}
+      <section>
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          Copper CRM
+        </h3>
+        <div className="flex flex-col gap-3">
+          <Input
+            label="API Key"
+            type="password"
+            placeholder="••••••••"
+            value={cuKey}
+            onChange={(e) => handleCuKey(e.target.value)}
+          />
+          <Input
+            label="Email"
+            placeholder="aaron@valuesystemspos.com"
+            value={cuEmail}
+            onChange={(e) => handleCuEmail(e.target.value)}
+          />
+          <div className="flex flex-col gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleLoadPipelines}
+              disabled={pipelinesLoading || !cuKey || !cuEmail}
+            >
+              {pipelinesLoading ? 'Loading...' : 'Load Pipelines'}
+            </Button>
+            {pipelinesError && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                {pipelinesError}
+              </p>
+            )}
+            {pipelines.length > 0 && (
+              <select
+                value={cuPipeline ? `${cuPipeline.pipeline_id}:${cuPipeline.stage_id}` : ''}
+                onChange={(e) => handlePipelineSelect(e.target.value)}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                <option value="">Select pipeline & stage</option>
+                {pipelines.flatMap((p) =>
+                  p.stages.map((s) => (
+                    <option key={`${p.id}:${s.id}`} value={`${p.id}:${s.id}`}>
+                      {p.name} → {s.name}
+                    </option>
+                  )),
+                )}
+              </select>
+            )}
+            {cuPipeline && pipelines.length === 0 && (
+              <p className="text-xs text-green-600">
+                Pipeline configured (ID: {cuPipeline.pipeline_id}, Stage: {cuPipeline.stage_id})
+              </p>
+            )}
+          </div>
+        </div>
+        <p className="mt-1.5 text-xs text-gray-400">
+          One-way push to Copper. Leads synced as Company + Person + Opportunity.
         </p>
       </section>
     </div>

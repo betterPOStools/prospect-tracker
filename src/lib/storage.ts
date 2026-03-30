@@ -18,6 +18,9 @@ const KEYS = {
   RXL_PASS: 'vs_rxl_pass',
   THEME: 'vs_theme',
   MAPS_APP: 'vs_maps_app',
+  CU_KEY: 'vs_cu_key',
+  CU_EMAIL: 'vs_cu_email',
+  CU_PIPELINE: 'vs_cu_pipeline',
 } as const
 
 // ── Generic helpers ─────────────────────────────────────────────────────────
@@ -102,6 +105,15 @@ export const settings = {
 
   getMapsApp: () => (localStorage.getItem(KEYS.MAPS_APP) ?? 'google') as 'google' | 'waze',
   setMapsApp: (v: 'google' | 'waze') => localStorage.setItem(KEYS.MAPS_APP, v),
+
+  getCopperApiKey: () => localStorage.getItem(KEYS.CU_KEY) ?? (import.meta.env.VITE_COPPER_API_KEY as string | undefined) ?? '',
+  setCopperApiKey: (v: string) => localStorage.setItem(KEYS.CU_KEY, v),
+
+  getCopperEmail: () => localStorage.getItem(KEYS.CU_EMAIL) ?? '',
+  setCopperEmail: (v: string) => localStorage.setItem(KEYS.CU_EMAIL, v),
+
+  getCopperPipeline: () => getJson<{ pipeline_id: number; stage_id: number } | null>(KEYS.CU_PIPELINE, null),
+  setCopperPipeline: (v: { pipeline_id: number; stage_id: number }) => setJson(KEYS.CU_PIPELINE, v),
 }
 
 // ── Migration flag ──────────────────────────────────────────────────────────

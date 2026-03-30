@@ -45,29 +45,33 @@ export function useSupabase() {
       recordsDispatch({ type: 'SET_ALL', records })
     }
 
+    // Parse activities once and group by parent
+    const activities = (activitiesRes.data as Activity[]) ?? []
+    const byStop = new Map<string, Activity[]>()
+    const byLead = new Map<string, Activity[]>()
+    for (const act of activities) {
+      if (act.stop_id) {
+        const list = byStop.get(act.stop_id) ?? []
+        list.push(act)
+        byStop.set(act.stop_id, list)
+      }
+      if (act.lead_id) {
+        const list = byLead.get(act.lead_id) ?? []
+        list.push(act)
+        byLead.set(act.lead_id, list)
+      }
+    }
+
     if (leadsRes.data) {
       const leads = leadsRes.data as Lead[]
-      leadsDispatch({ type: 'SET_ALL', leads })
+      const hydrated = leads.map((l) => ({ ...l, activities: byLead.get(l.id) ?? [] }))
+      leadsDispatch({ type: 'SET_ALL', leads: hydrated })
     }
 
     if (stopsRes.data) {
       const stops = stopsRes.data as CanvassStop[]
-
-      // Inline activities into their stops
-      if (activitiesRes.data) {
-        const activities = activitiesRes.data as Activity[]
-        const byStop = new Map<string, Activity[]>()
-        for (const act of activities) {
-          if (!act.stop_id) continue
-          const list = byStop.get(act.stop_id) ?? []
-          list.push(act)
-          byStop.set(act.stop_id, list)
-        }
-        const hydrated = stops.map((s) => ({ ...s, activities: byStop.get(s.id) ?? [] }))
-        stopsDispatch({ type: 'SET_ALL', stops: hydrated })
-      } else {
-        stopsDispatch({ type: 'SET_ALL', stops })
-      }
+      const hydrated = stops.map((s) => ({ ...s, activities: byStop.get(s.id) ?? [] }))
+      stopsDispatch({ type: 'SET_ALL', stops: hydrated })
     }
 
     cache.setSyncedAt(new Date().toISOString())
@@ -136,14 +140,18 @@ export function useSupabase() {
         },
       )
 
-      // Activities — append to their parent stop
+      // Activities — append to their parent stop or lead
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'prospect', table: 'activities' },
         (payload) => {
           const act = payload.new as Activity
-          if (!act.stop_id) return
-          stopsDispatch({ type: 'APPEND_ACTIVITY', stop_id: act.stop_id, activity: act })
+          if (act.stop_id) {
+            stopsDispatch({ type: 'APPEND_ACTIVITY', stop_id: act.stop_id, activity: act })
+          }
+          if (act.lead_id) {
+            leadsDispatch({ type: 'APPEND_ACTIVITY', lead_id: act.lead_id, activity: act })
+          }
         },
       )
 
