@@ -85,4 +85,5 @@ src/
 `app/` — the previous JavaScript version. Keep as reference only. Do not develop.
 
 ## Design Doc
-Full spec: `/Users/nomad/Projects/app-suite-docs/docs/PROSPECT-TRACKER-DESIGN.md`
+Full spec (archived): `/Users/nomad/Projects/app-suite-docs/archive/2026-03-28-original-specs/PROSPECT-TRACKER-DESIGN.md`
+Current technical analysis: `/Users/nomad/Projects/app-suite-docs/TECHNICAL_ANALYSIS_2026-03-30.md`

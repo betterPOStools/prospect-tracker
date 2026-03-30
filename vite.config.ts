@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    port: 5176,
     proxy: {
       // CORS bypass for Outscraper S3 result downloads
       '/s3-proxy': {
