@@ -6,6 +6,7 @@ import { useStops, useStopsDispatch } from '../../store/StopsContext'
 import { supabase } from '../../lib/supabase'
 import { exportFile } from '../../lib/platform'
 import { loadCanvassLog } from '../../data/canvassLog'
+import { isLegacyRecord, migrateLegacyFile } from '../../data/migration'
 import Button from '../../components/Button'
 import Modal from '../../components/Modal'
 import type { ProspectRecord } from '../../types'
@@ -112,26 +113,51 @@ export default function ExportPanel() {
     setRestoreError(null)
     try {
       const text = await restoreFile.text()
-      const data = JSON.parse(text) as {
-        records?: ProspectRecord[]
-        leads?: unknown[]
-        stops?: unknown[]
+      const raw = JSON.parse(text) as unknown
+
+      // Detect legacy/v1 format and migrate automatically
+      const isLegacy = (() => {
+        if (Array.isArray(raw)) return isLegacyRecord(raw[0])
+        if (raw && typeof raw === 'object') {
+          const obj = raw as Record<string, unknown>
+          if (obj['version'] === 1) return true           // v1 backup
+          if (typeof obj['vs_db'] === 'string') return true
+          if (Array.isArray(obj['records']) && obj['records'].length > 0) return isLegacyRecord(obj['records'][0])
+        }
+        return false
+      })()
+
+      let records: ProspectRecord[]
+      let leads: unknown[]
+      let stops: unknown[]
+
+      if (isLegacy) {
+        const bundle = migrateLegacyFile(raw)
+        records = bundle.records
+        leads   = bundle.leads
+        stops   = bundle.stops
+      } else {
+        const data = raw as { records?: ProspectRecord[]; leads?: unknown[]; stops?: unknown[] }
+        records = data.records ?? []
+        leads   = data.leads   ?? []
+        stops   = data.stops   ?? []
       }
-      if (data.records) {
-        recordsDispatch({ type: 'SET_ALL', records: data.records })
-        await supabase.schema('prospect').from('records').upsert(data.records.slice(0, 500))
-        for (let i = 500; i < data.records.length; i += 500) {
-          await supabase.schema('prospect').from('records').upsert(data.records.slice(i, i + 500))
+
+      if (records.length > 0) {
+        recordsDispatch({ type: 'SET_ALL', records })
+        for (let i = 0; i < records.length; i += 500) {
+          await supabase.schema('prospect').from('records').upsert(records.slice(i, i + 500))
         }
       }
-      if (data.leads) {
-        leadsDispatch({ type: 'SET_ALL', leads: data.leads as never[] })
-        await supabase.schema('prospect').from('leads').upsert(data.leads as object[])
+      if (leads.length > 0) {
+        leadsDispatch({ type: 'SET_ALL', leads: leads as never[] })
+        await supabase.schema('prospect').from('leads').upsert(leads as object[])
       }
-      if (data.stops) {
-        stopsDispatch({ type: 'SET_ALL', stops: data.stops as never[] })
-        await supabase.schema('prospect').from('canvass_stops').upsert(data.stops as object[])
+      if (stops.length > 0) {
+        stopsDispatch({ type: 'SET_ALL', stops: stops as never[] })
+        await supabase.schema('prospect').from('canvass_stops').upsert(stops as object[])
       }
+
       setRestoreModal(false)
       setRestoreFile(null)
     } catch (e) {

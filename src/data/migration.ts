@@ -103,10 +103,18 @@ const now = () => new Date().toISOString()
 
 // ── Record migration ──────────────────────────────────────────────────────────
 
-export function migrateLegacyRecords(): ProspectRecord[] {
-  const legacy = parseJson<LegacyRecord>('vs_db')
-  if (!legacy.length) return []
+export function isLegacyRecord(r: unknown): r is LegacyRecord {
+  if (!r || typeof r !== 'object') return false
+  const obj = r as Record<string, unknown>
+  // Legacy records use abbreviated keys; new records use full names
+  return 'n' in obj && !('name' in obj)
+}
 
+export function migrateLegacyRecords(): ProspectRecord[] {
+  return migrateLegacyRecordsFromData(parseJson<LegacyRecord>('vs_db'))
+}
+
+export function migrateLegacyRecordsFromData(legacy: LegacyRecord[]): ProspectRecord[] {
   return legacy.map((r): ProspectRecord => {
     const partial: Partial<ProspectRecord> = {
       id:               r.id ?? `migrated_${Math.random().toString(36).slice(2)}`,
@@ -158,10 +166,7 @@ export function migrateLegacyRecords(): ProspectRecord[] {
 
 // ── Stop migration ────────────────────────────────────────────────────────────
 
-export function migrateLegacyStops(): CanvassStop[] {
-  const legacy = parseJson<LegacyStop>('vs_c1')
-  if (!legacy.length) return []
-
+export function migrateLegacyStopsFromData(legacy: LegacyStop[]): CanvassStop[] {
   return legacy.map((s): CanvassStop => ({
     id:            s.id ?? `migrated_stop_${Math.random().toString(36).slice(2)}`,
     name:          s.n ?? '',
@@ -179,12 +184,13 @@ export function migrateLegacyStops(): CanvassStop[] {
   })).filter((s) => s.name)
 }
 
+export function migrateLegacyStops(): CanvassStop[] {
+  return migrateLegacyStopsFromData(parseJson<LegacyStop>('vs_c1'))
+}
+
 // ── Lead migration ────────────────────────────────────────────────────────────
 
-export function migrateLegacyLeads(): Lead[] {
-  const legacy = parseJson<LegacyLead>('vs_p3')
-  if (!legacy.length) return []
-
+export function migrateLegacyLeadsFromData(legacy: LegacyLead[]): Lead[] {
   return legacy.map((l): Lead => ({
     id:           l.id ?? `migrated_lead_${Math.random().toString(36).slice(2)}`,
     name:         l.n ?? '',
@@ -201,6 +207,10 @@ export function migrateLegacyLeads(): Lead[] {
   })).filter((l) => l.name)
 }
 
+export function migrateLegacyLeads(): Lead[] {
+  return migrateLegacyLeadsFromData(parseJson<LegacyLead>('vs_p3'))
+}
+
 // ── Full migration bundle ─────────────────────────────────────────────────────
 
 export interface MigrationBundle {
@@ -215,4 +225,159 @@ export function runMigration(): MigrationBundle {
     stops:   migrateLegacyStops(),
     leads:   migrateLegacyLeads(),
   }
+}
+
+// ── V1 backup format importer ─────────────────────────────────────────────────
+// Handles the { version:1, prospects, canvass, dbRecords, dbAreas, dbBlocklist } shape.
+
+interface V1Canvass {
+  id: string
+  name: string
+  phone?: string
+  addr?: string
+  lat?: number
+  lng?: number
+  status?: string
+  followUp?: string
+  lastContact?: string
+  fromDb?: string
+  notes?: string
+  notesLog?: Array<{ ts: string; text: string; type: string }>
+  added?: string
+}
+
+interface V1Prospect {
+  id: string
+  name: string
+  status?: string
+  phone?: string
+  addr?: string
+  city?: string
+  current?: string
+  notes?: string
+  added?: string
+}
+
+function parseDate(val: string | undefined): string {
+  if (!val) return now()
+  // Already ISO
+  if (val.includes('T')) return val
+  // MM/DD/YYYY
+  const parts = val.split('/')
+  if (parts.length === 3) {
+    const [m, d, y] = parts
+    return new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`).toISOString()
+  }
+  return now()
+}
+
+function mapV1StopStatus(s: string | undefined): CanvassStop['status'] {
+  switch (s) {
+    case 'Converted':       return 'converted'
+    case 'Not visited yet': return 'not_visited'
+    case 'Come back later': return 'come_back_later'
+    case 'DM unavailable':  return 'dm_unavailable'
+    case 'Canvassed':       return 'canvassed'
+    case 'Dropped':
+    case 'Duplicate':       return 'dropped'
+    default:                return 'queued'
+  }
+}
+
+export function migrateV1File(obj: Record<string, unknown>): MigrationBundle {
+  const records = migrateLegacyRecordsFromData(
+    (obj['dbRecords'] as LegacyRecord[] | undefined) ?? []
+  )
+
+  const stops: CanvassStop[] = ((obj['canvass'] as V1Canvass[] | undefined) ?? []).map((c) => {
+    const notesText = c.notesLog?.map((e) => e.text).filter(Boolean).join('\n') ?? c.notes ?? ''
+    return {
+      id:             c.id,
+      name:           c.name,
+      phone:          c.phone || undefined,
+      address:        c.addr || undefined,
+      lat:            c.lat ?? undefined,
+      lng:            c.lng ?? undefined,
+      status:         mapV1StopStatus(c.status),
+      follow_up_date: c.followUp || undefined,
+      last_contact:   c.lastContact || undefined,
+      record_id:      c.fromDb || undefined,
+      notes:          notesText || undefined,
+      area:           undefined,
+      day:            undefined,
+      group:          undefined,
+      created_at:     parseDate(c.added),
+      updated_at:     c.lastContact ?? parseDate(c.added),
+    }
+  }).filter((s) => s.name)
+
+  const leads: Lead[] = ((obj['prospects'] as V1Prospect[] | undefined) ?? []).map((p) => ({
+    id:           p.id,
+    name:         p.name,
+    status:       (p.status as Lead['status']) ?? 'Open',
+    phone:        p.phone || undefined,
+    address:      [p.addr, p.city].filter(Boolean).join(', ') || undefined,
+    pos_type:     p.current || undefined,
+    notes:        p.notes || undefined,
+    follow_up:    undefined,
+    last_contact: undefined,
+    record_id:    undefined,
+    created_at:   parseDate(p.added),
+    updated_at:   parseDate(p.added),
+  })).filter((l) => l.name)
+
+  return { records, stops, leads }
+}
+
+// ── File-based legacy import ──────────────────────────────────────────────────
+// Accepts a parsed JSON backup from the old app and converts it to the new schema.
+// Handles several possible export shapes from the legacy app.
+
+export function migrateLegacyFile(raw: unknown): MigrationBundle {
+  if (!raw || typeof raw !== 'object') return { records: [], stops: [], leads: [] }
+
+  const obj = raw as Record<string, unknown>
+
+  // V1 backup: { version: 1, prospects, canvass, dbRecords, ... }
+  if (obj['version'] === 1 && Array.isArray(obj['dbRecords'])) {
+    return migrateV1File(obj)
+  }
+
+  // Shape 1: { vs_db: "...", vs_c1: "...", vs_p3: "..." } (localStorage dump)
+  if (typeof obj['vs_db'] === 'string') {
+    try {
+      const records = JSON.parse(obj['vs_db'] as string) as LegacyRecord[]
+      const stops   = typeof obj['vs_c1'] === 'string' ? JSON.parse(obj['vs_c1'] as string) as LegacyStop[] : []
+      const leads   = typeof obj['vs_p3'] === 'string' ? JSON.parse(obj['vs_p3'] as string) as LegacyLead[] : []
+      return {
+        records: migrateLegacyRecordsFromData(records),
+        stops:   migrateLegacyStopsFromData(stops),
+        leads:   migrateLegacyLeadsFromData(leads),
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Shape 2: bare array of legacy records
+  if (Array.isArray(raw) && raw.length > 0 && isLegacyRecord(raw[0])) {
+    return {
+      records: migrateLegacyRecordsFromData(raw as LegacyRecord[]),
+      stops: [],
+      leads: [],
+    }
+  }
+
+  // Shape 3: { records: LegacyRecord[], leads?: [...], stops?: [...] }
+  const recordsRaw = Array.isArray(obj['records']) ? obj['records'] : []
+  const leadsRaw   = Array.isArray(obj['leads'])   ? obj['leads']   : []
+  const stopsRaw   = Array.isArray(obj['stops'])   ? obj['stops']   : []
+
+  if (recordsRaw.length > 0 && isLegacyRecord(recordsRaw[0])) {
+    return {
+      records: migrateLegacyRecordsFromData(recordsRaw as LegacyRecord[]),
+      stops:   migrateLegacyStopsFromData(stopsRaw as LegacyStop[]),
+      leads:   migrateLegacyLeadsFromData(leadsRaw as LegacyLead[]),
+    }
+  }
+
+  return { records: [], stops: [], leads: [] }
 }

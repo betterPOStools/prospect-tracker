@@ -22,9 +22,7 @@ export default function MigrationBanner() {
   const leadsDispatch   = useLeadsDispatch()
   const stopsDispatch   = useStopsDispatch()
 
-  const hasMigration = migrationFlags.hasLegacyData() && !migrationFlags.isComplete()
-
-  if (!hasMigration || dismissed) return null
+  if (dismissed) return null
 
   async function runMig() {
     setPhase('running')
