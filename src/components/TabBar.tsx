@@ -26,7 +26,7 @@ function TabBadge({ id }: { id: TabId }) {
   if (!count) return null
   return (
     <span className="ml-1 inline-flex items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
-      {count > 999 ? '999+' : count}
+      {count}
     </span>
   )
 }

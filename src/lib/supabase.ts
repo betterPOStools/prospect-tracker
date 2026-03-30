@@ -9,5 +9,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-/** Pre-bound to the `prospect` schema — use for all app table queries */
-export const db = supabase.schema('prospect')
+/** Alias for supabase — queries hit public views that delegate to prospect schema */
+export const db = supabase

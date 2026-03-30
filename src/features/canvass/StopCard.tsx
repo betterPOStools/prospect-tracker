@@ -380,52 +380,18 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
             </Button>
           )}
 
-          {/* Status buttons */}
-          {stop.status !== 'not_visited' && stop.status !== 'queued' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => updateStatus('not_visited')}
-            >
-              Not Visited
-            </Button>
-          )}
-          {stop.status !== 'come_back_later' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => updateStatus('come_back_later')}
-            >
-              Come Back Later
-            </Button>
-          )}
-          {stop.status !== 'dm_unavailable' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => updateStatus('dm_unavailable')}
-            >
-              DM Unavailable
-            </Button>
-          )}
-          {stop.status !== 'canvassed' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => updateStatus('canvassed')}
-            >
-              Canvassed
-            </Button>
-          )}
-          {stop.status !== 'converted' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => updateStatus('converted')}
-            >
-              Converted
-            </Button>
-          )}
+          {/* Status dropdown */}
+          <select
+            value={stop.status}
+            onChange={(e) => updateStatus(e.target.value as StopStatus)}
+            className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          >
+            <option value="queued">Not Visited</option>
+            <option value="come_back_later">Come Back Later</option>
+            <option value="dm_unavailable">DM Unavailable</option>
+            <option value="canvassed">Canvassed</option>
+            <option value="converted">Converted</option>
+          </select>
 
           {/* Convert to Lead (only if not already converted) */}
           {stop.status !== 'converted' && (
@@ -439,14 +405,14 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
             </Button>
           )}
 
-          {/* Drop */}
+          {/* Drop rank */}
           <Button
             size="sm"
             variant="danger"
             onClick={handleDrop}
             disabled={dropping}
           >
-            {dropping ? 'Dropping…' : 'Drop'}
+            {dropping ? 'Updating…' : '↓ Rank'}
           </Button>
 
           {/* Remove */}

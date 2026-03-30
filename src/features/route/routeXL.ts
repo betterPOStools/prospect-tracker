@@ -23,10 +23,6 @@ export async function optimizeRoute(
   username: string,
   password: string,
 ): Promise<RxlResult> {
-  if (stops.length > 20) {
-    console.warn('[routeXL] Free tier supports max 20 stops. Received:', stops.length)
-  }
-
   // Build locations object: { "0": { name, lat, lng }, "1": {...}, ... }
   const locations: Record<string, RxlStop> = {}
   stops.forEach((stop, i) => {
@@ -35,13 +31,16 @@ export async function optimizeRoute(
 
   const credentials = btoa(`${username}:${password}`)
 
+  // RouteXL expects form-encoded data with locations as a JSON string
+  const body = new URLSearchParams({ locations: JSON.stringify(locations) })
+
   const response = await fetch('https://api.routexl.com/tour', {
     method: 'POST',
     headers: {
       'Authorization': `Basic ${credentials}`,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: JSON.stringify({ locations }),
+    body: body.toString(),
   })
 
   if (!response.ok) {

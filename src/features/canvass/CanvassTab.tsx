@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useStops, useStopsDispatch } from '../../store/StopsContext'
+import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { db } from '../../lib/supabase'
+import { haversine } from '../../data/clustering'
 import Button from '../../components/Button'
 import EmptyState from '../../components/EmptyState'
 import Modal from '../../components/Modal'
@@ -305,10 +307,72 @@ function QueuePanel({
   onEndDay,
   onClearAll,
 }: QueuePanelProps) {
+  const records = useRecords()
+  const recordsDispatch = useRecordsDispatch()
+  const stopsDispatch = useStopsDispatch()
+
+  const [fillCount, setFillCount] = useState(15)
+  const [fillArea, setFillArea] = useState('')
+  const [filling, setFilling] = useState(false)
+  const [fillResult, setFillResult] = useState<string | null>(null)
+
   const areaOptions = [
     { value: '', label: 'All Areas' },
     ...areas.map((a) => ({ value: a, label: a })),
   ]
+
+  async function handleFillNearMe() {
+    setFilling(true)
+    setFillResult(null)
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10_000 })
+      )
+      const { latitude: myLat, longitude: myLng } = pos.coords
+
+      const candidates = records.filter((r) =>
+        r.lat != null && r.lng != null &&
+        r.status === 'unworked' &&
+        (!fillArea || r.area === fillArea)
+      )
+
+      const sorted = candidates
+        .map((r) => ({ r, dist: haversine(myLat, myLng, r.lat!, r.lng!) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, fillCount)
+
+      if (!sorted.length) {
+        setFillResult('No unworked records with coordinates found nearby.')
+        return
+      }
+
+      const now = new Date().toISOString()
+      for (const { r } of sorted) {
+        const stop = {
+          id: crypto.randomUUID(),
+          name: r.name,
+          phone: r.phone,
+          address: r.address,
+          status: 'queued' as const,
+          area: r.area,
+          record_id: r.id,
+          created_at: now,
+          updated_at: now,
+        }
+        await db.from('canvass_stops').insert(stop)
+        stopsDispatch({ type: 'ADD', stop })
+        await db.from('records').update({ status: 'in_canvass', updated_at: now }).eq('id', r.id)
+        recordsDispatch({ type: 'UPDATE_STATUS', id: r.id, status: 'in_canvass' })
+      }
+
+      const radius = sorted[sorted.length - 1].dist.toFixed(1)
+      setFillResult(`Added ${sorted.length} stops (${radius} mi radius)`)
+    } catch (e) {
+      setFillResult(e instanceof Error ? e.message : 'Location unavailable')
+    } finally {
+      setFilling(false)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-0">
@@ -334,6 +398,43 @@ function QueuePanel({
             </select>
           )}
         </div>
+
+        {/* Fill Near Me */}
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min={1}
+            max={50}
+            value={fillCount}
+            onChange={(e) => setFillCount(Math.max(1, Math.min(50, Number(e.target.value))))}
+            className="w-14 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-center focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            aria-label="Stop count"
+          />
+          {areas.length > 0 && (
+            <select
+              value={fillArea}
+              onChange={(e) => setFillArea(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="">Any area</option>
+              {areas.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          )}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleFillNearMe}
+            disabled={filling}
+            className="flex-1"
+          >
+            {filling ? 'Locating…' : '📍 Fill Near Me'}
+          </Button>
+        </div>
+
+        {fillResult && (
+          <p className="text-xs text-gray-600">{fillResult}</p>
+        )}
+
         <div className="flex gap-1.5">
           <Button size="sm" variant="secondary" onClick={onEndDay} className="min-h-[44px] flex-1">
             End Day
@@ -348,7 +449,7 @@ function QueuePanel({
       {stops.length === 0 ? (
         <EmptyState
           title="Queue is empty"
-          description="Add stops from the Database tab or use the + Add Stop button."
+          description="Fill Near Me to load nearby stops, or add from the Database tab."
         />
       ) : (
         <div className="flex flex-col gap-2 p-3">
