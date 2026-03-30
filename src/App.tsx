@@ -1,8 +1,8 @@
 import { useState, lazy, Suspense } from 'react'
 import { DataProvider } from './store/DataProvider'
 import TabBar from './components/TabBar'
-import StatusBar from './components/StatusBar'
 import MigrationBanner from './components/MigrationBanner'
+import SyncStatus from './components/SyncStatus'
 import type { TabId } from './types'
 
 const LeadsTab    = lazy(() => import('./features/leads/LeadsTab'))
@@ -19,23 +19,23 @@ function AppShell() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 border-b border-gray-200 bg-white px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Value Systems
-            </p>
-            <h1 className="text-sm font-bold text-gray-900">Restaurant Prospect Tracker</h1>
+      <header className="shrink-0 bg-white px-4 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold leading-tight text-gray-900">
+              Restaurant Prospect Tracker
+            </h1>
+            <p className="text-[10px] text-gray-400">Value Systems · {BUILD}</p>
           </div>
-          <span className="text-[10px] text-gray-400">{BUILD}</span>
+          <SyncStatus />
         </div>
       </header>
 
       {/* One-time legacy data migration */}
       <MigrationBanner />
 
-      {/* Offline / sync status */}
-      <StatusBar />
+      {/* Tab bar — top, below header */}
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Tab content */}
       <main className="flex flex-1 flex-col overflow-hidden">
@@ -47,9 +47,6 @@ function AppShell() {
           {activeTab === 'utilities' && <UtilitiesTab />}
         </Suspense>
       </main>
-
-      {/* Bottom tab bar */}
-      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   )
 }

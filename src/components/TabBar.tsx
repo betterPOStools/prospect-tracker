@@ -33,21 +33,19 @@ function TabBadge({ id }: { id: TabId }) {
 
 export default function TabBar({ activeTab, onTabChange }: TabBarProps) {
   return (
-    <nav className="flex shrink-0 border-t border-gray-200 bg-white">
+    <nav className="flex shrink-0 overflow-x-auto border-b border-gray-200 bg-white">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex flex-1 flex-col items-center justify-center py-2 text-xs font-medium transition-colors ${
+          className={`flex shrink-0 items-center justify-center whitespace-nowrap px-3 py-2.5 text-xs font-medium transition-colors ${
             activeTab === tab.id
-              ? 'border-t-2 border-blue-600 text-blue-600'
-              : 'border-t-2 border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'border-b-2 border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
-          <span className="flex items-center gap-0.5">
-            {tab.label}
-            <TabBadge id={tab.id} />
-          </span>
+          {tab.label}
+          <TabBadge id={tab.id} />
         </button>
       ))}
     </nav>
