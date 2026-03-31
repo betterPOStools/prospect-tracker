@@ -7,7 +7,7 @@ import { useDayPlanner } from '../../hooks/useDayPlanner'
 import { db } from '../../lib/supabase'
 import { isNative } from '../../lib/platform'
 import Button from '../../components/Button'
-import type { Anchor } from '../../data/dayPlanner'
+import { fillFromAnchor, type Anchor } from '../../data/dayPlanner'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -215,7 +215,9 @@ export default function PlannerPanel() {
   const [stopCount, setStopCount] = useState(10)
   const [areaFilter, setAreaFilter] = useState('all')
   const [fillResult, setFillResult] = useState<{ day: string; added: number; skipped: number } | null>(null)
+  const [weekFillResult, setWeekFillResult] = useState<{ total: number } | null>(null)
   const [dayLoading, setDayLoading] = useState<string | null>(null)
+  const [weekLoading, setWeekLoading] = useState(false)
 
   const areas = useMemo(() => {
     const set = new Set<string>()
@@ -253,6 +255,47 @@ export default function PlannerPanel() {
       added: result.assignments.length,
       skipped: result.skippedNoCoords,
     })
+    setWeekFillResult(null)
+  }
+
+  async function handleFillWeek() {
+    if (!anchor) return
+    setWeekLoading(true)
+    setFillResult(null)
+    setWeekFillResult(null)
+
+    let totalAssigned = 0
+    const allAssignments: Array<{ id: string; day: string }> = []
+
+    // Build a working copy of records so each day excludes records assigned to previous days
+    const assignedIds = new Set<string>()
+
+    for (const day of DAYS) {
+      // Use fillFromAnchor with a filtered record set that excludes already-assigned records
+      const available = records.filter((r) => !assignedIds.has(r.id))
+      const result = fillFromAnchor(anchor, available, day, stopCount, areaFilter)
+      for (const a of result.assignments) {
+        assignedIds.add(a.id)
+        allAssignments.push(a)
+      }
+      totalAssigned += result.assignments.length
+    }
+
+    if (allAssignments.length > 0) {
+      // Persist to Supabase
+      const now = new Date().toISOString()
+      for (const a of allAssignments) {
+        await db
+          .from('records')
+          .update({ day: a.day, updated_at: now })
+          .eq('id', a.id)
+      }
+      // Dispatch to context
+      recordsDispatch({ type: 'WEEK_ASSIGN', assignments: allAssignments })
+    }
+
+    setWeekFillResult({ total: totalAssigned })
+    setWeekLoading(false)
   }
 
   async function handleCanvassDay(day: string) {
@@ -297,16 +340,28 @@ export default function PlannerPanel() {
   }
 
   async function handleClearWeek() {
+    const assignedCount = records.filter((r) => r.day).length
+    if (assignedCount === 0) return
+    if (!window.confirm(`Clear all day assignments for ${assignedCount} records?`)) return
+
+    setWeekLoading(true)
     await db
       .from('records')
       .update({ day: null, updated_at: new Date().toISOString() })
       .not('day', 'is', null)
     clearWeek()
     setFillResult(null)
+    setWeekFillResult(null)
+    setWeekLoading(false)
   }
 
   return (
     <div className="flex flex-1 flex-col overflow-auto p-4 space-y-5">
+      {/* Unassigned count */}
+      <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <span className="font-semibold">{unassignedCount}</span> unassigned unworked records
+      </div>
+
       {/* Day selector */}
       <div>
         <p className="text-xs font-medium text-gray-600 mb-2">Select day</p>
@@ -370,6 +425,14 @@ export default function PlannerPanel() {
         >
           Fill {shortDay(selectedDay)}
         </Button>
+        <Button
+          variant="secondary"
+          onClick={handleFillWeek}
+          disabled={!anchor || weekLoading}
+          aria-label="Auto-fill week"
+        >
+          {weekLoading ? 'Filling…' : 'Auto-fill Week'}
+        </Button>
       </div>
 
       {/* Fill result */}
@@ -382,6 +445,11 @@ export default function PlannerPanel() {
               {' '}({fillResult.skipped} skipped — no coords)
             </span>
           )}
+        </div>
+      )}
+      {weekFillResult && (
+        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
+          Filled Mon–Fri: <strong>{weekFillResult.total}</strong> records assigned
         </div>
       )}
 
@@ -400,12 +468,9 @@ export default function PlannerPanel() {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-1">
-        <p className="text-xs text-gray-500">
-          <span className="font-semibold text-gray-700">{unassignedCount}</span> unassigned unworked records
-        </p>
-        <Button variant="danger" size="sm" onClick={handleClearWeek}>
-          Clear Week
+      <div className="flex items-center justify-end pt-1">
+        <Button variant="danger" size="sm" onClick={handleClearWeek} disabled={weekLoading}>
+          {weekLoading ? 'Clearing…' : 'Clear Week'}
         </Button>
       </div>
     </div>

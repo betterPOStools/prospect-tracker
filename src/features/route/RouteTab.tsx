@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
-import { useStops } from '../../store/StopsContext'
+import { useStops, useStopsDispatch } from '../../store/StopsContext'
 import { useOffline } from '../../store/OfflineContext'
+import { db } from '../../lib/supabase'
 import { settings } from '../../lib/storage'
 import { isNative } from '../../lib/platform'
 import Button from '../../components/Button'
@@ -41,6 +42,7 @@ function buildLegs(stops: CanvassStop[]): CanvassStop[][] {
 
 export default function RouteTab() {
   const stops = useStops()
+  const stopsDispatch = useStopsDispatch()
   const { isOnline } = useOffline()
 
   // Determine today's stop list
@@ -60,6 +62,13 @@ export default function RouteTab() {
   const [optimizing, setOptimizing] = useState(false)
   const [optimizeError, setOptimizeError] = useState<string | null>(null)
   const [geocoding, setGeocoding] = useState(false)
+  const [geocodeProgress, setGeocodeProgress] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(null), 3000)
+  }
 
   // Keep orderedStops in sync when the context stops change (unless user has optimized)
   // We intentionally only do this on first render — the user controls order after that.
@@ -79,8 +88,13 @@ export default function RouteTab() {
   }, [originalOrder])
 
   const handleCopyAddresses = useCallback(async () => {
-    const text = orderedStops
-      .map((s) => s.address ?? s.name)
+    const stopsWithAddress = orderedStops.filter((s) => s.address)
+    if (!stopsWithAddress.length) {
+      showToast('No stops have addresses')
+      return
+    }
+    const text = stopsWithAddress
+      .map((s, i) => `${i + 1}. ${s.address}`)
       .join('\n')
     try {
       await navigator.clipboard.writeText(text)
@@ -93,25 +107,61 @@ export default function RouteTab() {
       document.execCommand('copy')
       document.body.removeChild(ta)
     }
+    showToast(`Copied ${stopsWithAddress.length} addresses`)
   }, [orderedStops])
 
   const handleGeocodeAll = useCallback(async () => {
+    const toGeocode = orderedStops.filter(
+      (s) => s.address && (s.lat == null || s.lng == null),
+    )
+    if (!toGeocode.length) return
+
     setGeocoding(true)
+    setGeocodeProgress(`Geocoding 1 of ${toGeocode.length}...`)
+
     const updated = [...orderedStops]
-    for (let i = 0; i < updated.length; i++) {
-      const s = updated[i]
-      if (s.lat == null || s.lng == null) {
-        if (s.address) {
-          const coords = await geocodeAddress(s.address)
-          if (coords) {
-            updated[i] = { ...s, lat: coords.lat, lng: coords.lng }
-          }
-        }
+    let succeeded = 0
+    let failed = 0
+
+    for (let i = 0; i < toGeocode.length; i++) {
+      const stop = toGeocode[i]
+      setGeocodeProgress(`Geocoding ${i + 1} of ${toGeocode.length}...`)
+
+      // Nominatim requires 1-second delay between requests
+      if (i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+
+      const coords = await geocodeAddress(stop.address!)
+      if (coords) {
+        const updatedStop: CanvassStop = { ...stop, lat: coords.lat, lng: coords.lng }
+
+        // Update local ordered stops array
+        const idx = updated.findIndex((s) => s.id === stop.id)
+        if (idx !== -1) updated[idx] = updatedStop
+
+        // Persist to Supabase
+        const now = new Date().toISOString()
+        await db
+          .from('canvass_stops')
+          .update({ lat: coords.lat, lng: coords.lng, updated_at: now })
+          .eq('id', stop.id)
+
+        // Update global context
+        stopsDispatch({ type: 'UPDATE', stop: updatedStop })
+        succeeded++
+      } else {
+        failed++
       }
     }
+
     setOrderedStops(updated)
     setGeocoding(false)
-  }, [orderedStops])
+    setGeocodeProgress(null)
+    showToast(
+      `Geocoded ${succeeded}/${toGeocode.length} stops${failed > 0 ? ` (${failed} failed)` : ''}`,
+    )
+  }, [orderedStops, stopsDispatch])
 
   const handleOptimize = useCallback(async () => {
     const username = settings.getRxlUser()
@@ -238,6 +288,20 @@ export default function RouteTab() {
             {optimizeError}
           </div>
         )}
+
+        {/* Geocode progress */}
+        {geocodeProgress && (
+          <div className="mt-2 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-800">
+            {geocodeProgress}
+          </div>
+        )}
+
+        {/* Toast notification */}
+        {toastMessage && (
+          <div className="mt-2 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-xs font-medium text-green-800 animate-fade-in">
+            {toastMessage}
+          </div>
+        )}
       </div>
 
       {/* Controls row */}
@@ -255,16 +319,23 @@ export default function RouteTab() {
           Copy Addresses
         </Button>
 
-        {hasMissingCoords && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleGeocodeAll}
-            disabled={geocoding || !isOnline}
-          >
-            {geocoding ? 'Geocoding…' : `Geocode missing (${stopsMissingCoords.length})`}
-          </Button>
-        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleGeocodeAll}
+          disabled={geocoding || !isOnline || !hasMissingCoords}
+        >
+          {geocoding ? (
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              {geocodeProgress ?? 'Geocoding…'}
+            </span>
+          ) : hasMissingCoords ? (
+            `Geocode Missing (${stopsMissingCoords.length})`
+          ) : (
+            'Geocode Missing'
+          )}
+        </Button>
 
         <Button
           variant="primary"

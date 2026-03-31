@@ -325,7 +325,7 @@ describe('PlannerPanel', () => {
   it('renders Fill button for selected day', () => {
     renderWithProviders(<PlannerPanel />)
     // Button text includes the short day name
-    const fillButton = screen.getByRole('button', { name: /Fill/i })
+    const fillButton = screen.getByRole('button', { name: /^Fill /i })
     expect(fillButton).toBeInTheDocument()
   })
 

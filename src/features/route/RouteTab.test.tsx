@@ -178,8 +178,8 @@ describe('RouteTab', () => {
     const copiedText = writeText.mock.calls[0][0] as string
     expect(copiedText).toContain('100 Elm St')
     expect(copiedText).toContain('200 Oak Ave')
-    // Addresses should be newline-separated
-    expect(copiedText).toBe('100 Elm St\n200 Oak Ave')
+    // Addresses should be newline-separated (numbered list)
+    expect(copiedText).toBe('1. 100 Elm St\n2. 200 Oak Ave')
   })
 
   it('navigate button opens google maps URL for single stop', () => {
@@ -229,7 +229,7 @@ describe('RouteTab', () => {
     expect(screen.getByText(/geocode missing/i)).toBeInTheDocument()
   })
 
-  it('does not show geocode button when all stops have lat/lng', () => {
+  it('disables geocode button when all stops have lat/lng', () => {
     const today = getTodayName()
     mockStops.push(
       makeStop({ id: '1', name: 'Has Coords', address: '1 A St', day: today, lat: 30.1, lng: -97.1 }),
@@ -237,6 +237,7 @@ describe('RouteTab', () => {
 
     render(<RouteTab />)
 
-    expect(screen.queryByText(/geocode missing/i)).not.toBeInTheDocument()
+    const btn = screen.getByRole('button', { name: /geocode missing/i })
+    expect(btn).toBeDisabled()
   })
 })

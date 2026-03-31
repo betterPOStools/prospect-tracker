@@ -6,6 +6,7 @@ import Button from '../../components/Button'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
+import PosSelect from '../../components/PosSelect'
 
 interface AddLeadModalProps {
   open: boolean
@@ -142,11 +143,10 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
           value={form.contact_title}
           onChange={(e) => set('contact_title', e.target.value)}
         />
-        <Input
+        <PosSelect
           label="POS Type"
-          placeholder="e.g. Aloha, Micros, Custom"
           value={form.pos_type}
-          onChange={(e) => set('pos_type', e.target.value)}
+          onChange={(value) => set('pos_type', value)}
         />
         <Input
           label="Website"

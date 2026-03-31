@@ -9,6 +9,7 @@ import { isNative } from '../../lib/platform'
 import { addToBlocklist } from '../../data/blocklist'
 import { Badge } from '../../components/Badge'
 import Button from '../../components/Button'
+import HoursChip from '../../components/HoursChip'
 import Modal from '../../components/Modal'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -149,6 +150,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
   const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [error, setError] = useState('')
 
+  const parentRecord = stop.record_id ? records.find((r) => r.id === stop.record_id) : undefined
+
   const activities = stop.activities ?? []
   const overdue = showOverdue && isOverdue(stop.follow_up_date)
 
@@ -216,7 +219,6 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     setError('')
 
     const now = new Date().toISOString()
-    const parentRecord = stop.record_id ? records.find((r) => r.id === stop.record_id) : undefined
     const lead: Lead = {
       id: crypto.randomUUID(),
       name: stop.name,
@@ -383,6 +385,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
           <Badge variant={STATUS_BADGE_VARIANT[stop.status]}>
             {STATUS_LABELS[stop.status]}
           </Badge>
+          <HoursChip workingHours={parentRecord?.working_hours} />
           {overdue && <Badge variant="danger">Overdue</Badge>}
         </div>
       </div>
