@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import type { Lead, LeadStatus, Activity } from '../../types'
+import type { Lead, LeadStatus, Activity, CanvassStop } from '../../types'
 import { useLeadsDispatch } from '../../store/LeadsContext'
 import { useRecords } from '../../store/RecordsContext'
+import { useStops, useStopsDispatch } from '../../store/StopsContext'
 import { db } from '../../lib/supabase'
 import { openUrl } from '../../lib/platform'
 import { useCopper } from '../../hooks/useCopper'
 import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
+import EditableActivityText from '../../components/EditableActivityText'
 import Input from '../../components/Input'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
 import DemoteModal from './DemoteModal'
@@ -62,19 +64,27 @@ function formatFollowUp(dateStr: string): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-function statusBadgeVariant(status: LeadStatus): 'info' | 'success' | 'danger' {
+function statusBadgeVariant(status: LeadStatus): 'info' | 'success' | 'danger' | 'warning' {
   if (status === 'Open') return 'info'
   if (status === 'Won') return 'success'
+  if (status === 'Abandoned') return 'warning'
   return 'danger'
 }
 
 // ── Activity log ─────────────────────────────────────────────────────────────
 
-function ActivityLog({ activities }: { activities: Activity[] }) {
+function ActivityLog({
+  activities,
+  onEditActivity,
+}: {
+  activities: Activity[]
+  onEditActivity?: (activityId: string, newText: string) => void
+}) {
   const [expanded, setExpanded] = useState(false)
   if (!activities.length) return null
 
   const shown = expanded ? activities : activities.slice(-3)
+  const isEditable = (act: Activity) => !act.system && act.type === 'note' && onEditActivity
 
   return (
     <div className="mt-2 border-t border-gray-100 pt-2">
@@ -88,25 +98,36 @@ function ActivityLog({ activities }: { activities: Activity[] }) {
           </button>
         )}
         {shown.map((act) => (
-          <div key={act.id} className="flex items-start gap-2 text-xs text-gray-500">
+          <div key={act.id} className={`flex items-start gap-2 text-xs text-gray-500${isEditable(act) ? ' group/note' : ''}`}>
             <span className="shrink-0 text-[10px] text-gray-400">
               {formatTimestamp(act.created_at)}
             </span>
-            <span
-              className={
-                act.system
-                  ? 'italic'
-                  : act.type === 'call'
-                    ? 'text-blue-600'
-                    : act.type === 'sms'
-                      ? 'text-purple-600'
-                      : ''
-              }
-            >
-              {act.type === 'call' && '\u{1F4DE} '}
-              {act.type === 'sms' && '\u{1F4AC} '}
-              {act.text ?? act.type}
-            </span>
+            {isEditable(act) ? (
+              <>
+                {act.type === 'call' && <span className="text-blue-600">{'\u{1F4DE} '}</span>}
+                {act.type === 'sms' && <span className="text-purple-600">{'\u{1F4AC} '}</span>}
+                <EditableActivityText
+                  text={act.text ?? act.type}
+                  onSave={(newText) => onEditActivity!(act.id, newText)}
+                />
+              </>
+            ) : (
+              <span
+                className={
+                  act.system
+                    ? 'italic'
+                    : act.type === 'call'
+                      ? 'text-blue-600'
+                      : act.type === 'sms'
+                        ? 'text-purple-600'
+                        : ''
+                }
+              >
+                {act.type === 'call' && '\u{1F4DE} '}
+                {act.type === 'sms' && '\u{1F4AC} '}
+                {act.text ?? act.type}
+              </span>
+            )}
           </div>
         ))}
         {expanded && activities.length > 3 && (
@@ -272,6 +293,8 @@ interface LeadCardProps {
 export default function LeadCard({ lead }: LeadCardProps) {
   const dispatch = useLeadsDispatch()
   const records = useRecords()
+  const stops = useStops()
+  const stopsDispatch = useStopsDispatch()
   const { configured: copperConfigured, pushing: copperPushing, error: copperError, pushLead: copperPush } = useCopper()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -279,8 +302,13 @@ export default function LeadCard({ lead }: LeadCardProps) {
   const [busy, setBusy] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [submittingNote, setSubmittingNote] = useState(false)
+  const [queueing, setQueueing] = useState(false)
+  const [queued, setQueued] = useState(false)
   const [error, setError] = useState('')
 
+  const alreadyQueued = stops.some(
+    (s) => s.name === lead.name && (s.status === 'queued' || s.status === 'not_visited'),
+  )
   const linkedRecord = lead.record_id ? records.find((r) => r.id === lead.record_id) : undefined
   const activities = lead.activities ?? []
   const phone = lead.phone ? formatPhone(lead.phone) : null
@@ -335,6 +363,26 @@ export default function LeadCard({ lead }: LeadCardProps) {
     }
   }
 
+  async function handleEditActivity(activityId: string, newText: string) {
+    setError('')
+    // Optimistic update
+    dispatch({ type: 'UPDATE_ACTIVITY', lead_id: lead.id, activity_id: activityId, text: newText })
+
+    const { error: err } = await db
+      .from('activities')
+      .update({ text: newText })
+      .eq('id', activityId)
+
+    if (err) {
+      setError(err.message)
+      // Find original text and roll back
+      const original = activities.find((a) => a.id === activityId)
+      if (original?.text) {
+        dispatch({ type: 'UPDATE_ACTIVITY', lead_id: lead.id, activity_id: activityId, text: original.text })
+      }
+    }
+  }
+
   async function handleAddNote(e: React.FormEvent) {
     e.preventDefault()
     const text = noteText.trim()
@@ -354,7 +402,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
   }
 
   async function updateStatus(status: LeadStatus) {
-    const label = status === 'Won' ? 'Won' : status === 'Lost' ? 'Lost' : 'Open'
+    const label = status === 'Won' ? 'Won' : status === 'Lost' ? 'Lost' : status === 'Abandoned' ? 'Abandoned' : 'Open'
     if (!window.confirm(`Mark this lead as ${label}?`)) return
     setBusy(true)
     const now = new Date().toISOString()
@@ -397,6 +445,60 @@ export default function LeadCard({ lead }: LeadCardProps) {
     dispatch({ type: 'UPDATE', lead: updated })
     setEditing(false)
     setBusy(false)
+  }
+
+  async function handleQueue() {
+    if (queueing || alreadyQueued) return
+    setQueueing(true)
+    setError('')
+
+    const now = new Date().toISOString()
+
+    const stop: CanvassStop = {
+      id: crypto.randomUUID(),
+      name: lead.name,
+      phone: lead.phone,
+      address: lead.address,
+      status: 'queued',
+      record_id: lead.record_id,
+      created_at: now,
+      updated_at: now,
+    }
+
+    try {
+      const { error: insertErr } = await db.from('canvass_stops').insert({
+        id: stop.id,
+        name: stop.name,
+        phone: stop.phone,
+        address: stop.address,
+        status: stop.status,
+        record_id: stop.record_id,
+        created_at: stop.created_at,
+        updated_at: stop.updated_at,
+      })
+      if (insertErr) throw insertErr
+
+      stopsDispatch({ type: 'ADD', stop })
+
+      // Log a system activity linking back to the lead
+      const act = {
+        id: crypto.randomUUID(),
+        stop_id: stop.id,
+        type: 'note' as const,
+        text: `Queued from lead "${lead.name}"`,
+        system: true,
+        created_at: now,
+      }
+      await db.from('activities').insert(act)
+      stopsDispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
+
+      setQueued(true)
+      setTimeout(() => setQueued(false), 2000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to queue stop')
+    } finally {
+      setQueueing(false)
+    }
   }
 
   return (
@@ -494,7 +596,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
       </div>
 
       {/* Activity log */}
-      <ActivityLog activities={activities} />
+      <ActivityLog activities={activities} onEditActivity={handleEditActivity} />
 
       {/* Error */}
       {error && (
@@ -563,6 +665,17 @@ export default function LeadCard({ lead }: LeadCardProps) {
               Navigate
             </a>
           )}
+          {lead.status === 'Open' && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleQueue}
+              disabled={busy || queueing || alreadyQueued || queued}
+              className="min-h-[36px] text-teal-700 hover:bg-teal-50"
+            >
+              {queued ? 'Queued!' : queueing ? 'Adding...' : alreadyQueued ? 'In Queue' : 'Queue'}
+            </Button>
+          )}
           <Button
             size="sm"
             variant="ghost"
@@ -592,6 +705,17 @@ export default function LeadCard({ lead }: LeadCardProps) {
               className="min-h-[36px] text-red-600 hover:bg-red-50"
             >
               Mark Lost
+            </Button>
+          )}
+          {lead.status === 'Open' && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => updateStatus('Abandoned')}
+              disabled={busy}
+              className="min-h-[36px] text-yellow-700 hover:bg-yellow-50"
+            >
+              Abandon
             </Button>
           )}
           {lead.status !== 'Open' && (

@@ -11,6 +11,7 @@ export type StopsAction =
   | { type: 'UPDATE'; stop: CanvassStop }
   | { type: 'UPDATE_STATUS'; id: string; status: CanvassStop['status'] }
   | { type: 'APPEND_ACTIVITY'; stop_id: string; activity: Activity }
+  | { type: 'UPDATE_ACTIVITY'; stop_id: string; activity_id: string; text: string }
   | { type: 'DELETE'; id: string }
   | { type: 'DELETE_MANY'; ids: string[] }
 
@@ -46,6 +47,18 @@ function stopsReducer(state: CanvassStop[], action: StopsAction): CanvassStop[] 
       next = state.map((s) =>
         s.id === action.stop_id
           ? { ...s, activities: [...(s.activities ?? []), action.activity] }
+          : s
+      )
+      break
+    case 'UPDATE_ACTIVITY':
+      next = state.map((s) =>
+        s.id === action.stop_id
+          ? {
+              ...s,
+              activities: (s.activities ?? []).map((a) =>
+                a.id === action.activity_id ? { ...a, text: action.text } : a
+              ),
+            }
           : s
       )
       break

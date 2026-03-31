@@ -11,7 +11,7 @@ import AddLeadModal from './AddLeadModal'
 
 type FilterStatus = 'All' | LeadStatus
 
-const FILTER_OPTIONS: FilterStatus[] = ['All', 'Open', 'Won', 'Lost']
+const FILTER_OPTIONS: FilterStatus[] = ['All', 'Open', 'Won', 'Lost', 'Abandoned']
 
 // ── Virtualized list ─────────────────────────────────────────────────────────
 
@@ -82,6 +82,7 @@ export default function LeadsTab() {
     Open: leads.filter((l) => l.status === 'Open').length,
     Won: leads.filter((l) => l.status === 'Won').length,
     Lost: leads.filter((l) => l.status === 'Lost').length,
+    Abandoned: leads.filter((l) => l.status === 'Abandoned').length,
   }
 
   const filtered = filter === 'All' ? leads : leads.filter((l) => l.status === filter)
@@ -103,6 +104,9 @@ export default function LeadsTab() {
         </span>
         <span className="text-xs text-red-600">
           <span className="font-semibold">{counts.Lost}</span> lost
+        </span>
+        <span className="text-xs text-yellow-700">
+          <span className="font-semibold">{counts.Abandoned}</span> abandoned
         </span>
         <div className="ml-auto">
           <Button

@@ -49,7 +49,7 @@ export interface ProspectRecord {
 
 // ── prospect.leads ──────────────────────────────────────────────────────────
 
-export type LeadStatus = 'Open' | 'Won' | 'Lost'
+export type LeadStatus = 'Open' | 'Won' | 'Lost' | 'Abandoned'
 
 export interface Lead {
   id: string

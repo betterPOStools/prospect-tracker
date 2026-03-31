@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense } from 'react'
 import { DataProvider } from './store/DataProvider'
+import { FlashProvider } from './hooks/useFlash'
 import TabBar from './components/TabBar'
 import MigrationBanner from './components/MigrationBanner'
 import SyncStatus from './components/SyncStatus'
@@ -53,8 +54,10 @@ function AppShell() {
 
 export default function App() {
   return (
-    <DataProvider>
-      <AppShell />
-    </DataProvider>
+    <FlashProvider>
+      <DataProvider>
+        <AppShell />
+      </DataProvider>
+    </FlashProvider>
   )
 }

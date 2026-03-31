@@ -11,6 +11,7 @@ export type LeadsAction =
   | { type: 'UPDATE_STATUS'; id: string; status: Lead['status'] }
   | { type: 'DELETE'; id: string }
   | { type: 'APPEND_ACTIVITY'; lead_id: string; activity: Activity }
+  | { type: 'UPDATE_ACTIVITY'; lead_id: string; activity_id: string; text: string }
 
 // ── Reducer ─────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,18 @@ function leadsReducer(state: Lead[], action: LeadsAction): Lead[] {
       next = state.map((l) =>
         l.id === action.lead_id
           ? { ...l, activities: [...(l.activities ?? []), action.activity] }
+          : l,
+      )
+      break
+    case 'UPDATE_ACTIVITY':
+      next = state.map((l) =>
+        l.id === action.lead_id
+          ? {
+              ...l,
+              activities: (l.activities ?? []).map((a) =>
+                a.id === action.activity_id ? { ...a, text: action.text } : a
+              ),
+            }
           : l,
       )
       break

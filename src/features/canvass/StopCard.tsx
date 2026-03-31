@@ -9,6 +9,7 @@ import { isNative } from '../../lib/platform'
 import { addToBlocklist } from '../../data/blocklist'
 import { Badge } from '../../components/Badge'
 import Button from '../../components/Button'
+import EditableActivityText from '../../components/EditableActivityText'
 import HoursChip from '../../components/HoursChip'
 import Modal from '../../components/Modal'
 
@@ -66,42 +67,103 @@ const STATUS_BADGE_VARIANT: Record<StopStatus, BadgeVariant> = {
   dropped: 'danger',
 }
 
-// ── Activity log ──────────────────────────────────────────────────────────────
+// ── Activity type config ──────────────────────────────────────────────────────
 
-function ActivityLog({ activities }: { activities: Activity[] }) {
-  const [expanded, setExpanded] = useState(false)
-  if (!activities.length) return null
+const ACTIVITY_TYPE_META: Record<string, { icon: string; label: string }> = {
+  call: { icon: '📞', label: 'Call' },
+  sms: { icon: '💬', label: 'Text' },
+  note: { icon: '📝', label: 'Note' },
+  status_change: { icon: '🔄', label: 'Status' },
+}
 
-  const shown = expanded ? activities : activities.slice(-3)
+// ── Activity history toggle ──────────────────────────────────────────────────
+
+function ActivityHistory({
+  activities,
+  onEditActivity,
+}: {
+  activities: Activity[]
+  onEditActivity?: (activityId: string, newText: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const sorted = [...activities].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
+
+  const isEditable = (act: Activity) => !act.system && act.type === 'note' && onEditActivity
 
   return (
-    <div className="mt-2 border-t border-gray-100 pt-2">
-      <div className="flex flex-col gap-1">
-        {!expanded && activities.length > 3 && (
-          <button
-            className="text-left text-xs text-blue-600 hover:underline"
-            onClick={() => setExpanded(true)}
-          >
-            Show {activities.length - 3} more
-          </button>
-        )}
-        {shown.map((act) => (
-          <div key={act.id} className="flex items-start gap-2 text-xs text-gray-500">
-            <span className="shrink-0 text-[10px] text-gray-400">{relativeTime(act.created_at)}</span>
-            <span className={act.system ? 'italic' : ''}>
-              {act.text ?? act.type}
-            </span>
-          </div>
-        ))}
-        {expanded && activities.length > 3 && (
-          <button
-            className="text-left text-xs text-blue-600 hover:underline"
-            onClick={() => setExpanded(false)}
-          >
-            Show less
-          </button>
-        )}
-      </div>
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className="h-3.5 w-3.5"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <span>History{activities.length > 0 ? ` (${activities.length})` : ''}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`}
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="mt-1.5 border-t border-gray-100 pt-1.5">
+          {sorted.length === 0 ? (
+            <p className="text-[11px] text-gray-400 italic">No activity yet</p>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {sorted.map((act) => {
+                const meta = ACTIVITY_TYPE_META[act.type] ?? { icon: '•', label: act.type }
+                return (
+                  <div key={act.id} className={`flex items-start gap-1.5 text-[11px]${isEditable(act) ? ' group/note' : ''}`}>
+                    <span className="shrink-0 leading-4">{meta.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-medium text-gray-600">{meta.label}</span>
+                        <span className="text-gray-300">·</span>
+                        <span className="text-gray-400">{relativeTime(act.created_at)}</span>
+                      </div>
+                      {act.text && (
+                        isEditable(act) ? (
+                          <EditableActivityText
+                            text={act.text}
+                            onSave={(newText) => onEditActivity!(act.id, newText)}
+                            className="text-gray-500 leading-4"
+                          />
+                        ) : (
+                          <p className={`text-gray-500 leading-4 ${act.system ? 'italic' : ''}`}>
+                            {act.text}
+                          </p>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -184,6 +246,26 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     }
     await db.from('activities').insert(act)
     dispatch({ type: 'APPEND_ACTIVITY', stop_id: stop.id, activity: act })
+  }
+
+  async function handleEditActivity(activityId: string, newText: string) {
+    setError('')
+    // Optimistic update
+    dispatch({ type: 'UPDATE_ACTIVITY', stop_id: stop.id, activity_id: activityId, text: newText })
+
+    const { error: err } = await db
+      .from('activities')
+      .update({ text: newText })
+      .eq('id', activityId)
+
+    if (err) {
+      setError(err.message)
+      // Find original text and roll back
+      const original = activities.find((a) => a.id === activityId)
+      if (original?.text) {
+        dispatch({ type: 'UPDATE_ACTIVITY', stop_id: stop.id, activity_id: activityId, text: original.text })
+      }
+    }
   }
 
   async function handleAddNote(e: React.FormEvent) {
@@ -402,8 +484,8 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
         )}
       </div>
 
-      {/* Activity log */}
-      <ActivityLog activities={activities} />
+      {/* Activity history toggle */}
+      <ActivityHistory activities={activities} onEditActivity={readOnly ? undefined : handleEditActivity} />
 
       {/* Error */}
       {error && (
