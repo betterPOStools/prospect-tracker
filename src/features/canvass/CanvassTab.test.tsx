@@ -41,6 +41,11 @@ vi.mock('../../store/LeadsContext', () => ({
   useLeadsDispatch: () => mockLeadsDispatch,
 }))
 
+vi.mock('../../store/RecordsContext', () => ({
+  useRecords: vi.fn(() => []),
+  useRecordsDispatch: () => vi.fn(),
+}))
+
 vi.mock('../../store/OfflineContext', () => ({
   useOffline: vi.fn(() => ({ isOnline: true, queueLength: 0, enqueue: vi.fn() })),
 }))
@@ -213,7 +218,7 @@ describe('CanvassTab', () => {
       render(<CanvassTab />)
 
       fireEvent.click(screen.getByRole('button', { name: /end day/i }))
-      expect(screen.getByText(/will be marked as/i)).toBeInTheDocument()
+      expect(screen.getByText(/returned to the database/i)).toBeInTheDocument()
     })
 
     it('opens clear confirm modal when Clear All is clicked', () => {

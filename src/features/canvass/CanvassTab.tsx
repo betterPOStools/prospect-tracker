@@ -9,6 +9,7 @@ import Modal from '../../components/Modal'
 import SubTabs from '../../components/SubTabs'
 import StopCard from './StopCard'
 import AddStopModal from './AddStopModal'
+import EndDayModal from './EndDayModal'
 
 // ── Sub-tab types ─────────────────────────────────────────────────────────────
 
@@ -35,9 +36,7 @@ export default function CanvassTab() {
   // Completed panel state
   const [completedSearch, setCompletedSearch] = useState('')
 
-  // End Day modal state
-  const [endDayBusy, setEndDayBusy] = useState(false)
-  const [endDayCarryForward, setEndDayCarryForward] = useState(true)
+  // (End Day modal state is managed inside EndDayModal)
 
   // ── Derived lists ───────────────────────────────────────────────────────────
 
@@ -82,42 +81,7 @@ export default function CanvassTab() {
       s.name.toLowerCase().includes(completedSearch.toLowerCase())
   )
 
-  // ── End Day handler ─────────────────────────────────────────────────────────
-
-  async function handleEndDay() {
-    setEndDayBusy(true)
-    const now = new Date().toISOString()
-
-    // Mark all remaining queued stops as not_visited
-    const toMarkNotVisited = stops.filter(
-      (s) => s.status === 'queued'
-    )
-
-    for (const stop of toMarkNotVisited) {
-      await db
-        .from('canvass_stops')
-        .update({ status: 'not_visited', updated_at: now })
-        .eq('id', stop.id)
-      dispatch({ type: 'UPDATE_STATUS', id: stop.id, status: 'not_visited' })
-    }
-
-    // If carry forward: move come_back_later and dm_unavailable back to queued
-    if (endDayCarryForward) {
-      const toCarry = stops.filter(
-        (s) => s.status === 'come_back_later' || s.status === 'dm_unavailable'
-      )
-      for (const stop of toCarry) {
-        await db
-          .from('canvass_stops')
-          .update({ status: 'queued', updated_at: now })
-          .eq('id', stop.id)
-        dispatch({ type: 'UPDATE_STATUS', id: stop.id, status: 'queued' })
-      }
-    }
-
-    setEndDayBusy(false)
-    setEndDayOpen(false)
-  }
+  // (End Day logic is now inside EndDayModal)
 
   // ── Clear All handler ────────────────────────────────────────────────────────
 
@@ -211,52 +175,11 @@ export default function CanvassTab() {
       <AddStopModal open={addOpen} onClose={() => setAddOpen(false)} />
 
       {/* End Day Modal */}
-      <Modal
+      <EndDayModal
         open={endDayOpen}
-        onClose={() => !endDayBusy && setEndDayOpen(false)}
-        title="End Day"
-        size="sm"
-      >
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-700">
-            Remaining queued stops ({queueStops.filter((s) => s.status === 'queued').length}) will be
-            marked as <strong>Not Visited</strong>.
-          </p>
-          {followUpStops.length > 0 && (
-            <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded"
-                checked={endDayCarryForward}
-                onChange={(e) => setEndDayCarryForward(e.target.checked)}
-              />
-              <span className="text-sm text-gray-700">
-                Carry forward {followUpStops.length} Follow Up stop
-                {followUpStops.length !== 1 ? 's' : ''} (Come Back Later + DM Unavailable) back into
-                the queue
-              </span>
-            </label>
-          )}
-          <div className="flex gap-2 pt-1">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => setEndDayOpen(false)}
-              disabled={endDayBusy}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              className="flex-1"
-              onClick={handleEndDay}
-              disabled={endDayBusy}
-            >
-              {endDayBusy ? 'Processing…' : 'End Day'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onClose={() => setEndDayOpen(false)}
+        stops={stops}
+      />
 
       {/* Clear All Confirm Modal */}
       <Modal

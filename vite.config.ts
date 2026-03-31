@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5176,
+    headers: {
+      "X-Frame-Options": "ALLOWALL",
+    },
     proxy: {
       // CORS bypass for Outscraper S3 result downloads
       '/s3-proxy': {

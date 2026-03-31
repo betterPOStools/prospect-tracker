@@ -34,3 +34,20 @@ export function isBlocklisted(name: string, blocklist?: string[]): boolean {
   const terms = blocklist ? blocklist.map((t) => t.toLowerCase()) : DEFAULT_BLOCKLIST_LOWER
   return terms.some((term) => lower.includes(term))
 }
+
+const STORAGE_KEY = 'vs_blocklist'
+
+/** Add a term to the persisted blocklist (localStorage). No-op if already present. */
+export function addToBlocklist(name: string): void {
+  const trimmed = name.trim().toLowerCase()
+  if (!trimmed) return
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    const terms: string[] = raw ? (JSON.parse(raw) as string[]) : [...DEFAULT_BLOCKLIST]
+    if (terms.includes(trimmed)) return
+    terms.push(trimmed)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(terms))
+  } catch {
+    // If localStorage fails, silently ignore
+  }
+}

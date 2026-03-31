@@ -291,11 +291,11 @@ describe('PlannerPanel', () => {
   it('renders day rows for Mon through Fri', () => {
     renderWithProviders(<PlannerPanel />)
     // Day selector buttons use full day name as aria-label
-    expect(screen.getByLabelText('Monday')).toBeInTheDocument()
-    expect(screen.getByLabelText('Tuesday')).toBeInTheDocument()
-    expect(screen.getByLabelText('Wednesday')).toBeInTheDocument()
-    expect(screen.getByLabelText('Thursday')).toBeInTheDocument()
-    expect(screen.getByLabelText('Friday')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Monday/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Tuesday/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Wednesday/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Thursday/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Friday/)).toBeInTheDocument()
   })
 
   it('shows unassigned count', async () => {

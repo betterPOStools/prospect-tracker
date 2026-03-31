@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import type { CanvassStop, StopStatus, Activity, Lead } from '../../types'
+import type { CanvassStop, StopStatus, Activity, Lead, RecordStatus } from '../../types'
 import { useStopsDispatch } from '../../store/StopsContext'
 import { useLeadsDispatch } from '../../store/LeadsContext'
 import { useRecords } from '../../store/RecordsContext'
+import { useRecordsDispatch } from '../../store/RecordsContext'
 import { supabase, db } from '../../lib/supabase'
 import { isNative } from '../../lib/platform'
+import { addToBlocklist } from '../../data/blocklist'
 import { Badge } from '../../components/Badge'
 import Button from '../../components/Button'
+import Modal from '../../components/Modal'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -102,6 +105,26 @@ function ActivityLog({ activities }: { activities: Activity[] }) {
   )
 }
 
+// ── Removal reasons ─────────────────────────────────────────────────────────
+
+interface RemovalReason {
+  label: string
+  /** Status to set on the parent record, or null for no change */
+  recordStatus: RecordStatus | null
+  /** Whether to add the stop name to the blocklist */
+  blocklist: boolean
+}
+
+const REMOVAL_REASONS: RemovalReason[] = [
+  { label: 'Permanently closed', recordStatus: 'canvassed', blocklist: true },
+  { label: 'Incorrect address', recordStatus: 'canvassed', blocklist: false },
+  { label: 'Duplicate', recordStatus: 'canvassed', blocklist: false },
+  { label: 'Wrong business type', recordStatus: 'canvassed', blocklist: true },
+  { label: 'Already a customer', recordStatus: 'converted', blocklist: false },
+  { label: 'Not interested', recordStatus: 'canvassed', blocklist: false },
+  { label: 'Just remove', recordStatus: null, blocklist: false },
+]
+
 // ── Props ────────────────────────────────────────────────────────────────────
 
 interface StopCardProps {
@@ -116,12 +139,14 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
   const dispatch = useStopsDispatch()
   const leadsDispatch = useLeadsDispatch()
   const records = useRecords()
+  const recordsDispatch = useRecordsDispatch()
 
   const [noteText, setNoteText] = useState('')
   const [submittingNote, setSubmittingNote] = useState(false)
   const [converting, setConverting] = useState(false)
   const [dropping, setDropping] = useState(false)
   const [removing, setRemoving] = useState(false)
+  const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [error, setError] = useState('')
 
   const activities = stop.activities ?? []
@@ -281,11 +306,14 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     setDropping(false)
   }
 
-  async function handleRemove() {
-    if (!confirm(`Remove "${stop.name}" from the queue?`)) return
+  async function handleRemoveWithReason(reason: RemovalReason) {
+    setShowRemoveModal(false)
     setRemoving(true)
     setError('')
 
+    const now = new Date().toISOString()
+
+    // 1. Delete the canvass stop
     const { error: err } = await db
       .from('canvass_stops')
       .delete()
@@ -298,6 +326,34 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
     }
 
     dispatch({ type: 'DELETE', id: stop.id })
+
+    // 2. Update parent record status if applicable
+    if (stop.record_id && reason.recordStatus) {
+      const { error: recErr } = await db
+        .from('records')
+        .update({ status: reason.recordStatus, updated_at: now })
+        .eq('id', stop.record_id)
+
+      if (!recErr) {
+        recordsDispatch({ type: 'UPDATE_STATUS', id: stop.record_id, status: reason.recordStatus })
+      }
+    }
+
+    // 3. Add to blocklist if needed
+    if (reason.blocklist) {
+      addToBlocklist(stop.name)
+    }
+
+    // 4. Log system activity
+    const act: Activity = {
+      id: crypto.randomUUID(),
+      stop_id: stop.id,
+      type: 'status_change',
+      text: `Removed: ${reason.label}`,
+      system: true,
+      created_at: now,
+    }
+    await db.from('activities').insert(act)
   }
 
   return (
@@ -427,13 +483,36 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
           <Button
             size="sm"
             variant="ghost"
-            onClick={handleRemove}
+            onClick={() => setShowRemoveModal(true)}
             disabled={removing}
           >
             {removing ? 'Removing…' : 'Remove'}
           </Button>
         </div>
       )}
+
+      {/* Removal reason modal */}
+      <Modal open={showRemoveModal} onClose={() => setShowRemoveModal(false)} title="Remove Stop" size="sm">
+        <p className="mb-3 text-sm text-gray-600">
+          Why are you removing <span className="font-medium text-gray-900">{stop.name}</span>?
+        </p>
+        <div className="flex flex-col gap-2">
+          {REMOVAL_REASONS.map((reason) => (
+            <button
+              key={reason.label}
+              className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100"
+              onClick={() => handleRemoveWithReason(reason)}
+            >
+              <span>{reason.label}</span>
+              {reason.blocklist && (
+                <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-600">
+                  + blocklist
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </Modal>
     </div>
   )
 }

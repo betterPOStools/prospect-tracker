@@ -9,6 +9,7 @@ import Button from '../../components/Button'
 import { Badge } from '../../components/Badge'
 import Input from '../../components/Input'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
+import DemoteModal from './DemoteModal'
 
 const MENU_IMPORT_URL = 'https://menu-import-tool.vercel.app/'
 
@@ -274,6 +275,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
   const { configured: copperConfigured, pushing: copperPushing, error: copperError, pushLead: copperPush } = useCopper()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [demoteOpen, setDemoteOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [submittingNote, setSubmittingNote] = useState(false)
@@ -623,6 +625,15 @@ export default function LeadCard({ lead }: LeadCardProps) {
           <Button
             size="sm"
             variant="ghost"
+            onClick={() => setDemoteOpen(true)}
+            disabled={busy}
+            className="min-h-[36px] text-amber-600 hover:bg-amber-50"
+          >
+            Demote
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={handleDelete}
             disabled={busy}
             className="min-h-[36px] text-red-600 hover:bg-red-50"
@@ -636,6 +647,8 @@ export default function LeadCard({ lead }: LeadCardProps) {
           {copperError}
         </p>
       )}
+
+      <DemoteModal open={demoteOpen} onClose={() => setDemoteOpen(false)} lead={lead} />
     </div>
   )
 }

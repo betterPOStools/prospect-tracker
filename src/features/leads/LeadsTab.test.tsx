@@ -32,6 +32,12 @@ vi.mock('../../store/LeadsContext', () => ({
 
 vi.mock('../../store/RecordsContext', () => ({
   useRecords: vi.fn(() => []),
+  useRecordsDispatch: () => vi.fn(),
+}))
+
+vi.mock('../../store/StopsContext', () => ({
+  useStops: vi.fn(() => []),
+  useStopsDispatch: () => vi.fn(),
 }))
 
 vi.mock('../../store/OfflineContext', () => ({
@@ -81,15 +87,17 @@ describe('LeadsTab', () => {
     vi.mocked(useLeads).mockReturnValue(SAMPLE_LEADS)
     render(<LeadsTab />)
 
+    const filterBar = screen.getByTestId('leads-filter-bar')
+
     // Total count appears in the stats row (may appear more than once with badge)
     const allFours = screen.getAllByText('4')
     expect(allFours.length).toBeGreaterThanOrEqual(1)
 
-    // Each filter button should be present
-    expect(screen.getByRole('button', { name: /^All/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Open/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Won/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Lost/ })).toBeInTheDocument()
+    // Each filter button should be present in the filter bar
+    expect(filterBar.querySelector('button[aria-pressed="true"]')).toHaveTextContent('All')
+    expect(filterBar).toHaveTextContent('Open')
+    expect(filterBar).toHaveTextContent('Won')
+    expect(filterBar).toHaveTextContent('Lost')
 
     // Open count = 2, Won = 1, Lost = 1
     expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(1)
@@ -110,7 +118,11 @@ describe('LeadsTab', () => {
     vi.mocked(useLeads).mockReturnValue(SAMPLE_LEADS)
     render(<LeadsTab />)
 
-    fireEvent.click(screen.getByRole('button', { name: /^Open/ }))
+    const filterBar = screen.getByTestId('leads-filter-bar')
+    const openBtn = Array.from(filterBar.querySelectorAll('button')).find(
+      (b) => b.textContent?.startsWith('Open'),
+    )!
+    fireEvent.click(openBtn)
 
     expect(screen.getByText('Pizza Palace')).toBeInTheDocument()
     expect(screen.getByText('Sushi Spot')).toBeInTheDocument()
@@ -230,6 +242,6 @@ describe('LeadsTab', () => {
     ])
     render(<LeadsTab />)
 
-    expect(screen.getByText(/Ready for Menu Import/)).toBeInTheDocument()
+    expect(screen.getByText(/Open in Menu Import/)).toBeInTheDocument()
   })
 })
