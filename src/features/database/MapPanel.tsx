@@ -19,15 +19,17 @@ function statusLabel(status: RecordStatus): string {
     case 'in_canvass': return 'In Canvass'
     case 'canvassed': return 'Canvassed'
     case 'converted': return 'Converted'
+    case 'on_hold': return 'On Hold'
   }
 }
 
-function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' {
+function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' | 'danger' {
   switch (status) {
     case 'unworked': return 'default'
     case 'in_canvass': return 'info'
     case 'canvassed': return 'warning'
     case 'converted': return 'success'
+    case 'on_hold': return 'danger'
   }
 }
 

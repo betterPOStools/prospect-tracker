@@ -4,7 +4,7 @@ export type TabId = 'leads' | 'canvass' | 'route' | 'database' | 'utilities'
 
 // ── prospect.records ────────────────────────────────────────────────────────
 
-export type RecordStatus = 'unworked' | 'in_canvass' | 'canvassed' | 'converted'
+export type RecordStatus = 'unworked' | 'in_canvass' | 'canvassed' | 'converted' | 'on_hold'
 export type Priority = 'Fire' | 'Hot' | 'Warm' | 'Cold' | 'Dead'
 
 export interface ProspectRecord {

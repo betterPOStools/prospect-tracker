@@ -29,14 +29,25 @@ const STATUS_BADGE_VARIANT: Record<StopStatus, BadgeVariant> = {
 
 // ── Navigation helpers ───────────────────────────────────────────────────────
 
-function buildSingleStopUrl(stop: CanvassStop, mapsApp: MapsApp): string {
+function buildSingleStopUrl(stop: CanvassStop, mapsApp: MapsApp, useCoords: boolean): string {
+  const hasCoords = stop.lat != null && stop.lng != null
+
   if (mapsApp === 'waze') {
-    if (stop.lat != null && stop.lng != null) {
+    if (hasCoords && useCoords) {
+      return `https://waze.com/ul?ll=${stop.lat},${stop.lng}&navigate=yes`
+    }
+    if (hasCoords) {
       return `https://waze.com/ul?ll=${stop.lat},${stop.lng}&navigate=yes`
     }
     return `https://waze.com/ul?q=${encodeURIComponent(stop.address ?? stop.name)}&navigate=yes`
   }
-  // Google Maps
+
+  // Coordinate mode — use lat/lng directly (Google Maps or Apple Maps URL format)
+  if (useCoords && hasCoords) {
+    return `https://maps.google.com/?q=${stop.lat},${stop.lng}`
+  }
+
+  // Address mode (default)
   return `https://maps.google.com/?q=${encodeURIComponent(stop.address ?? `${stop.lat},${stop.lng}`)}`
 }
 
@@ -52,6 +63,7 @@ interface RouteStopItemProps {
   total: number           // total stops in list
   mapsApp: MapsApp
   isOptimized: boolean    // hide up/down arrows when route is optimized
+  useCoords: boolean      // use lat/lng instead of address in map URLs
   onMoveUp: () => void
   onMoveDown: () => void
 }
@@ -64,13 +76,14 @@ export default function RouteStopItem({
   total,
   mapsApp,
   isOptimized,
+  useCoords,
   onMoveUp,
   onMoveDown,
 }: RouteStopItemProps) {
   const number = index + 1
 
   function handleNavigate() {
-    const url = buildSingleStopUrl(stop, mapsApp)
+    const url = buildSingleStopUrl(stop, mapsApp, useCoords)
     openUrl(url)
   }
 

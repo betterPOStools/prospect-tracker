@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useStops, useStopsDispatch } from '../../store/StopsContext'
 import { useOffline } from '../../store/OfflineContext'
 import { db } from '../../lib/supabase'
@@ -9,18 +9,30 @@ import EmptyState from '../../components/EmptyState'
 import RouteStopItem from './RouteStopItem'
 import { optimizeRoute, geocodeAddress } from './routeXL'
 import type { CanvassStop } from '../../types'
+import { DAYS } from '../../types'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const MAX_WAYPOINTS = 10
 const RXL_MAX_FREE = 20
 
+const DAY_SHORT: Record<string, string> = {
+  Monday: 'Mon',
+  Tuesday: 'Tue',
+  Wednesday: 'Wed',
+  Thursday: 'Thu',
+  Friday: 'Fri',
+}
+
 // ── Leg navigation helpers ───────────────────────────────────────────────────
 
-function buildLegUrl(leg: CanvassStop[]): string {
-  const waypoints = leg.map((s) =>
-    encodeURIComponent(s.address ?? (s.lat != null && s.lng != null ? `${s.lat},${s.lng}` : s.name)),
-  )
+function buildLegUrl(leg: CanvassStop[], useCoords: boolean): string {
+  const waypoints = leg.map((s) => {
+    if (useCoords && s.lat != null && s.lng != null) {
+      return `${s.lat},${s.lng}`
+    }
+    return encodeURIComponent(s.address ?? (s.lat != null && s.lng != null ? `${s.lat},${s.lng}` : s.name))
+  })
   return `https://www.google.com/maps/dir/${waypoints.join('/')}`
 }
 
@@ -38,6 +50,12 @@ function buildLegs(stops: CanvassStop[]): CanvassStop[][] {
   return legs
 }
 
+// ── Day helpers ──────────────────────────────────────────────────────────────
+
+function getTodayName(): string {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long' })
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function RouteTab() {
@@ -45,19 +63,28 @@ export default function RouteTab() {
   const stopsDispatch = useStopsDispatch()
   const { isOnline } = useOffline()
 
-  // Determine today's stop list
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+  // Day selector state — default to "Today"
+  const [selectedDay, setSelectedDay] = useState<string>('Today')
+  const [useCoords, setUseCoords] = useState(false)
 
-  const todayStops = useMemo<CanvassStop[]>(() => {
-    const byDay = stops.filter((s) => s.day === today)
+  const today = getTodayName()
+
+  // Resolve the effective day name from the selector
+  const effectiveDay = selectedDay === 'Today' ? today : selectedDay
+
+  const filteredStops = useMemo<CanvassStop[]>(() => {
+    const byDay = stops.filter((s) => s.day === effectiveDay)
     if (byDay.length > 0) return byDay
-    // Fallback: all queued / not_visited stops
-    return stops.filter((s) => s.status === 'queued' || s.status === 'not_visited')
-  }, [stops, today])
+    // Fallback: all queued / not_visited stops (only when viewing "Today")
+    if (selectedDay === 'Today') {
+      return stops.filter((s) => s.status === 'queued' || s.status === 'not_visited')
+    }
+    return byDay
+  }, [stops, effectiveDay, selectedDay])
 
   // Local ordering state
-  const [orderedStops, setOrderedStops] = useState<CanvassStop[]>(() => todayStops)
-  const [originalOrder, setOriginalOrder] = useState<CanvassStop[]>(() => todayStops)
+  const [orderedStops, setOrderedStops] = useState<CanvassStop[]>(() => filteredStops)
+  const [originalOrder, setOriginalOrder] = useState<CanvassStop[]>(() => filteredStops)
   const [isOptimized, setIsOptimized] = useState(false)
   const [optimizing, setOptimizing] = useState(false)
   const [optimizeError, setOptimizeError] = useState<string | null>(null)
@@ -65,19 +92,41 @@ export default function RouteTab() {
   const [geocodeProgress, setGeocodeProgress] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
+  // Sync orderedStops when filteredStops changes (day selection or context update)
+  const filteredIds = filteredStops.map((s) => s.id).join(',')
+  const prevFilteredIds = useRef(filteredIds)
+
+  useEffect(() => {
+    if (filteredIds !== prevFilteredIds.current) {
+      prevFilteredIds.current = filteredIds
+      setOrderedStops(filteredStops)
+      setOriginalOrder(filteredStops)
+      setIsOptimized(false)
+      setOptimizeError(null)
+    }
+  }, [filteredIds, filteredStops])
+
   function showToast(msg: string) {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  // Keep orderedStops in sync when the context stops change (unless user has optimized)
-  // We intentionally only do this on first render — the user controls order after that.
-
   const mapsApp = settings.getMapsApp()
 
   const stopsMissingCoords = orderedStops.filter((s) => s.lat == null || s.lng == null)
   const hasMissingCoords = stopsMissingCoords.length > 0
+
+  // Determine if any stops have coordinates (for showing the coords toggle)
+  const someStopsHaveCoords = orderedStops.some((s) => s.lat != null && s.lng != null)
+
   const overFreeLimit = orderedStops.length > RXL_MAX_FREE
+
+  // Progress footer counts — "visited" = canvassed or come_back_later (physically went there)
+  const visitedCount = orderedStops.filter(
+    (s) => s.status === 'canvassed' || s.status === 'come_back_later',
+  ).length
+  const totalCount = orderedStops.length
+  const progressPct = totalCount > 0 ? (visitedCount / totalCount) * 100 : 0
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -246,8 +295,36 @@ export default function RouteTab() {
   if (!orderedStops.length) {
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Day selector — always visible even when empty */}
+        <div className="border-b border-gray-200 bg-white px-4 py-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
+            <button
+              onClick={() => setSelectedDay('Today')}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                selectedDay === 'Today'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Today
+            </button>
+            {DAYS.map((day) => (
+              <button
+                key={day}
+                onClick={() => setSelectedDay(day)}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  selectedDay === day
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {DAY_SHORT[day]}
+              </button>
+            ))}
+          </div>
+        </div>
         <EmptyState
-          title="No stops for today"
+          title={selectedDay === 'Today' ? 'No stops for today' : `No stops for ${effectiveDay}`}
           description="Assign stops in the Planner or add them from the Database."
         />
       </div>
@@ -262,10 +339,39 @@ export default function RouteTab() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Day selector */}
+      <div className="border-b border-gray-200 bg-white px-4 py-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
+          <button
+            onClick={() => setSelectedDay('Today')}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              selectedDay === 'Today'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Today
+          </button>
+          {DAYS.map((day) => (
+            <button
+              key={day}
+              onClick={() => setSelectedDay(day)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                selectedDay === day
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {DAY_SHORT[day]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Header */}
       <div className="border-b border-gray-200 bg-white px-4 py-3">
         <h2 className="text-base font-semibold text-gray-900">
-          Route — {orderedStops.length} stop{orderedStops.length !== 1 ? 's' : ''} for {today}
+          Route — {orderedStops.length} stop{orderedStops.length !== 1 ? 's' : ''} for {effectiveDay}
         </h2>
 
         {/* Over-limit warning */}
@@ -352,6 +458,21 @@ export default function RouteTab() {
             'Optimize Route'
           )}
         </Button>
+
+        {/* Coordinate vs address toggle — only shown when some stops have coords */}
+        {someStopsHaveCoords && (
+          <button
+            onClick={() => setUseCoords((prev) => !prev)}
+            data-testid="coords-toggle"
+            className={`ml-auto shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              useCoords
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {useCoords ? 'Coords' : 'Address'}
+          </button>
+        )}
       </div>
 
       {/* Stop list with leg dividers */}
@@ -368,7 +489,7 @@ export default function RouteTab() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => openUrl(buildLegUrl(leg))}
+                    onClick={() => openUrl(buildLegUrl(leg, useCoords))}
                     aria-label={`Start Leg ${legIndex + 1} in Maps`}
                   >
                     Start Leg {legIndex + 1} in Maps
@@ -387,6 +508,7 @@ export default function RouteTab() {
                       total={orderedStops.length}
                       mapsApp={mapsApp}
                       isOptimized={isOptimized}
+                      useCoords={useCoords}
                       onMoveUp={() => moveStop(globalIndex, 'up')}
                       onMoveDown={() => moveStop(globalIndex, 'down')}
                     />
@@ -400,7 +522,7 @@ export default function RouteTab() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => openUrl(buildLegUrl(leg))}
+                    onClick={() => openUrl(buildLegUrl(leg, useCoords))}
                     aria-label={`Start Leg ${legIndex + 1} in Maps`}
                   >
                     Start Leg {legIndex + 1} in Maps
@@ -410,6 +532,21 @@ export default function RouteTab() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Progress footer */}
+      <div
+        className="relative border-t border-gray-200 bg-gray-50 px-4 py-2"
+        data-testid="progress-footer"
+      >
+        {/* Progress bar background */}
+        <div
+          className="absolute inset-0 bg-green-100 transition-all duration-300"
+          style={{ width: `${progressPct}%` }}
+        />
+        <p className="relative text-xs font-medium text-gray-600 text-center">
+          {visitedCount} of {totalCount} visited
+        </p>
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { ProspectRecord, Priority, RecordStatus } from '../../types'
 import { PRIORITIES, DAYS } from '../../types'
@@ -29,6 +29,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'in_canvass', label: 'In Canvass' },
   { value: 'canvassed', label: 'Canvassed' },
   { value: 'converted', label: 'Converted' },
+  { value: 'on_hold', label: 'On Hold' },
 ]
 
 const BULK_STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -37,6 +38,7 @@ const BULK_STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: 'in_canvass', label: 'In Canvass' },
   { value: 'canvassed', label: 'Canvassed' },
   { value: 'converted', label: 'Converted' },
+  { value: 'on_hold', label: 'On Hold' },
 ]
 
 function statusLabel(status: RecordStatus): string {
@@ -45,16 +47,44 @@ function statusLabel(status: RecordStatus): string {
     case 'in_canvass': return 'In Canvass'
     case 'canvassed': return 'Canvassed'
     case 'converted': return 'Converted'
+    case 'on_hold': return 'On Hold'
   }
 }
 
-function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' {
+function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' | 'danger' {
   switch (status) {
     case 'unworked': return 'default'
     case 'in_canvass': return 'info'
     case 'canvassed': return 'warning'
     case 'converted': return 'success'
+    case 'on_hold': return 'danger'
   }
+}
+
+// ── Inline edit constants ────────────────────────────────────────────────────
+
+const INLINE_PRIORITY_OPTIONS: { value: string; label: string }[] =
+  PRIORITIES.map((p) => ({ value: p, label: p }))
+
+const INLINE_STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'unworked', label: 'Unworked' },
+  { value: 'in_canvass', label: 'In Canvass' },
+  { value: 'canvassed', label: 'Canvassed' },
+  { value: 'converted', label: 'Converted' },
+  { value: 'on_hold', label: 'On Hold' },
+]
+
+const INLINE_DAY_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'No day' },
+  ...DAYS.map((d) => ({ value: d, label: d })),
+]
+
+interface InlineEditForm {
+  name: string
+  priority: Priority
+  status: RecordStatus
+  area: string
+  day: string
 }
 
 // ── Record row ───────────────────────────────────────────────────────────────
@@ -64,6 +94,7 @@ interface RecordRowProps {
   selected: boolean
   onToggle: () => void
   onClick: () => void
+  onDoubleClick: () => void
 }
 
 const CANVASS_DOT: Record<string, string> = {
@@ -71,15 +102,18 @@ const CANVASS_DOT: Record<string, string> = {
   canvassed:  '#86efac',  // green-300
   in_canvass: '#facc15',  // yellow-400
   unworked:   '#d1d5db',  // gray-300
+  on_hold:    '#ef4444',  // red-500
 }
 
-function RecordRow({ record, selected, onToggle, onClick }: RecordRowProps) {
+function RecordRow({ record, selected, onToggle, onClick, onDoubleClick }: RecordRowProps) {
   return (
     <div
       className={`flex items-center gap-3 border-b border-gray-100 px-4 py-2 transition-colors ${
         selected ? 'bg-blue-50' : 'hover:bg-gray-50'
       }`}
       style={{ height: 72, boxSizing: 'border-box' }}
+      onDoubleClick={onDoubleClick}
+      data-testid={`record-row-${record.id}`}
     >
       {/* Checkbox */}
       <input
@@ -116,6 +150,128 @@ function RecordRow({ record, selected, onToggle, onClick }: RecordRowProps) {
   )
 }
 
+// ── Inline edit row ─────────────────────────────────────────────────────────
+
+interface InlineEditRowProps {
+  record: ProspectRecord
+  onSave: (id: string, form: InlineEditForm) => void
+  onCancel: () => void
+}
+
+function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
+  const [form, setForm] = useState<InlineEditForm>({
+    name: record.name,
+    priority: record.priority,
+    status: record.status,
+    area: record.area ?? '',
+    day: record.day ?? '',
+  })
+
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    nameRef.current?.focus()
+  }, [])
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
+      onCancel()
+    } else if (e.key === 'Enter') {
+      onSave(record.id, form)
+    }
+  }
+
+  const inputClass = 'rounded border border-gray-300 bg-white px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20'
+  const selectClass = 'rounded border border-gray-300 bg-white px-1 py-1 text-xs focus:border-blue-500 focus:outline-none'
+
+  return (
+    <div
+      className="flex items-center gap-2 border-b border-blue-200 bg-blue-50/50 px-4 py-2"
+      style={{ height: 72, boxSizing: 'border-box' }}
+      onKeyDown={handleKeyDown}
+      data-testid={`inline-edit-row-${record.id}`}
+    >
+      {/* Name input */}
+      <input
+        ref={nameRef}
+        type="text"
+        value={form.name}
+        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+        className={`${inputClass} flex-1 min-w-[100px]`}
+        aria-label="Edit name"
+      />
+
+      {/* Priority select */}
+      <select
+        value={form.priority}
+        onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as Priority }))}
+        className={`${selectClass} w-[70px]`}
+        aria-label="Edit priority"
+      >
+        {INLINE_PRIORITY_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+
+      {/* Status select */}
+      <select
+        value={form.status}
+        onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as RecordStatus }))}
+        className={`${selectClass} w-[90px]`}
+        aria-label="Edit status"
+      >
+        {INLINE_STATUS_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+
+      {/* Area input */}
+      <input
+        type="text"
+        value={form.area}
+        onChange={(e) => setForm((f) => ({ ...f, area: e.target.value }))}
+        className={`${inputClass} w-[80px]`}
+        placeholder="Area"
+        aria-label="Edit area"
+      />
+
+      {/* Day select */}
+      <select
+        value={form.day}
+        onChange={(e) => setForm((f) => ({ ...f, day: e.target.value }))}
+        className={`${selectClass} w-[90px]`}
+        aria-label="Edit day"
+      >
+        {INLINE_DAY_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+
+      {/* Save / Cancel buttons */}
+      <button
+        onClick={() => onSave(record.id, form)}
+        className="shrink-0 rounded p-1 text-green-600 hover:bg-green-100 transition-colors"
+        aria-label="Save inline edit"
+        title="Save"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+        </svg>
+      </button>
+      <button
+        onClick={onCancel}
+        className="shrink-0 rounded p-1 text-red-500 hover:bg-red-100 transition-colors"
+        aria-label="Cancel inline edit"
+        title="Cancel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+        </svg>
+      </button>
+    </div>
+  )
+}
+
 // ── Virtualized list ─────────────────────────────────────────────────────────
 
 interface VirtualRecordListProps {
@@ -123,9 +279,22 @@ interface VirtualRecordListProps {
   selectedIds: Set<string>
   onToggle: (id: string) => void
   onOpen: (record: ProspectRecord) => void
+  editingId: string | null
+  onStartEdit: (id: string) => void
+  onSaveEdit: (id: string, form: InlineEditForm) => void
+  onCancelEdit: () => void
 }
 
-function VirtualRecordList({ records, selectedIds, onToggle, onOpen }: VirtualRecordListProps) {
+function VirtualRecordList({
+  records,
+  selectedIds,
+  onToggle,
+  onOpen,
+  editingId,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+}: VirtualRecordListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   const virtualizer = useVirtualizer({
@@ -140,6 +309,7 @@ function VirtualRecordList({ records, selectedIds, onToggle, onOpen }: VirtualRe
       <div style={{ height: virtualizer.getTotalSize(), position: 'relative', width: '100%' }}>
         {virtualizer.getVirtualItems().map((virtualRow) => {
           const record = records[virtualRow.index]
+          const isEditing = editingId === record.id
           return (
             <div
               key={virtualRow.key}
@@ -150,12 +320,21 @@ function VirtualRecordList({ records, selectedIds, onToggle, onOpen }: VirtualRe
                 transform: `translateY(${virtualRow.start}px)`,
               }}
             >
-              <RecordRow
-                record={record}
-                selected={selectedIds.has(record.id)}
-                onToggle={() => onToggle(record.id)}
-                onClick={() => onOpen(record)}
-              />
+              {isEditing ? (
+                <InlineEditRow
+                  record={record}
+                  onSave={onSaveEdit}
+                  onCancel={onCancelEdit}
+                />
+              ) : (
+                <RecordRow
+                  record={record}
+                  selected={selectedIds.has(record.id)}
+                  onToggle={() => onToggle(record.id)}
+                  onClick={() => onOpen(record)}
+                  onDoubleClick={() => onStartEdit(record.id)}
+                />
+              )}
             </div>
           )
         })}
@@ -189,6 +368,9 @@ export default function BrowsePanel() {
 
   // Detail modal
   const [detailRecord, setDetailRecord] = useState<ProspectRecord | null>(null)
+
+  // Inline editing
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Unique areas
   const areas = useMemo(() => {
@@ -357,6 +539,34 @@ export default function BrowsePanel() {
     setBulkLoading(false)
     clearSelection()
     showToast(`Assigned ${count} records to ${day}`)
+  }
+
+  // ── Inline edit handlers ─────────────────────────────────────────────────────
+
+  function handleStartEdit(id: string) {
+    setEditingId(id)
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null)
+  }
+
+  async function handleSaveEdit(id: string, form: InlineEditForm) {
+    const now = new Date().toISOString()
+    const patch: Partial<ProspectRecord> = {
+      name: form.name.trim(),
+      priority: form.priority,
+      status: form.status,
+      area: form.area || undefined,
+      day: form.day || undefined,
+      updated_at: now,
+    }
+    await db.from('records').update(patch).eq('id', id)
+    const existing = records.find((r) => r.id === id)
+    if (existing) {
+      recordsDispatch({ type: 'UPSERT', record: { ...existing, ...patch } })
+    }
+    setEditingId(null)
   }
 
   const hasSelection = selectedIds.size > 0
@@ -545,6 +755,10 @@ export default function BrowsePanel() {
           selectedIds={selectedIds}
           onToggle={toggleSelect}
           onOpen={(r) => setDetailRecord(r)}
+          editingId={editingId}
+          onStartEdit={handleStartEdit}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={handleCancelEdit}
         />
       )}
 

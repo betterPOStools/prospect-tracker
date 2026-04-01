@@ -240,4 +240,177 @@ describe('RouteTab', () => {
     const btn = screen.getByRole('button', { name: /geocode missing/i })
     expect(btn).toBeDisabled()
   })
+
+  // ── Day selector tests ──────────────────────────────────────────────────
+
+  it('renders day selector with Today as default selection', () => {
+    const today = getTodayName()
+    mockStops.push(makeStop({ id: '1', name: 'Stop A', day: today }))
+
+    render(<RouteTab />)
+
+    const daySelector = screen.getByTestId('day-selector')
+    expect(daySelector).toBeInTheDocument()
+
+    // "Today" button should exist
+    const todayBtn = screen.getByRole('button', { name: 'Today' })
+    expect(todayBtn).toBeInTheDocument()
+    // "Today" should have the active style (blue bg)
+    expect(todayBtn.className).toContain('bg-blue-600')
+
+    // Day abbreviation buttons should also exist
+    expect(screen.getByRole('button', { name: 'Mon' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tue' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Wed' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Thu' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fri' })).toBeInTheDocument()
+  })
+
+  it('day selector filters stops by selected day', () => {
+    mockStops.push(
+      makeStop({ id: '1', name: 'Monday Stop', day: 'Monday' }),
+      makeStop({ id: '2', name: 'Tuesday Stop', day: 'Tuesday' }),
+      makeStop({ id: '3', name: 'Wednesday Stop', day: 'Wednesday' }),
+    )
+
+    render(<RouteTab />)
+
+    // Click Monday
+    fireEvent.click(screen.getByRole('button', { name: 'Mon' }))
+
+    // Monday stop should be visible
+    expect(screen.getByText('Monday Stop')).toBeInTheDocument()
+    // Tuesday stop should NOT be visible
+    expect(screen.queryByText('Tuesday Stop')).not.toBeInTheDocument()
+
+    // Header should show Monday
+    expect(screen.getByText(/1 stop for Monday/)).toBeInTheDocument()
+  })
+
+  it('day selector shows empty state for day with no stops', () => {
+    mockStops.push(makeStop({ id: '1', name: 'Monday Stop', day: 'Monday' }))
+
+    render(<RouteTab />)
+
+    // Click Wednesday — no stops assigned
+    fireEvent.click(screen.getByRole('button', { name: 'Wed' }))
+
+    expect(screen.getByText('No stops for Wednesday')).toBeInTheDocument()
+  })
+
+  it('day selector shows day buttons in empty state', () => {
+    // No stops at all
+    render(<RouteTab />)
+
+    const daySelector = screen.getByTestId('day-selector')
+    expect(daySelector).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
+  })
+
+  // ── Progress footer tests ──────────────────────────────────────────────
+
+  it('progress footer shows correct visited counts', () => {
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'Canvassed Stop', day: today, status: 'canvassed' }),
+      makeStop({ id: '2', name: 'Come Back Stop', day: today, status: 'come_back_later' }),
+      makeStop({ id: '3', name: 'Queued Stop', day: today, status: 'queued' }),
+      makeStop({ id: '4', name: 'Not Visited Stop', day: today, status: 'not_visited' }),
+    )
+
+    render(<RouteTab />)
+
+    const footer = screen.getByTestId('progress-footer')
+    expect(footer).toBeInTheDocument()
+    // canvassed + come_back_later = 2 visited out of 4 total
+    expect(footer).toHaveTextContent('2 of 4 visited')
+  })
+
+  it('progress footer shows 0 visited when none completed', () => {
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'Queued 1', day: today, status: 'queued' }),
+      makeStop({ id: '2', name: 'Queued 2', day: today, status: 'queued' }),
+    )
+
+    render(<RouteTab />)
+
+    const footer = screen.getByTestId('progress-footer')
+    expect(footer).toHaveTextContent('0 of 2 visited')
+  })
+
+  // ── Coordinate toggle tests ──────────────────────────────────────────────
+
+  it('shows coordinate toggle when some stops have lat/lng', () => {
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'With Coords', day: today, lat: 30.0, lng: -97.0 }),
+      makeStop({ id: '2', name: 'Without Coords', day: today }),
+    )
+
+    render(<RouteTab />)
+
+    const toggle = screen.getByTestId('coords-toggle')
+    expect(toggle).toBeInTheDocument()
+    // Default should show "Address" label
+    expect(toggle).toHaveTextContent('Address')
+  })
+
+  it('hides coordinate toggle when no stops have lat/lng', () => {
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'No Coords 1', day: today }),
+      makeStop({ id: '2', name: 'No Coords 2', day: today }),
+    )
+
+    render(<RouteTab />)
+
+    expect(screen.queryByTestId('coords-toggle')).not.toBeInTheDocument()
+  })
+
+  it('coordinate toggle switches between Address and Coords mode', () => {
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'With Coords', day: today, lat: 30.0, lng: -97.0 }),
+    )
+
+    render(<RouteTab />)
+
+    const toggle = screen.getByTestId('coords-toggle')
+    expect(toggle).toHaveTextContent('Address')
+
+    // Click to switch to coords mode
+    fireEvent.click(toggle)
+    expect(toggle).toHaveTextContent('Coords')
+
+    // Click again to switch back
+    fireEvent.click(toggle)
+    expect(toggle).toHaveTextContent('Address')
+  })
+
+  it('coordinate toggle in coords mode uses lat/lng in map URL', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+
+    const today = getTodayName()
+    mockStops.push(
+      makeStop({ id: '1', name: 'Coord Stop', address: '123 Main St', day: today, lat: 30.123, lng: -97.456 }),
+    )
+
+    render(<RouteTab />)
+
+    // Enable coords mode
+    const toggle = screen.getByTestId('coords-toggle')
+    fireEvent.click(toggle)
+
+    // Click navigate
+    const navButton = screen.getAllByRole('button', { name: /navigate to/i })[0]
+    fireEvent.click(navButton)
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://maps.google.com/?q=30.123,-97.456',
+      '_blank',
+    )
+
+    openSpy.mockRestore()
+  })
 })

@@ -12,12 +12,13 @@ import Select from '../../components/Select'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' {
+function statusVariant(status: RecordStatus): 'default' | 'info' | 'warning' | 'success' | 'danger' {
   switch (status) {
     case 'unworked': return 'default'
     case 'in_canvass': return 'info'
     case 'canvassed': return 'warning'
     case 'converted': return 'success'
+    case 'on_hold': return 'danger'
   }
 }
 
@@ -27,6 +28,7 @@ function statusLabel(status: RecordStatus): string {
     case 'in_canvass': return 'In Canvass'
     case 'canvassed': return 'Canvassed'
     case 'converted': return 'Converted'
+    case 'on_hold': return 'On Hold'
   }
 }
 
@@ -263,6 +265,7 @@ const STATUS_OPTIONS: { value: RecordStatus; label: string }[] = [
   { value: 'in_canvass', label: 'In Canvass' },
   { value: 'canvassed', label: 'Canvassed' },
   { value: 'converted', label: 'Converted' },
+  { value: 'on_hold', label: 'On Hold' },
 ]
 
 const DAY_OPTIONS = [

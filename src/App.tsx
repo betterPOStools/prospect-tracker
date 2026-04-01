@@ -3,6 +3,7 @@ import { DataProvider } from './store/DataProvider'
 import { FlashProvider } from './hooks/useFlash'
 import TabBar from './components/TabBar'
 import MigrationBanner from './components/MigrationBanner'
+import OfflineBanner from './components/OfflineBanner'
 import SyncStatus from './components/SyncStatus'
 import type { TabId } from './types'
 
@@ -12,7 +13,7 @@ const RouteTab    = lazy(() => import('./features/route/RouteTab'))
 const DatabaseTab = lazy(() => import('./features/database/DatabaseTab'))
 const UtilitiesTab = lazy(() => import('./features/utilities/UtilitiesTab'))
 
-const BUILD = 'v0.12.0'
+const BUILD = `v${__APP_VERSION__}`
 
 function AppShell() {
   const [activeTab, setActiveTab] = useState<TabId>('leads')
@@ -34,6 +35,9 @@ function AppShell() {
 
       {/* One-time legacy data migration */}
       <MigrationBanner />
+
+      {/* Offline / reconnection banner */}
+      <OfflineBanner />
 
       {/* Tab bar — top, below header */}
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />

@@ -6,17 +6,19 @@ import type { ProspectRecord } from '../../types'
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 // Supabase — must be mocked before importing anything that uses it
+const mockSupabase = {
+  from: () => ({
+    insert: vi.fn().mockResolvedValue({ error: null }),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockResolvedValue({ error: null }),
+    in: vi.fn().mockResolvedValue({ error: null }),
+    not: vi.fn().mockResolvedValue({ error: null }),
+  }),
+}
 vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: () => ({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-      in: vi.fn().mockResolvedValue({ error: null }),
-      not: vi.fn().mockResolvedValue({ error: null }),
-    }),
-  },
+  supabase: mockSupabase,
+  db: mockSupabase,
 }))
 
 // Platform — not native in tests
@@ -282,6 +284,40 @@ describe('BrowsePanel', () => {
     expect(rowCheckbox).toBeTruthy()
     fireEvent.click(rowCheckbox!)
     expect(screen.getByText("Add to Today's Canvass")).toBeInTheDocument()
+  })
+
+  it('enters inline edit mode on double-click', async () => {
+    renderWithProviders(<BrowsePanel />, records)
+    await vi.waitFor(() => {
+      expect(getShowingText()).toMatch(/4.*of.*4/)
+    })
+    // Double-click the first record row
+    const row = screen.getByTestId('record-row-1')
+    fireEvent.doubleClick(row)
+    // Inline edit inputs should appear
+    expect(screen.getByLabelText('Edit name')).toBeInTheDocument()
+    expect(screen.getByLabelText('Edit priority')).toBeInTheDocument()
+    expect(screen.getByLabelText('Edit status')).toBeInTheDocument()
+    expect(screen.getByLabelText('Edit area')).toBeInTheDocument()
+    expect(screen.getByLabelText('Edit day')).toBeInTheDocument()
+    expect(screen.getByLabelText('Save inline edit')).toBeInTheDocument()
+    expect(screen.getByLabelText('Cancel inline edit')).toBeInTheDocument()
+  })
+
+  it('exits inline edit mode on cancel click', async () => {
+    renderWithProviders(<BrowsePanel />, records)
+    await vi.waitFor(() => {
+      expect(getShowingText()).toMatch(/4.*of.*4/)
+    })
+    // Enter edit mode
+    const row = screen.getByTestId('record-row-1')
+    fireEvent.doubleClick(row)
+    expect(screen.getByLabelText('Edit name')).toBeInTheDocument()
+    // Click cancel
+    fireEvent.click(screen.getByLabelText('Cancel inline edit'))
+    // Edit inputs should be gone, row should be back
+    expect(screen.queryByLabelText('Edit name')).not.toBeInTheDocument()
+    expect(screen.getByTestId('record-row-1')).toBeInTheDocument()
   })
 })
 
