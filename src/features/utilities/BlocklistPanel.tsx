@@ -57,8 +57,8 @@ export default function BlocklistPanel() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden p-4">
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">Blocklist</h3>
-        <p className="mt-0.5 text-xs text-gray-500">
+        <h3 className="text-sm font-semibold text-slate-300">Blocklist</h3>
+        <p className="mt-0.5 text-xs text-slate-500">
           {terms.length} terms — case-insensitive partial match. Records whose names contain
           any of these terms are skipped during import.
         </p>
@@ -88,11 +88,11 @@ export default function BlocklistPanel() {
           {sorted.map((term) => (
             <span
               key={term}
-              className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+              className="flex items-center gap-1 rounded-full bg-[#1e2535] px-3 py-1 text-xs text-slate-300"
             >
               {term}
               <button
-                className="ml-0.5 rounded-full text-gray-400 hover:text-red-600 focus:outline-none"
+                className="ml-0.5 rounded-full text-slate-500 hover:text-red-500 focus:outline-none"
                 onClick={() => handleRemove(term)}
                 aria-label={`Remove ${term}`}
               >

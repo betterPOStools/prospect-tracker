@@ -163,12 +163,12 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
           onChange={(e) => set('menu_link', e.target.value)}
         />
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600" htmlFor="add-lead-notes">
+          <label className="text-xs font-medium text-slate-400" htmlFor="add-lead-notes">
             Notes
           </label>
           <textarea
             id="add-lead-notes"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             placeholder="Any notes about this prospect..."
             rows={3}
             value={form.notes}
@@ -183,7 +183,7 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
         />
 
         {saveError && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
+          <p className="rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">{saveError}</p>
         )}
 
         <div className="flex gap-2 pt-1">

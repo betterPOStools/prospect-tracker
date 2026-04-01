@@ -104,12 +104,12 @@ function CityAutocomplete({
         autoComplete="off"
       />
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+        <ul className="absolute z-20 left-0 right-0 mt-1 rounded-lg border border-[#1e2535] bg-[#161b27] shadow-lg overflow-hidden">
           {suggestions.map((s) => (
             <li key={s.display}>
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 active:bg-blue-100"
+                className="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-[#1a2744] active:bg-[#1e2535]"
                 onMouseDown={(e) => { e.preventDefault(); select(s) }}
               >
                 {s.display}
@@ -219,7 +219,7 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
     <div className="flex flex-col gap-5 p-4">
       {/* Scrape submission */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-gray-700">Submit Outscraper Search</h3>
+        <h3 className="mb-3 text-sm font-semibold text-slate-300">Submit Outscraper Search</h3>
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <CityAutocomplete
@@ -239,9 +239,9 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Categories</label>
+            <label className="text-xs font-medium text-slate-400">Categories</label>
             <textarea
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               rows={3}
               value={categories}
               onChange={(e) => setCategories(e.target.value)}
@@ -271,21 +271,21 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
           {error && <p className="text-xs text-red-600">{error}</p>}
 
           {zips.length > 0 && (
-            <div className="rounded-lg bg-gray-50 p-3">
-              <p className="mb-1 text-xs font-medium text-gray-600">
+            <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3">
+              <p className="mb-1 text-xs font-medium text-slate-400">
                 {zips.length} ZIP{zips.length !== 1 ? 's' : ''} found
               </p>
-              <p className="text-xs text-gray-500 break-words">{zips.join(', ')}</p>
+              <p className="text-xs text-slate-500 break-words">{zips.join(', ')}</p>
             </div>
           )}
         </div>
       </section>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-[#1e2535]" />
 
       {/* File Import */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold text-gray-700">Import from JSON File</h3>
+        <h3 className="mb-3 text-sm font-semibold text-slate-300">Import from JSON File</h3>
         <div className="flex flex-col gap-3">
           <Input
             label="Area Label"
@@ -294,11 +294,11 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
             onChange={(e) => setImportArea(e.target.value)}
           />
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">JSON File</label>
+            <label className="text-xs font-medium text-slate-400">JSON File</label>
             <input
               type="file"
               accept=".json"
-              className="text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-blue-700"
+              className="text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-blue-500"
               onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
             />
           </div>
@@ -312,7 +312,7 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
 
           {importError && <p className="text-xs text-red-600">{importError}</p>}
           {importResult && (
-            <div className="rounded-lg bg-green-50 p-3 text-xs text-green-800">
+            <div className="rounded-lg bg-green-900/20 border border-green-800/30 p-3 text-xs text-green-400">
               Added {importResult.added}, Updated {importResult.updated}, Skipped{' '}
               {importResult.dupes} (dupes)
             </div>
@@ -394,20 +394,20 @@ function QueueSubTab() {
       {error && <p className="text-xs text-red-600">{error}</p>}
 
       {fetched && tasks.length === 0 && (
-        <p className="text-sm text-gray-400">No tasks found.</p>
+        <p className="text-sm text-slate-500">No tasks found.</p>
       )}
 
       {tasks.map((task) => (
-        <div key={task.id} className="rounded-xl border border-gray-200 bg-white p-3">
+        <div key={task.id} className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900">
+              <p className="truncate text-sm font-medium text-slate-100">
                 {task.title ?? task.task_id}
               </p>
-              <p className="mt-0.5 text-xs text-gray-500">
+              <p className="mt-0.5 text-xs text-slate-500">
                 {task.task_id}
               </p>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                 {task.record_count != null && (
                   <span>{task.record_count} records</span>
                 )}
@@ -417,7 +417,7 @@ function QueueSubTab() {
                 )}
               </div>
               {pollResults[task.task_id] && (
-                <p className="mt-1 text-xs text-green-700">{pollResults[task.task_id]}</p>
+                <p className="mt-1 text-xs text-green-400">{pollResults[task.task_id]}</p>
               )}
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2">
@@ -438,11 +438,11 @@ function QueueSubTab() {
       ))}
 
       {/* Manual task add */}
-      <div className="border-t border-gray-100 pt-4">
-        <p className="mb-2 text-xs font-medium text-gray-600">Add Task by ID</p>
+      <div className="border-t border-[#1e2535] pt-4">
+        <p className="mb-2 text-xs font-medium text-slate-400">Add Task by ID</p>
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
             placeholder="Outscraper task ID"
             value={manualTaskId}
             onChange={(e) => setManualTaskId(e.target.value)}
@@ -481,10 +481,10 @@ function OsSettingsSubTab() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-600">API Key</label>
+        <label className="text-xs font-medium text-slate-400">API Key</label>
         <input
           type="password"
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
           placeholder="os_••••••••"
           value={apiKey}
           onChange={(e) => setApiKeyState(e.target.value)}
@@ -492,9 +492,9 @@ function OsSettingsSubTab() {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-600">Categories</label>
+        <label className="text-xs font-medium text-slate-400">Categories</label>
         <textarea
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
           rows={3}
           value={cfg.categories}
           onChange={(e) => update('categories', e.target.value)}
@@ -503,44 +503,44 @@ function OsSettingsSubTab() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">ZIPs per Task</label>
+          <label className="text-xs font-medium text-slate-400">ZIPs per Task</label>
           <input
             type="number"
             min={1}
             max={50}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
             value={cfg.zipBatchSize}
             onChange={(e) => update('zipBatchSize', Number(e.target.value))}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Min Rating</label>
+          <label className="text-xs font-medium text-slate-400">Min Rating</label>
           <input
             type="number"
             min={0}
             max={5}
             step={0.1}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
             value={cfg.minRating}
             onChange={(e) => update('minRating', Number(e.target.value))}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Min Reviews</label>
+          <label className="text-xs font-medium text-slate-400">Min Reviews</label>
           <input
             type="number"
             min={0}
             max={1000}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
             value={cfg.minReviews}
             onChange={(e) => update('minReviews', Number(e.target.value))}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Webhook URL</label>
+          <label className="text-xs font-medium text-slate-400">Webhook URL</label>
           <input
             type="text"
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
             placeholder="https://…"
             value={cfg.webhookUrl}
             onChange={(e) => update('webhookUrl', e.target.value)}
@@ -558,10 +558,10 @@ function OsSettingsSubTab() {
             { key: 'autoImport', label: 'Auto Import on Poll' },
           ] as { key: keyof OsConfig; label: string }[]
         ).map(({ key, label }) => (
-          <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
+          <label key={key} className="flex items-center gap-2 text-sm text-slate-300">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-blue-600"
+              className="h-4 w-4 rounded border-[#1e2535] bg-[#0f1117] text-blue-600"
               checked={cfg[key] as boolean}
               onChange={(e) => update(key, e.target.checked as OsConfig[typeof key])}
             />

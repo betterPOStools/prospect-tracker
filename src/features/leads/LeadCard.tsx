@@ -87,25 +87,25 @@ function ActivityLog({
   const isEditable = (act: Activity) => !act.system && act.type === 'note' && onEditActivity
 
   return (
-    <div className="mt-2 border-t border-gray-100 pt-2">
+    <div className="mt-2 border-t border-[#1e2535] pt-2">
       <div className="flex flex-col gap-1">
         {!expanded && activities.length > 3 && (
           <button
-            className="text-left text-xs text-blue-600 hover:underline"
+            className="text-left text-xs text-blue-400 hover:underline"
             onClick={() => setExpanded(true)}
           >
             Show {activities.length - 3} more
           </button>
         )}
         {shown.map((act) => (
-          <div key={act.id} className={`flex items-start gap-2 text-xs text-gray-500${isEditable(act) ? ' group/note' : ''}`}>
-            <span className="shrink-0 text-[10px] text-gray-400">
+          <div key={act.id} className={`flex items-start gap-2 text-xs text-slate-500${isEditable(act) ? ' group/note' : ''}`}>
+            <span className="shrink-0 text-[10px] text-slate-500">
               {formatTimestamp(act.created_at)}
             </span>
             {isEditable(act) ? (
               <>
-                {act.type === 'call' && <span className="text-blue-600">{'\u{1F4DE} '}</span>}
-                {act.type === 'sms' && <span className="text-purple-600">{'\u{1F4AC} '}</span>}
+                {act.type === 'call' && <span className="text-blue-400">{'\u{1F4DE} '}</span>}
+                {act.type === 'sms' && <span className="text-purple-400">{'\u{1F4AC} '}</span>}
                 <EditableActivityText
                   text={act.text ?? act.type}
                   onSave={(newText) => onEditActivity!(act.id, newText)}
@@ -117,9 +117,9 @@ function ActivityLog({
                   act.system
                     ? 'italic'
                     : act.type === 'call'
-                      ? 'text-blue-600'
+                      ? 'text-blue-400'
                       : act.type === 'sms'
-                        ? 'text-purple-600'
+                        ? 'text-purple-400'
                         : ''
                 }
               >
@@ -132,7 +132,7 @@ function ActivityLog({
         ))}
         {expanded && activities.length > 3 && (
           <button
-            className="text-left text-xs text-blue-600 hover:underline"
+            className="text-left text-xs text-blue-400 hover:underline"
             onClick={() => setExpanded(false)}
           >
             Show less
@@ -255,12 +255,12 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
         onChange={(e) => set('menu_link', e.target.value)}
       />
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-gray-600" htmlFor={`notes-${lead.id}`}>
+        <label className="text-xs font-medium text-slate-400" htmlFor={`notes-${lead.id}`}>
           Notes
         </label>
         <textarea
           id={`notes-${lead.id}`}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           rows={3}
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
@@ -502,13 +502,13 @@ export default function LeadCard({ lead }: LeadCardProps) {
   }
 
   return (
-    <div className="border-b border-gray-200 bg-white px-4 py-3">
+    <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-3">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate font-semibold text-gray-900">{lead.name}</span>
+          <span className="truncate font-semibold text-slate-100">{lead.name}</span>
           {contactName && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-slate-500">
               {contactName}{contactTitle ? ` (${contactTitle})` : ''}
             </span>
           )}
@@ -529,27 +529,27 @@ export default function LeadCard({ lead }: LeadCardProps) {
       {/* Details */}
       <div className="mt-2 flex flex-col gap-1">
         {lead.address && (
-          <span className="text-sm text-gray-600">{lead.address}</span>
+          <span className="text-sm text-slate-400">{lead.address}</span>
         )}
         {phone && (
-          <a href={`tel:${lead.phone}`} className="text-sm text-blue-600 active:opacity-70">
+          <a href={`tel:${lead.phone}`} className="text-sm text-blue-400 active:opacity-70">
             {phone}
           </a>
         )}
         {email && (
-          <a href={`mailto:${email}`} className="text-sm text-blue-600 active:opacity-70">
+          <a href={`mailto:${email}`} className="text-sm text-blue-400 active:opacity-70">
             {email}
           </a>
         )}
         {lead.pos_type && (
-          <span className="text-xs text-gray-500">POS: {lead.pos_type}</span>
+          <span className="text-xs text-slate-500">POS: {lead.pos_type}</span>
         )}
         {website && (
           <a
             href={website}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:underline active:opacity-70"
+            className="text-xs text-blue-400 hover:underline active:opacity-70"
           >
             {website}
           </a>
@@ -559,14 +559,14 @@ export default function LeadCard({ lead }: LeadCardProps) {
             href={menuLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:underline active:opacity-70"
+            className="text-xs text-blue-400 hover:underline active:opacity-70"
           >
             View menu
           </a>
         )}
         {lead.notes && (
           <div>
-            <p className={`text-sm italic text-gray-600 ${expanded ? '' : 'line-clamp-2'}`}>
+            <p className={`text-sm italic text-slate-400 ${expanded ? '' : 'line-clamp-2'}`}>
               {lead.notes}
             </p>
             {lead.notes.length > 100 && (
@@ -582,9 +582,9 @@ export default function LeadCard({ lead }: LeadCardProps) {
       </div>
 
       {/* Timestamps */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
         {lead.follow_up && (
-          <span className={followUpOverdue ? 'font-medium text-red-500' : 'text-amber-600'}>
+          <span className={followUpOverdue ? 'font-medium text-red-400' : 'text-amber-400'}>
             Follow up: {formatFollowUp(lead.follow_up)}
             {followUpOverdue && ' (overdue)'}
           </span>
@@ -600,7 +600,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
 
       {/* Error */}
       {error && (
-        <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{error}</p>
+        <p className="mt-2 rounded-lg bg-red-500/10 border border-red-500/20 px-2 py-1 text-xs text-red-400">{error}</p>
       )}
 
       {/* Note input */}
@@ -608,7 +608,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
         <form onSubmit={handleAddNote} className="mt-2 flex gap-1.5">
           <input
             type="text"
-            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             placeholder="Add a note..."
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -641,7 +641,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
             <a
               href={`tel:${lead.phone}`}
               onClick={handleCall}
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 active:bg-blue-200"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20 active:bg-blue-500/30"
             >
               Call
             </a>
@@ -650,7 +650,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
             <a
               href={`sms:${lead.phone}`}
               onClick={handleText}
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 active:bg-purple-200"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-medium text-purple-400 hover:bg-purple-500/20 active:bg-purple-500/30"
             >
               Text
             </a>
@@ -660,7 +660,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               href={`https://maps.google.com/?q=${encodeURIComponent(lead.address)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-200 active:bg-gray-300"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-[#1e2535] px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-[#1a2744] active:bg-[#1a2744]"
             >
               Navigate
             </a>
@@ -671,7 +671,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               variant="ghost"
               onClick={handleQueue}
               disabled={busy || queueing || alreadyQueued || queued}
-              className="min-h-[36px] text-teal-700 hover:bg-teal-50"
+              className="min-h-[36px] text-teal-400 hover:bg-teal-500/10"
             >
               {queued ? 'Queued!' : queueing ? 'Adding...' : alreadyQueued ? 'In Queue' : 'Queue'}
             </Button>
@@ -691,7 +691,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               variant="ghost"
               onClick={() => updateStatus('Won')}
               disabled={busy}
-              className="min-h-[36px] text-green-700 hover:bg-green-50"
+              className="min-h-[36px] text-green-400 hover:bg-green-500/10"
             >
               Mark Won
             </Button>
@@ -702,7 +702,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               variant="ghost"
               onClick={() => updateStatus('Lost')}
               disabled={busy}
-              className="min-h-[36px] text-red-600 hover:bg-red-50"
+              className="min-h-[36px] text-red-400 hover:bg-red-500/10"
             >
               Mark Lost
             </Button>
@@ -713,7 +713,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               variant="ghost"
               onClick={() => updateStatus('Abandoned')}
               disabled={busy}
-              className="min-h-[36px] text-yellow-700 hover:bg-yellow-50"
+              className="min-h-[36px] text-yellow-400 hover:bg-yellow-500/10"
             >
               Abandon
             </Button>
@@ -724,14 +724,14 @@ export default function LeadCard({ lead }: LeadCardProps) {
               variant="ghost"
               onClick={() => updateStatus('Open')}
               disabled={busy}
-              className="min-h-[36px] text-blue-600 hover:bg-blue-50"
+              className="min-h-[36px] text-blue-400 hover:bg-blue-500/10"
             >
               Reopen
             </Button>
           )}
           {copperConfigured && (
             lead.copper_opportunity_id ? (
-              <span className="inline-flex min-h-[36px] items-center px-3 py-1.5 text-xs font-medium text-green-600">
+              <span className="inline-flex min-h-[36px] items-center px-3 py-1.5 text-xs font-medium text-green-400">
                 Synced to Copper
               </span>
             ) : (
@@ -740,7 +740,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
                 variant="ghost"
                 onClick={() => copperPush(lead, linkedRecord ?? undefined)}
                 disabled={busy || copperPushing}
-                className="min-h-[36px] text-orange-600 hover:bg-orange-50"
+                className="min-h-[36px] text-orange-400 hover:bg-orange-500/10"
               >
                 {copperPushing ? 'Pushing...' : 'Push to Copper'}
               </Button>
@@ -751,7 +751,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
             variant="ghost"
             onClick={() => setDemoteOpen(true)}
             disabled={busy}
-            className="min-h-[36px] text-amber-600 hover:bg-amber-50"
+            className="min-h-[36px] text-amber-400 hover:bg-amber-500/10"
           >
             Demote
           </Button>
@@ -760,14 +760,14 @@ export default function LeadCard({ lead }: LeadCardProps) {
             variant="ghost"
             onClick={handleDelete}
             disabled={busy}
-            className="min-h-[36px] text-red-600 hover:bg-red-50"
+            className="min-h-[36px] text-red-400 hover:bg-red-500/10"
           >
             Delete
           </Button>
         </div>
       )}
       {copperError && (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+        <p className="mt-2 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">
           {copperError}
         </p>
       )}

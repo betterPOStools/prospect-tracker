@@ -21,13 +21,13 @@ function AppShell() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 bg-white px-4 py-2">
+      <header className="shrink-0 bg-[#161b27] px-4 py-2">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="text-sm font-bold leading-tight text-gray-900">
+            <h1 className="text-sm font-bold leading-tight text-slate-100">
               Restaurant Prospect Tracker
             </h1>
-            <p className="text-[10px] text-gray-400">Value Systems · {BUILD}</p>
+            <p className="text-[10px] text-slate-500">Value Systems · {BUILD}</p>
           </div>
           <SyncStatus />
         </div>
@@ -44,7 +44,7 @@ function AppShell() {
 
       {/* Tab content */}
       <main className="flex flex-1 flex-col overflow-hidden">
-        <Suspense fallback={<div className="flex flex-1 items-center justify-center text-sm text-gray-400">Loading…</div>}>
+        <Suspense fallback={<div className="flex flex-1 items-center justify-center text-sm text-slate-500">Loading…</div>}>
           {activeTab === 'leads'     && <LeadsTab />}
           {activeTab === 'canvass'   && <CanvassTab />}
           {activeTab === 'route'     && <RouteTab />}

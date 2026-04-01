@@ -118,8 +118,8 @@ export default function BackupsPanel() {
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-700">Snapshot History</h3>
-          <p className="text-xs text-gray-500">Saved locally — not synced to Supabase</p>
+          <h3 className="text-sm font-semibold text-slate-300">Snapshot History</h3>
+          <p className="text-xs text-slate-500">Saved locally — not synced to Supabase</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" onClick={handleSaveSnapshot}>
@@ -134,7 +134,7 @@ export default function BackupsPanel() {
       </div>
 
       {snapshots.length === 0 ? (
-        <p className="py-8 text-center text-sm text-gray-400">
+        <p className="py-8 text-center text-sm text-slate-500">
           No snapshots saved yet. Click "Save Snapshot" to create one.
         </p>
       ) : (
@@ -142,13 +142,13 @@ export default function BackupsPanel() {
           {snapshots.map((snap) => (
             <div
               key={snap.key}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-3"
+              className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] p-3"
             >
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-slate-100">
                   {new Date(snap.savedAt).toLocaleString()}
                 </p>
-                <p className="mt-0.5 text-xs text-gray-500">
+                <p className="mt-0.5 text-xs text-slate-500">
                   {snap.recordCount} records · {snap.leadCount} leads · {snap.stopCount} stops
                 </p>
               </div>
@@ -182,7 +182,7 @@ export default function BackupsPanel() {
       >
         {confirmSnapshot && (
           <>
-            <p className="mb-4 text-sm text-gray-700">
+            <p className="mb-4 text-sm text-slate-300">
               Restore snapshot from{' '}
               <strong>{new Date(confirmSnapshot.savedAt).toLocaleString()}</strong>?
               <br />
@@ -206,7 +206,7 @@ export default function BackupsPanel() {
         title="Clear All Snapshots"
         size="sm"
       >
-        <p className="mb-4 text-sm text-gray-700">
+        <p className="mb-4 text-sm text-slate-300">
           Delete all {snapshots.length} snapshots from localStorage? This cannot be undone.
         </p>
         <div className="flex gap-2">

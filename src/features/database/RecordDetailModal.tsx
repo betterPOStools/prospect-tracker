@@ -46,8 +46,8 @@ function RecordView({
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">{record.name}</h3>
-          {record.type && <p className="text-xs text-gray-500">{record.type}</p>}
+          <h3 className="text-base font-semibold text-slate-100">{record.name}</h3>
+          {record.type && <p className="text-xs text-slate-500">{record.type}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <PriorityBadge priority={record.priority} score={record.score} />
@@ -56,10 +56,10 @@ function RecordView({
       </div>
 
       {/* Contact info */}
-      <div className="rounded-lg bg-gray-50 p-3 space-y-1.5 text-sm">
-        {record.address && <p className="text-gray-700">{record.address}</p>}
+      <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1.5 text-sm">
+        {record.address && <p className="text-slate-300">{record.address}</p>}
         {(record.city || record.zip) && (
-          <p className="text-gray-500 text-xs">
+          <p className="text-slate-500 text-xs">
             {[record.city, record.zip].filter(Boolean).join(', ')}
           </p>
         )}
@@ -99,12 +99,12 @@ function RecordView({
       {(record.rating !== undefined || record.reviews !== undefined) && (
         <div className="flex gap-4 text-sm">
           {record.rating !== undefined && (
-            <span className="text-gray-600">
+            <span className="text-slate-400">
               <span className="font-medium">{record.rating}</span> stars
             </span>
           )}
           {record.reviews !== undefined && (
-            <span className="text-gray-600">
+            <span className="text-slate-400">
               <span className="font-medium">{record.reviews}</span> reviews
             </span>
           )}
@@ -115,10 +115,10 @@ function RecordView({
       {(record.contact_name || record.contact_title) && (
         <div className="text-sm">
           {record.contact_name && (
-            <p className="font-medium text-gray-800">{record.contact_name}</p>
+            <p className="font-medium text-slate-200">{record.contact_name}</p>
           )}
           {record.contact_title && (
-            <p className="text-gray-500 text-xs">{record.contact_title}</p>
+            <p className="text-slate-500 text-xs">{record.contact_title}</p>
           )}
         </div>
       )}
@@ -167,7 +167,7 @@ function RecordView({
 
       {/* Business details */}
       {(record.employees || record.revenue || record.naics_description) && (
-        <div className="rounded-lg bg-gray-50 p-3 space-y-1 text-xs text-gray-600">
+        <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1 text-xs text-slate-400">
           {record.employees && <p>Employees: {record.employees}</p>}
           {record.revenue && <p>Revenue: {record.revenue}</p>}
           {record.naics_description && (
@@ -179,13 +179,13 @@ function RecordView({
       {/* Notes */}
       {record.notes && (
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-1">Notes</p>
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">{record.notes}</p>
+          <p className="text-xs font-medium text-slate-500 mb-1">Notes</p>
+          <p className="text-sm text-slate-300 whitespace-pre-wrap">{record.notes}</p>
         </div>
       )}
 
       {/* Metadata */}
-      <div className="text-xs text-gray-400 space-y-0.5">
+      <div className="text-xs text-slate-500 space-y-0.5">
         {record.dropped_count > 0 && (
           <p>Dropped {record.dropped_count} time{record.dropped_count !== 1 ? 's' : ''}</p>
         )}
@@ -488,29 +488,29 @@ function RecordEditForm({
         onChange={(e) => setField('group', e.target.value)}
       />
       <div>
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
           <input
             type="checkbox"
             checked={form.is_chain}
             onChange={(e) => setField('is_chain', e.target.checked)}
-            className="rounded border-gray-300"
+            className="rounded border-[#1e2535] bg-[#0f1117]"
           />
           Is chain / on hold
         </label>
       </div>
       <div>
-        <label className="text-xs font-medium text-gray-600 block mb-1">Notes</label>
+        <label className="text-xs font-medium text-slate-400 block mb-1">Notes</label>
         <textarea
           value={form.notes}
           onChange={(e) => setField('notes', e.target.value)}
           rows={3}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           placeholder="Notes…"
         />
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
+        <p className="rounded-lg bg-red-900/30 border border-red-500/30 px-3 py-2 text-xs text-red-400">{error}</p>
       )}
 
       <div className="flex items-center justify-between gap-2 pt-1">

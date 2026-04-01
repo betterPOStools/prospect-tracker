@@ -114,7 +114,7 @@ export default function DemoteModal({ open, onClose, lead }: DemoteModalProps) {
 
   return (
     <Modal open={open} onClose={onClose} title="Move Back to Canvass" size="sm">
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-slate-400">
         This lead will be moved back to your canvass list as an active stop. All data is preserved.
       </p>
 
@@ -126,12 +126,12 @@ export default function DemoteModal({ open, onClose, lead }: DemoteModalProps) {
       />
 
       <div className="mt-3 flex flex-col gap-1">
-        <label htmlFor="demote-reason" className="text-xs font-medium text-gray-600">
+        <label htmlFor="demote-reason" className="text-xs font-medium text-slate-400">
           Reason / Notes (optional)
         </label>
         <textarea
           id="demote-reason"
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           rows={3}
           placeholder="Why is this lead being moved back?"
           value={reason}
@@ -140,7 +140,7 @@ export default function DemoteModal({ open, onClose, lead }: DemoteModalProps) {
       </div>
 
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
+        <p className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">{error}</p>
       )}
 
       <div className="mt-4 flex gap-2">
@@ -149,7 +149,7 @@ export default function DemoteModal({ open, onClose, lead }: DemoteModalProps) {
         </Button>
         <Button
           variant="ghost"
-          className="flex-1 bg-amber-50 text-amber-700 hover:bg-amber-100 active:bg-amber-200"
+          className="flex-1 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 active:bg-amber-500/30"
           onClick={handleConfirm}
           disabled={busy}
         >

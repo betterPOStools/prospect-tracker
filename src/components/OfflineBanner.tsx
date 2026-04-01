@@ -69,9 +69,9 @@ export default function OfflineBanner() {
     >
       <div className="overflow-hidden">
         {banner === 'offline' && (
-          <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2">
+          <div className="flex items-center gap-2 border-b border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <svg
-              className="h-4 w-4 shrink-0 text-amber-600"
+              className="h-4 w-4 shrink-0 text-yellow-400"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -82,10 +82,10 @@ export default function OfflineBanner() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-xs font-medium text-amber-800">
+            <span className="text-xs font-medium text-yellow-300">
               You're offline — changes will sync when reconnected
               {queueLength > 0 && (
-                <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 leading-none">
+                <span className="ml-1.5 inline-flex items-center rounded-full bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-bold text-yellow-300 leading-none">
                   {queueLength} {queueLength === 1 ? 'change' : 'changes'} pending
                 </span>
               )}
@@ -94,9 +94,9 @@ export default function OfflineBanner() {
         )}
 
         {banner === 'syncing' && (
-          <div className="flex items-center gap-2 border-b border-amber-300 bg-amber-50 px-4 py-2">
+          <div className="flex items-center gap-2 border-b border-yellow-500/30 bg-yellow-500/10 px-4 py-2">
             <svg
-              className="h-4 w-4 shrink-0 animate-spin text-amber-600"
+              className="h-4 w-4 shrink-0 animate-spin text-yellow-400"
               viewBox="0 0 24 24"
               fill="none"
               aria-hidden="true"
@@ -115,16 +115,16 @@ export default function OfflineBanner() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            <span className="text-xs font-medium text-amber-800">
+            <span className="text-xs font-medium text-yellow-300">
               Back online — syncing {queueLength} {queueLength === 1 ? 'change' : 'changes'}...
             </span>
           </div>
         )}
 
         {banner === 'back-online' && (
-          <div className="flex items-center gap-2 border-b border-green-300 bg-green-50 px-4 py-2">
+          <div className="flex items-center gap-2 border-b border-green-500/30 bg-green-500/10 px-4 py-2">
             <svg
-              className="h-4 w-4 shrink-0 text-green-600"
+              className="h-4 w-4 shrink-0 text-green-400"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
@@ -135,7 +135,7 @@ export default function OfflineBanner() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-xs font-medium text-green-800">
+            <span className="text-xs font-medium text-green-300">
               Back online — all changes synced
             </span>
           </div>

@@ -106,21 +106,21 @@ export default function SettingsPanel() {
     <div className="flex flex-col gap-6 overflow-y-auto p-4">
       {/* Appearance */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Appearance
         </h3>
-        <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3">
+        <div className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] px-4 py-3">
           <div>
-            <p className="text-sm font-medium text-gray-900">Dark Mode</p>
-            <p className="text-xs text-gray-500">Currently: {theme === 'dark' ? 'Dark' : 'Light'}</p>
+            <p className="text-sm font-medium text-slate-100">Dark Mode</p>
+            <p className="text-xs text-slate-500">Currently: {theme === 'dark' ? 'Dark' : 'Light'}</p>
           </div>
           <button
             role="switch"
             aria-checked={theme === 'dark'}
             aria-label="Dark Mode"
             onClick={toggle}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
-              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-[#161b27] ${
+              theme === 'dark' ? 'bg-blue-600' : 'bg-[#1e2535]'
             }`}
           >
             <span
@@ -134,7 +134,7 @@ export default function SettingsPanel() {
 
       {/* Route Provider */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Navigation
         </h3>
         <Select
@@ -147,7 +147,7 @@ export default function SettingsPanel() {
 
       {/* Route Endpoints */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Route Endpoints
         </h3>
         <div className="flex flex-col gap-3">
@@ -168,7 +168,7 @@ export default function SettingsPanel() {
 
       {/* RouteXL Credentials */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           RouteXL Credentials
         </h3>
         <div className="flex flex-col gap-3">
@@ -190,7 +190,7 @@ export default function SettingsPanel() {
 
       {/* Outscraper API Key */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Outscraper
         </h3>
         <Input
@@ -199,14 +199,14 @@ export default function SettingsPanel() {
           value={osKey}
           onChange={(e) => handleOsKey(e.target.value)}
         />
-        <p className="mt-1.5 text-xs text-gray-400">
+        <p className="mt-1.5 text-xs text-slate-500">
           Also configurable in Import → Settings.
         </p>
       </section>
 
       {/* Copper CRM */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Copper CRM
         </h3>
         <div className="flex flex-col gap-3">
@@ -233,7 +233,7 @@ export default function SettingsPanel() {
               {pipelinesLoading ? 'Loading...' : 'Load Pipelines'}
             </Button>
             {pipelinesError && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+              <p className="rounded-lg bg-red-900/20 border border-red-800/30 px-3 py-2 text-xs text-red-400">
                 {pipelinesError}
               </p>
             )}
@@ -241,7 +241,7 @@ export default function SettingsPanel() {
               <select
                 value={cuPipeline ? `${cuPipeline.pipeline_id}:${cuPipeline.stage_id}` : ''}
                 onChange={(e) => handlePipelineSelect(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 <option value="">Select pipeline & stage</option>
                 {pipelines.flatMap((p) =>
@@ -254,13 +254,13 @@ export default function SettingsPanel() {
               </select>
             )}
             {cuPipeline && pipelines.length === 0 && (
-              <p className="text-xs text-green-600">
+              <p className="text-xs text-green-400">
                 Pipeline configured (ID: {cuPipeline.pipeline_id}, Stage: {cuPipeline.stage_id})
               </p>
             )}
           </div>
         </div>
-        <p className="mt-1.5 text-xs text-gray-400">
+        <p className="mt-1.5 text-xs text-slate-500">
           One-way push to Copper. Leads synced as Company + Person + Opportunity.
         </p>
       </section>

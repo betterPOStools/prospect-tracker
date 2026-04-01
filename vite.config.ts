@@ -10,6 +10,7 @@ export default defineConfig({
   },
   server: {
     port: 5176,
+    host: true,
     headers: {
       "X-Frame-Options": "ALLOWALL",
     },

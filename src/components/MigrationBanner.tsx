@@ -57,12 +57,12 @@ export default function MigrationBanner() {
   }
 
   return (
-    <div className="border-b border-amber-200 bg-amber-50 px-4 py-3">
+    <div className="border-b border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
       {phase === 'idle' && (
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-amber-900">Legacy data detected</p>
-            <p className="text-xs text-amber-700">
+            <p className="text-sm font-semibold text-yellow-300">Legacy data detected</p>
+            <p className="text-xs text-yellow-400/80">
               Your old prospect data needs to be migrated to the new database. This runs once and takes ~30 seconds.
             </p>
           </div>
@@ -74,12 +74,12 @@ export default function MigrationBanner() {
       )}
 
       {phase === 'running' && (
-        <p className="text-sm text-amber-800">Migrating data to Supabase… please wait</p>
+        <p className="text-sm text-yellow-300">Migrating data to Supabase… please wait</p>
       )}
 
       {phase === 'done' && result && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-green-800">
+          <p className="text-sm text-green-400">
             Migration complete — {result.records} records, {result.leads} leads, {result.stops} stops
           </p>
           <Button variant="ghost" size="sm" onClick={() => setDismissed(true)}>Dismiss</Button>
@@ -88,7 +88,7 @@ export default function MigrationBanner() {
 
       {phase === 'error' && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-red-800">Migration error: {error}</p>
+          <p className="text-sm text-red-400">Migration error: {error}</p>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => setDismissed(true)}>Skip</Button>
             <Button variant="primary" size="sm" onClick={() => void runMig()}>Retry</Button>

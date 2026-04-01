@@ -111,30 +111,30 @@ export default function CanvassTab() {
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Stats row */}
       <div
-        className="flex shrink-0 divide-x divide-gray-200 border-b border-gray-200 bg-white"
+        className="flex shrink-0 divide-x divide-[#1e2535] border-b border-[#1e2535] bg-[#161b27]"
         data-testid="canvass-stats"
       >
         <div className="flex flex-1 flex-col items-center py-2">
-          <span className="text-lg font-bold text-gray-900">{queueCount}</span>
-          <span className="text-[10px] text-gray-500">Queue</span>
+          <span className="text-lg font-bold text-slate-100">{queueCount}</span>
+          <span className="text-[10px] text-slate-500">Queue</span>
         </div>
         <div className="flex flex-1 flex-col items-center py-2">
           <span className="text-lg font-bold text-yellow-600">{followUpCount}</span>
-          <span className="text-[10px] text-gray-500">Follow Up</span>
+          <span className="text-[10px] text-slate-500">Follow Up</span>
         </div>
         <div className="flex flex-1 flex-col items-center py-2">
           <span className="text-lg font-bold text-green-600">{completedCount}</span>
-          <span className="text-[10px] text-gray-500">Completed</span>
+          <span className="text-[10px] text-slate-500">Completed</span>
         </div>
       </div>
 
       {/* Sub-tabs + Add Stop button */}
-      <div className="flex shrink-0 items-center border-b border-gray-200 bg-white">
+      <div className="flex shrink-0 items-center border-b border-[#1e2535] bg-[#161b27]">
         <div className="flex-1 overflow-x-auto">
           <SubTabs tabs={tabs} active={subTab} onChange={setSubTab} />
         </div>
         <button
-          className="mr-2 shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 active:bg-blue-800"
+          className="mr-2 shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500 active:bg-blue-700"
           onClick={() => setAddOpen(true)}
         >
           + Add Stop
@@ -189,7 +189,7 @@ export default function CanvassTab() {
         size="sm"
       >
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-slate-300">
             Remove all {queueCount} stop{queueCount !== 1 ? 's' : ''} from the queue? This cannot be
             undone.
           </p>
@@ -300,18 +300,18 @@ function QueuePanel({
   return (
     <div className="flex flex-col gap-0">
       {/* Filter bar */}
-      <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-gray-100 bg-gray-50 px-3 py-2">
+      <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-[#1e2535] bg-[#0f1117] px-3 py-2">
         <div className="flex gap-2">
           <input
             type="search"
-            className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             placeholder="Search stops…"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
           />
           {areas.length > 0 && (
             <select
-              className="rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={area}
               onChange={(e) => onAreaChange(e.target.value)}
             >
@@ -330,14 +330,14 @@ function QueuePanel({
             max={50}
             value={fillCount}
             onChange={(e) => setFillCount(Math.max(1, Math.min(50, Number(e.target.value))))}
-            className="w-14 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-center focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-14 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-sm text-center text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Stop count"
           />
           {areas.length > 0 && (
             <select
               value={fillArea}
               onChange={(e) => setFillArea(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="">Any area</option>
               {areas.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -355,14 +355,14 @@ function QueuePanel({
         </div>
 
         {fillResult && (
-          <p className="text-xs text-gray-600">{fillResult}</p>
+          <p className="text-xs text-slate-400">{fillResult}</p>
         )}
 
         <div className="flex gap-1.5">
           <Button size="sm" variant="secondary" onClick={onEndDay} className="min-h-[44px] flex-1">
             End Day
           </Button>
-          <Button size="sm" variant="ghost" onClick={onClearAll} className="min-h-[44px] flex-1 text-red-600 hover:bg-red-50">
+          <Button size="sm" variant="ghost" onClick={onClearAll} className="min-h-[44px] flex-1 text-red-400 hover:bg-red-500/10">
             Clear All
           </Button>
         </div>
@@ -404,7 +404,7 @@ function FollowUpPanel({ stops, filter, onFilterChange }: FollowUpPanelProps) {
     <div className="flex flex-col gap-0">
       {/* Filter bar */}
       <div
-        className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 px-3 py-2"
+        className="sticky top-0 z-10 border-b border-[#1e2535] bg-[#0f1117] px-3 py-2"
         data-testid="followup-filter-bar"
       >
         <div className="flex gap-1.5">
@@ -414,7 +414,7 @@ function FollowUpPanel({ stops, filter, onFilterChange }: FollowUpPanelProps) {
               className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 filter === opt.value
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#1e2535] text-slate-300 hover:bg-[#1a2744]'
               }`}
               onClick={() => onFilterChange(opt.value)}
             >
@@ -453,10 +453,10 @@ function CompletedPanel({ stops, search, onSearchChange }: CompletedPanelProps) 
   return (
     <div className="flex flex-col gap-0">
       {/* Search bar */}
-      <div className="sticky top-0 z-10 border-b border-gray-100 bg-gray-50 px-3 py-2">
+      <div className="sticky top-0 z-10 border-b border-[#1e2535] bg-[#0f1117] px-3 py-2">
         <input
           type="search"
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           placeholder="Search completed stops…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}

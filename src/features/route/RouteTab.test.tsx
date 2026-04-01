@@ -256,7 +256,7 @@ describe('RouteTab', () => {
     const todayBtn = screen.getByRole('button', { name: 'Today' })
     expect(todayBtn).toBeInTheDocument()
     // "Today" should have the active style (blue bg)
-    expect(todayBtn.className).toContain('bg-blue-600')
+    expect(todayBtn.className).toContain('bg-[#1a2744]')
 
     // Day abbreviation buttons should also exist
     expect(screen.getByRole('button', { name: 'Mon' })).toBeInTheDocument()

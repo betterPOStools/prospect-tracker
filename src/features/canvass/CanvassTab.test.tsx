@@ -356,8 +356,8 @@ describe('CanvassTab', () => {
       render(<CanvassTab />)
 
       const badge = screen.getByText('Not visited')
-      expect(badge).toHaveClass('bg-gray-100')
-      expect(badge).toHaveClass('text-gray-700')
+      expect(badge).toHaveClass('bg-slate-500/10')
+      expect(badge).toHaveClass('text-slate-400')
     })
 
     it('shows "Not visited" badge (default/gray) for not_visited stop', () => {
@@ -367,8 +367,8 @@ describe('CanvassTab', () => {
       render(<CanvassTab />)
 
       const badge = screen.getByText('Not visited')
-      expect(badge).toHaveClass('bg-gray-100')
-      expect(badge).toHaveClass('text-gray-700')
+      expect(badge).toHaveClass('bg-slate-500/10')
+      expect(badge).toHaveClass('text-slate-400')
     })
 
     it('shows "Come back later" badge (warning/yellow) for come_back_later stop', () => {
@@ -381,8 +381,8 @@ describe('CanvassTab', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Follow Up/ }))
 
       const badge = screen.getByText('Come back later')
-      expect(badge).toHaveClass('bg-yellow-100')
-      expect(badge).toHaveClass('text-yellow-800')
+      expect(badge).toHaveClass('bg-yellow-500/15')
+      expect(badge).toHaveClass('text-yellow-400')
     })
 
     it('shows "DM unavailable" badge (warning/yellow) for dm_unavailable stop', () => {
@@ -394,8 +394,8 @@ describe('CanvassTab', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Follow Up/ }))
 
       const badge = screen.getByText('DM unavailable')
-      expect(badge).toHaveClass('bg-yellow-100')
-      expect(badge).toHaveClass('text-yellow-800')
+      expect(badge).toHaveClass('bg-yellow-500/15')
+      expect(badge).toHaveClass('text-yellow-400')
     })
 
     it('shows "Canvassed" badge (success/green) for canvassed stop', () => {
@@ -407,8 +407,8 @@ describe('CanvassTab', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Completed/ }))
 
       const badge = screen.getByText('Canvassed')
-      expect(badge).toHaveClass('bg-green-100')
-      expect(badge).toHaveClass('text-green-800')
+      expect(badge).toHaveClass('bg-green-500/15')
+      expect(badge).toHaveClass('text-green-400')
     })
 
     it('shows "Converted" badge (info/blue) for converted stop', () => {
@@ -420,8 +420,8 @@ describe('CanvassTab', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Completed/ }))
 
       const badge = screen.getByText('Converted')
-      expect(badge).toHaveClass('bg-blue-100')
-      expect(badge).toHaveClass('text-blue-800')
+      expect(badge).toHaveClass('bg-blue-500/10')
+      expect(badge).toHaveClass('text-blue-400')
     })
   })
 })

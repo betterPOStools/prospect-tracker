@@ -39,24 +39,24 @@ function DayRow({ day, records, onCanvass, onClear, loading }: DayRowProps) {
   return (
     <div
       className={`flex items-center gap-3 rounded-lg border p-3 ${
-        day === today ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'
+        day === today ? 'border-blue-500/40 bg-[#1a2744]' : 'border-[#1e2535] bg-[#161b27]'
       }`}
     >
       <div className="w-12 shrink-0">
         <span
           className={`text-sm font-semibold ${
-            day === today ? 'text-blue-700' : 'text-gray-700'
+            day === today ? 'text-blue-400' : 'text-slate-300'
           }`}
         >
           {shortDay(day)}
         </span>
       </div>
       <div className="flex-1">
-        <span className="text-sm text-gray-700">
+        <span className="text-sm text-slate-300">
           <span className="font-medium">{total}</span> stop{total !== 1 ? 's' : ''}
         </span>
         {total > 0 && (
-          <span className="ml-2 text-xs text-gray-500">
+          <span className="ml-2 text-xs text-slate-500">
             ({unworked} unworked)
           </span>
         )}
@@ -136,7 +136,7 @@ function AnchorPicker({ anchor, onSelect, records }: AnchorPickerProps) {
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-medium text-gray-600">Anchor location</label>
+      <label className="text-xs font-medium text-slate-400">Anchor location</label>
       <div className="relative">
         <input
           type="search"
@@ -148,7 +148,7 @@ function AnchorPicker({ anchor, onSelect, records }: AnchorPickerProps) {
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           aria-label="Search anchor"
           aria-autocomplete="list"
           aria-expanded={open && matches.length > 0}
@@ -156,18 +156,18 @@ function AnchorPicker({ anchor, onSelect, records }: AnchorPickerProps) {
         {open && matches.length > 0 && (
           <ul
             role="listbox"
-            className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-auto max-h-48"
+            className="absolute z-20 mt-1 w-full rounded-lg border border-[#1e2535] bg-[#161b27] shadow-lg overflow-auto max-h-48"
           >
             {matches.map((r) => (
               <li key={r.id}>
                 <button
                   role="option"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-[#1a2744]"
                   onMouseDown={() => handleSelect(r)}
                 >
-                  <span className="font-medium text-gray-800">{r.name}</span>
+                  <span className="font-medium text-slate-200">{r.name}</span>
                   {r.address && (
-                    <span className="ml-2 text-xs text-gray-500">{r.address}</span>
+                    <span className="ml-2 text-xs text-slate-500">{r.address}</span>
                   )}
                 </button>
               </li>
@@ -192,8 +192,8 @@ function AnchorPicker({ anchor, onSelect, records }: AnchorPickerProps) {
       )}
 
       {anchor && (
-        <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          <span className="shrink-0 text-green-500">&#x2713;</span>
+        <div className="flex items-center gap-2 rounded-lg bg-green-900/30 px-3 py-2 text-sm text-green-400">
+          <span className="shrink-0 text-green-400">&#x2713;</span>
           <span className="font-medium">{anchor.name ?? `${anchor.lat.toFixed(4)}, ${anchor.lng.toFixed(4)}`}</span>
         </div>
       )}
@@ -358,13 +358,13 @@ export default function PlannerPanel() {
   return (
     <div className="flex flex-1 flex-col overflow-auto p-4 space-y-5">
       {/* Unassigned count */}
-      <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+      <div className="rounded-lg bg-amber-900/30 border border-amber-500/30 px-3 py-2 text-sm text-amber-400">
         <span className="font-semibold">{unassignedCount}</span> unassigned unworked records
       </div>
 
       {/* Day selector */}
       <div>
-        <p className="text-xs font-medium text-gray-600 mb-2">Select day</p>
+        <p className="text-xs font-medium text-slate-400 mb-2">Select day</p>
         <div className="flex gap-2 flex-wrap">
           {DAYS.map((d) => (
             <button
@@ -374,8 +374,8 @@ export default function PlannerPanel() {
                 selectedDay === d
                   ? 'bg-blue-600 text-white'
                   : d === today
-                  ? 'border border-blue-400 text-blue-700 hover:bg-blue-50'
-                  : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                  ? 'border border-blue-500/40 text-blue-400 hover:bg-[#1a2744]'
+                  : 'border border-[#1e2535] text-slate-400 hover:bg-[#1a2744]'
               }`}
               aria-pressed={selectedDay === d}
               aria-label={d === today ? `${d} (today)` : d}
@@ -393,23 +393,23 @@ export default function PlannerPanel() {
       {/* Options row */}
       <div className="flex items-end gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Stops (1–20)</label>
+          <label className="text-xs font-medium text-slate-400">Stops (1-20)</label>
           <input
             type="number"
             min={1}
             max={20}
             value={stopCount}
             onChange={(e) => setStopCount(Math.max(1, Math.min(20, Number(e.target.value))))}
-            className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-20 rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Stop count"
           />
         </div>
         <div className="flex flex-col gap-1 flex-1 min-w-[130px]">
-          <label className="text-xs font-medium text-gray-600">Area filter</label>
+          <label className="text-xs font-medium text-slate-400">Area filter</label>
           <select
             value={areaFilter}
             onChange={(e) => setAreaFilter(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Area filter"
           >
             {areaOptions.map((o) => (
@@ -437,19 +437,19 @@ export default function PlannerPanel() {
 
       {/* Fill result */}
       {fillResult && (
-        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
+        <div className="rounded-lg bg-green-900/30 border border-green-500/30 px-3 py-2 text-sm text-green-400">
           Added <strong>{fillResult.added}</strong> stop{fillResult.added !== 1 ? 's' : ''} to{' '}
           <strong>{fillResult.day}</strong>
           {fillResult.skipped > 0 && (
-            <span className="text-green-600">
+            <span className="text-green-500">
               {' '}({fillResult.skipped} skipped — no coords)
             </span>
           )}
         </div>
       )}
       {weekFillResult && (
-        <div className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          Filled Mon–Fri: <strong>{weekFillResult.total}</strong> records assigned
+        <div className="rounded-lg bg-green-900/30 border border-green-500/30 px-3 py-2 text-sm text-green-400">
+          Filled Mon-Fri: <strong>{weekFillResult.total}</strong> records assigned
         </div>
       )}
 

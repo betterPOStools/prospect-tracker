@@ -36,18 +36,18 @@ function StatsRow() {
 
   return (
     <div
-      className="flex items-center gap-3 overflow-x-auto border-b border-gray-100 bg-white px-4 py-2 text-xs shrink-0"
+      className="flex items-center gap-3 overflow-x-auto border-b border-[#1e2535] bg-[#161b27] px-4 py-2 text-xs shrink-0"
       aria-label="Database statistics"
     >
-      <StatItem label="Total" value={stats.total} color="text-gray-700" />
-      <span className="text-gray-200">|</span>
+      <StatItem label="Total" value={stats.total} color="text-slate-300" />
+      <span className="text-slate-600">|</span>
       <StatItem label="Fire" value={stats.fire} color="text-red-500" emoji="🔥" />
       <StatItem label="Hot" value={stats.hot} color="text-orange-500" emoji="🥵" />
       <StatItem label="Warm" value={stats.warm} color="text-yellow-500" emoji="☀️" />
       <StatItem label="Cold" value={stats.cold} color="text-blue-500" emoji="🥶" />
-      <StatItem label="Dead" value={stats.dead} color="text-gray-400" emoji="☠️" />
-      <span className="text-gray-200">|</span>
-      <StatItem label="Unworked" value={stats.unworked} color="text-gray-600" />
+      <StatItem label="Dead" value={stats.dead} color="text-slate-500" emoji="☠️" />
+      <span className="text-slate-600">|</span>
+      <StatItem label="Unworked" value={stats.unworked} color="text-slate-400" />
       <StatItem label="Worked" value={stats.worked} color="text-green-600" />
     </div>
   )
@@ -90,7 +90,7 @@ export default function DatabaseTab() {
       {activeSubTab === 'map' && (
         <Suspense
           fallback={
-            <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
+            <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
               Loading map…
             </div>
           }

@@ -119,7 +119,7 @@ export default function AddStopModal({ open, onClose }: AddStopModalProps) {
         />
 
         {saveError && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{saveError}</p>
+          <p className="rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-400">{saveError}</p>
         )}
 
         <div className="flex gap-2 pt-1">

@@ -296,14 +296,14 @@ export default function RouteTab() {
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Day selector — always visible even when empty */}
-        <div className="border-b border-gray-200 bg-white px-4 py-2">
+        <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
           <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
             <button
               onClick={() => setSelectedDay('Today')}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 selectedDay === 'Today'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#1a2744] text-white'
+                  : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
               }`}
             >
               Today
@@ -314,8 +314,8 @@ export default function RouteTab() {
                 onClick={() => setSelectedDay(day)}
                 className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   selectedDay === day
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-[#1a2744] text-white'
+                    : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
                 }`}
               >
                 {DAY_SHORT[day]}
@@ -340,14 +340,14 @@ export default function RouteTab() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Day selector */}
-      <div className="border-b border-gray-200 bg-white px-4 py-2">
+      <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
         <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
           <button
             onClick={() => setSelectedDay('Today')}
             className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               selectedDay === 'Today'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#1a2744] text-white'
+                : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
             }`}
           >
             Today
@@ -358,8 +358,8 @@ export default function RouteTab() {
               onClick={() => setSelectedDay(day)}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 selectedDay === day
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#1a2744] text-white'
+                  : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
               }`}
             >
               {DAY_SHORT[day]}
@@ -369,49 +369,49 @@ export default function RouteTab() {
       </div>
 
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-4 py-3">
-        <h2 className="text-base font-semibold text-gray-900">
+      <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-3">
+        <h2 className="text-base font-semibold text-slate-100">
           Route — {orderedStops.length} stop{orderedStops.length !== 1 ? 's' : ''} for {effectiveDay}
         </h2>
 
         {/* Over-limit warning */}
         {overFreeLimit && (
-          <div className="mt-2 rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+          <div className="mt-2 rounded-md bg-yellow-950/40 border border-yellow-800/30 px-3 py-2 text-xs text-yellow-400">
             RouteXL free tier supports max 20 stops. Only the first 20 will be optimized.
           </div>
         )}
 
         {/* Offline warning */}
         {!isOnline && (
-          <div className="mt-2 rounded-md bg-orange-50 px-3 py-2 text-xs text-orange-800">
+          <div className="mt-2 rounded-md bg-orange-950/40 border border-orange-800/30 px-3 py-2 text-xs text-orange-400">
             You are offline. Optimization is unavailable.
           </div>
         )}
 
         {/* Optimize error */}
         {optimizeError && (
-          <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-800">
+          <div className="mt-2 rounded-md bg-red-950/40 border border-red-800/30 px-3 py-2 text-xs text-red-400">
             {optimizeError}
           </div>
         )}
 
         {/* Geocode progress */}
         {geocodeProgress && (
-          <div className="mt-2 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          <div className="mt-2 rounded-md bg-blue-950/40 border border-blue-800/30 px-3 py-2 text-xs text-blue-400">
             {geocodeProgress}
           </div>
         )}
 
         {/* Toast notification */}
         {toastMessage && (
-          <div className="mt-2 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-xs font-medium text-green-800 animate-fade-in">
+          <div className="mt-2 rounded-md bg-green-950/40 border border-green-800/30 px-3 py-2 text-xs font-medium text-green-400 animate-fade-in">
             {toastMessage}
           </div>
         )}
       </div>
 
       {/* Controls row */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#1e2535] bg-[#0f1117] px-4 py-2">
         <Button
           variant="secondary"
           size="sm"
@@ -466,8 +466,8 @@ export default function RouteTab() {
             data-testid="coords-toggle"
             className={`ml-auto shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               useCoords
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#1a2744] text-blue-400'
+                : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
             }`}
           >
             {useCoords ? 'Coords' : 'Address'}
@@ -483,7 +483,7 @@ export default function RouteTab() {
               {/* Leg header: "Start Leg N in Maps" — shown before each leg except first when it is the only leg */}
               {(legs.length > 1 || legIndex > 0) && (
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Leg {legIndex + 1}
                   </span>
                   <Button
@@ -536,15 +536,15 @@ export default function RouteTab() {
 
       {/* Progress footer */}
       <div
-        className="relative border-t border-gray-200 bg-gray-50 px-4 py-2"
+        className="relative border-t border-[#1e2535] bg-[#0f1117] px-4 py-2"
         data-testid="progress-footer"
       >
         {/* Progress bar background */}
         <div
-          className="absolute inset-0 bg-green-100 transition-all duration-300"
+          className="absolute inset-0 bg-green-950/40 transition-all duration-300"
           style={{ width: `${progressPct}%` }}
         />
-        <p className="relative text-xs font-medium text-gray-600 text-center">
+        <p className="relative text-xs font-medium text-slate-400 text-center">
           {visitedCount} of {totalCount} visited
         </p>
       </div>

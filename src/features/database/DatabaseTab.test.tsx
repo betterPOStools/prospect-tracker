@@ -202,7 +202,7 @@ describe('BrowsePanel', () => {
   // Helper to get count text from the "Showing X of Y" element
   function getShowingText() {
     // The text is split across spans inside a single container
-    const el = document.querySelector('.flex.items-center.gap-3.border-b.border-gray-100.bg-gray-50')
+    const el = document.querySelector('[data-testid="browse-count-bar"]')
     return el?.textContent ?? ''
   }
 

@@ -224,8 +224,8 @@ export default function ExportPanel() {
     <div className="flex flex-col gap-5 p-4">
       {/* Full Backup */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Full Backup (JSON)</h3>
-        <p className="mb-3 text-xs text-gray-500">
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">Full Backup (JSON)</h3>
+        <p className="mb-3 text-xs text-slate-500">
           Exports all {records.length} records, {leads.length} leads, and {stops.length} canvass
           stops.
         </p>
@@ -238,12 +238,12 @@ export default function ExportPanel() {
         </Button>
       </section>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-[#1e2535]" />
 
       {/* Restore */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Restore from JSON</h3>
-        <p className="mb-3 text-xs text-gray-500">
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">Restore from JSON</h3>
+        <p className="mb-3 text-xs text-slate-500">
           Replaces all local data and syncs to Supabase. This cannot be undone without a new
           backup.
         </p>
@@ -251,7 +251,7 @@ export default function ExportPanel() {
           <input
             type="file"
             accept=".json"
-            className="text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-800 hover:file:bg-gray-200"
+            className="text-sm text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-[#1e2535] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-200 hover:file:bg-[#1a2744]"
             onChange={(e) => setRestoreFile(e.target.files?.[0] ?? null)}
           />
           <Button
@@ -265,12 +265,12 @@ export default function ExportPanel() {
         </div>
       </section>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-[#1e2535]" />
 
       {/* KMZ */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Export KMZ (Google Earth)</h3>
-        <p className="mb-3 text-xs text-gray-500">
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">Export KMZ (Google Earth)</h3>
+        <p className="mb-3 text-xs text-slate-500">
           Exports records with coordinates as a KMZ file with 5 priority layers.{' '}
           {records.filter((r) => r.lat != null && r.lng != null).length} of {records.length}{' '}
           records have coordinates.
@@ -285,11 +285,11 @@ export default function ExportPanel() {
         </Button>
       </section>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-[#1e2535]" />
 
       {/* CSV */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Export CSV</h3>
+        <h3 className="mb-2 text-sm font-semibold text-slate-300">Export CSV</h3>
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
@@ -325,7 +325,7 @@ export default function ExportPanel() {
         title="Confirm Restore"
         size="sm"
       >
-        <p className="mb-4 text-sm text-gray-700">
+        <p className="mb-4 text-sm text-slate-300">
           This will replace all current records, leads, and stops with the backup data and sync
           to Supabase. This cannot be undone.
         </p>

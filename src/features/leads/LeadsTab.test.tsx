@@ -199,9 +199,9 @@ describe('LeadsTab', () => {
       (el) => el.tagName === 'SPAN' && el.className.includes('rounded-full'),
     )
     expect(badgeSpan).toBeTruthy()
-    // info variant = bg-blue-100 text-blue-800
-    expect(badgeSpan).toHaveClass('bg-blue-100')
-    expect(badgeSpan).toHaveClass('text-blue-800')
+    // info variant (dark) = bg-blue-500/10 text-blue-400
+    expect(badgeSpan).toHaveClass('bg-blue-500/10')
+    expect(badgeSpan).toHaveClass('text-blue-400')
   })
 
   it('renders correct status badge color for Won lead', () => {
@@ -215,9 +215,9 @@ describe('LeadsTab', () => {
       (el) => el.tagName === 'SPAN' && el.className.includes('rounded-full'),
     )
     expect(badgeSpan).toBeTruthy()
-    // success variant = bg-green-100 text-green-800
-    expect(badgeSpan).toHaveClass('bg-green-100')
-    expect(badgeSpan).toHaveClass('text-green-800')
+    // success variant (dark) = bg-green-500/15 text-green-400
+    expect(badgeSpan).toHaveClass('bg-green-500/15')
+    expect(badgeSpan).toHaveClass('text-green-400')
   })
 
   it('renders correct status badge color for Lost lead', () => {
@@ -231,9 +231,9 @@ describe('LeadsTab', () => {
       (el) => el.tagName === 'SPAN' && el.className.includes('rounded-full'),
     )
     expect(badgeSpan).toBeTruthy()
-    // danger variant = bg-red-100 text-red-800
-    expect(badgeSpan).toHaveClass('bg-red-100')
-    expect(badgeSpan).toHaveClass('text-red-800')
+    // danger variant (dark) = bg-red-500/15 text-red-400
+    expect(badgeSpan).toHaveClass('bg-red-500/15')
+    expect(badgeSpan).toHaveClass('text-red-400')
   })
 
   it('shows won handoff note on Won leads', () => {

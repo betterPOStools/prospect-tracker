@@ -123,7 +123,7 @@ export default function MapPanel() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-end gap-2 border-b border-gray-100 bg-white px-4 py-2">
+      <div className="flex flex-wrap items-end gap-2 border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
         <Select
           value={filterPriority}
           options={PRIORITY_OPTIONS}
@@ -147,12 +147,12 @@ export default function MapPanel() {
         />
         <button
           onClick={() => setFitTrigger((n) => n + 1)}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          className="rounded-lg border border-[#1e2535] bg-[#161b27] px-3 py-2 text-sm text-slate-300 hover:bg-[#1a2744] active:bg-[#1e2535] transition-colors"
           aria-label="Fit view to records"
         >
           Fit View
         </button>
-        <span className="ml-auto text-xs text-gray-500">
+        <span className="ml-auto text-xs text-slate-500">
           {filteredRecords.length} / {withCoords.length} records
         </span>
       </div>
@@ -188,7 +188,7 @@ export default function MapPanel() {
             >
               <Popup>
                 <div className="space-y-1 text-sm min-w-[160px]">
-                  <p className="font-semibold text-gray-900">{record.name}</p>
+                  <p className="font-semibold text-slate-100">{record.name}</p>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <PriorityBadge priority={record.priority} score={record.score} />
                     <Badge variant={statusVariant(record.status)}>
@@ -201,7 +201,7 @@ export default function MapPanel() {
                     </a>
                   )}
                   {record.address && (
-                    <p className="text-gray-600 text-xs">{record.address}</p>
+                    <p className="text-slate-400 text-xs">{record.address}</p>
                   )}
                 </div>
               </Popup>

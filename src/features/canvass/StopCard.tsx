@@ -97,7 +97,7 @@ function ActivityHistory({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
+        className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -127,9 +127,9 @@ function ActivityHistory({
       </button>
 
       {open && (
-        <div className="mt-1.5 border-t border-gray-100 pt-1.5">
+        <div className="mt-1.5 border-t border-[#1e2535] pt-1.5">
           {sorted.length === 0 ? (
-            <p className="text-[11px] text-gray-400 italic">No activity yet</p>
+            <p className="text-[11px] text-slate-500 italic">No activity yet</p>
           ) : (
             <div className="flex flex-col gap-1.5">
               {sorted.map((act) => {
@@ -139,19 +139,19 @@ function ActivityHistory({
                     <span className="shrink-0 leading-4">{meta.icon}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline gap-1">
-                        <span className="font-medium text-gray-600">{meta.label}</span>
-                        <span className="text-gray-300">·</span>
-                        <span className="text-gray-400">{relativeTime(act.created_at)}</span>
+                        <span className="font-medium text-slate-400">{meta.label}</span>
+                        <span className="text-slate-600">·</span>
+                        <span className="text-slate-500">{relativeTime(act.created_at)}</span>
                       </div>
                       {act.text && (
                         isEditable(act) ? (
                           <EditableActivityText
                             text={act.text}
                             onSave={(newText) => onEditActivity!(act.id, newText)}
-                            className="text-gray-500 leading-4"
+                            className="text-slate-500 leading-4"
                           />
                         ) : (
-                          <p className={`text-gray-500 leading-4 ${act.system ? 'italic' : ''}`}>
+                          <p className={`text-slate-500 leading-4 ${act.system ? 'italic' : ''}`}>
                             {act.text}
                           </p>
                         )
@@ -441,18 +441,18 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+    <div className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3 shadow-sm">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-semibold text-gray-900">{stop.name}</span>
+            <span className="font-semibold text-slate-100">{stop.name}</span>
             {stop.group && (
               <Badge variant="default">{stop.group}</Badge>
             )}
           </div>
           {stop.address && (
-            <p className="mt-0.5 text-xs text-gray-500 truncate">{stop.address}</p>
+            <p className="mt-0.5 text-xs text-slate-500 truncate">{stop.address}</p>
           )}
           {stop.phone && (
             <a
@@ -473,7 +473,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
       </div>
 
       {/* Meta row */}
-      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
         {stop.last_contact && (
           <span>Last contact: {relativeTime(stop.last_contact)}</span>
         )}
@@ -489,7 +489,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
 
       {/* Error */}
       {error && (
-        <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">{error}</p>
+        <p className="mt-2 rounded-lg bg-red-500/10 border border-red-500/20 px-2 py-1 text-xs text-red-400">{error}</p>
       )}
 
       {/* Note input (not in readOnly mode) */}
@@ -497,7 +497,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
         <form onSubmit={handleAddNote} className="mt-2 flex gap-1.5">
           <input
             type="text"
-            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             placeholder="Add a note…"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -533,7 +533,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
           <select
             value={stop.status}
             onChange={(e) => updateStatus(e.target.value as StopStatus)}
-            className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="queued">Not Visited</option>
             <option value="come_back_later">Come Back Later</option>
@@ -578,19 +578,19 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
 
       {/* Removal reason modal */}
       <Modal open={showRemoveModal} onClose={() => setShowRemoveModal(false)} title="Remove Stop" size="sm">
-        <p className="mb-3 text-sm text-gray-600">
-          Why are you removing <span className="font-medium text-gray-900">{stop.name}</span>?
+        <p className="mb-3 text-sm text-slate-400">
+          Why are you removing <span className="font-medium text-slate-100">{stop.name}</span>?
         </p>
         <div className="flex flex-col gap-2">
           {REMOVAL_REASONS.map((reason) => (
             <button
               key={reason.label}
-              className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100"
+              className="flex items-center justify-between rounded-lg border border-[#1e2535] px-3 py-2.5 text-left text-sm text-slate-300 transition-colors hover:border-[#2a3548] hover:bg-[#1a2744] active:bg-[#1e2535]"
               onClick={() => handleRemoveWithReason(reason)}
             >
               <span>{reason.label}</span>
               {reason.blocklist && (
-                <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-600">
+                <span className="ml-2 rounded-full bg-red-500/10 border border-red-500/20 px-2 py-0.5 text-[10px] font-medium text-red-400">
                   + blocklist
                 </span>
               )}

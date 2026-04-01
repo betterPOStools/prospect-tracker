@@ -23,12 +23,12 @@ function StatBox({
   return (
     <div
       className="flex flex-col items-center justify-center rounded-xl px-3 py-3 text-center"
-      style={{ background: color ? color + '18' : undefined, border: `1px solid ${color ?? '#e5e7eb'}20` }}
+      style={{ background: color ? color + '18' : undefined, border: `1px solid ${color ?? '#1e2535'}40` }}
     >
-      <span className="text-xl font-bold" style={{ color: color ?? '#374151' }}>
+      <span className="text-xl font-bold" style={{ color: color ?? '#94a3b8' }}>
         {value}
       </span>
-      <span className="mt-0.5 text-[11px] font-medium text-gray-500">{label}</span>
+      <span className="mt-0.5 text-[11px] font-medium text-slate-500">{label}</span>
     </div>
   )
 }
@@ -36,13 +36,13 @@ function StatBox({
 function ProgressRow({ label, pct, count }: { label: string; pct: number; count: number }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex justify-between text-xs text-gray-600">
+      <div className="flex justify-between text-xs text-slate-400">
         <span className="font-medium">{label}</span>
         <span>
           {count} ({pct}%)
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e2535]">
         <div
           className="h-full rounded-full bg-blue-500 transition-all"
           style={{ width: `${pct}%` }}
@@ -54,7 +54,7 @@ function ProgressRow({ label, pct, count }: { label: string; pct: number; count:
 
 function SectionHeader({ title }: { title: string }) {
   return (
-    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{title}</h3>
+    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
   )
 }
 
@@ -92,8 +92,8 @@ export default function AnalyticsPanel() {
       {/* Pipeline Overview */}
       <section>
         <SectionHeader title="Pipeline Overview" />
-        <div className="mb-3 flex items-center gap-2 text-sm text-gray-600">
-          <span className="text-2xl font-bold text-gray-900">{pipeline.total}</span>
+        <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">
+          <span className="text-2xl font-bold text-slate-100">{pipeline.total}</span>
           <span>total records</span>
         </div>
         <div className="mb-3 grid grid-cols-5 gap-2">
@@ -118,7 +118,7 @@ export default function AnalyticsPanel() {
       <section>
         <SectionHeader title="Data Quality" />
         {quality == null ? (
-          <p className="text-sm text-gray-400">No records yet.</p>
+          <p className="text-sm text-slate-500">No records yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
             <ProgressRow label="Phone" pct={quality.pctPhone} count={quality.withPhone} />
@@ -127,11 +127,11 @@ export default function AnalyticsPanel() {
             <ProgressRow label="Website" pct={quality.pctWebsite} count={quality.withWebsite} />
             <ProgressRow label="Coordinates" pct={quality.pctCoords} count={quality.withCoords} />
             <div className="mt-1 flex flex-col gap-1">
-              <div className="flex justify-between text-xs text-gray-600">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span className="font-medium">Avg Score</span>
                 <span>{quality.avgScore}</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e2535]">
                 <div
                   className="h-full rounded-full bg-purple-500 transition-all"
                   style={{ width: `${quality.avgScore}%` }}
@@ -145,16 +145,16 @@ export default function AnalyticsPanel() {
       {/* Territory Coverage */}
       <section>
         <SectionHeader title="Territory Coverage" />
-        <div className="mb-2 text-sm text-gray-600">
+        <div className="mb-2 text-sm text-slate-400">
           Overall coverage:{' '}
-          <span className="font-semibold text-gray-900">{territory.overallCoverage}%</span>
+          <span className="font-semibold text-slate-100">{territory.overallCoverage}%</span>
         </div>
         {territory.byArea.length === 0 ? (
-          <p className="text-sm text-gray-400">No areas imported yet.</p>
+          <p className="text-sm text-slate-500">No areas imported yet.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <div className="overflow-x-auto rounded-xl border border-[#1e2535]">
             <table className="min-w-full text-xs">
-              <thead className="bg-gray-50 text-gray-500">
+              <thead className="bg-[#0f1117] text-slate-500">
                 <tr>
                   <th className="px-3 py-2 text-left font-medium">Area</th>
                   <th className="px-3 py-2 text-right font-medium">Total</th>
@@ -163,14 +163,14 @@ export default function AnalyticsPanel() {
                   <th className="px-3 py-2 text-right font-medium">Conv Rate</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody className="divide-y divide-[#1e2535] bg-[#161b27]">
                 {territory.byArea.map((a) => (
-                  <tr key={a.area}>
-                    <td className="px-3 py-2 font-medium text-gray-900">{a.area}</td>
-                    <td className="px-3 py-2 text-right text-gray-600">{a.total}</td>
-                    <td className="px-3 py-2 text-right text-gray-600">{a.coveragePct}%</td>
-                    <td className="px-3 py-2 text-right text-gray-600">{a.avgScore}</td>
-                    <td className="px-3 py-2 text-right text-gray-600">
+                  <tr key={a.area} className="hover:bg-[#1a2744]">
+                    <td className="px-3 py-2 font-medium text-slate-100">{a.area}</td>
+                    <td className="px-3 py-2 text-right text-slate-400">{a.total}</td>
+                    <td className="px-3 py-2 text-right text-slate-400">{a.coveragePct}%</td>
+                    <td className="px-3 py-2 text-right text-slate-400">{a.avgScore}</td>
+                    <td className="px-3 py-2 text-right text-slate-400">
                       {a.convRate != null ? `${Math.round(a.convRate * 100)}%` : '—'}
                     </td>
                   </tr>
@@ -224,7 +224,7 @@ export default function AnalyticsPanel() {
         {/* Last 14 Days Bar Chart */}
         {canvassPerf.dailyLog.length > 0 && (
           <div>
-            <p className="mb-2 text-xs font-medium text-gray-500">Last 14 Days</p>
+            <p className="mb-2 text-xs font-medium text-slate-500">Last 14 Days</p>
             <div className="flex h-20 items-end gap-1">
               {canvassPerf.dailyLog.map((d) => (
                 <div
@@ -247,13 +247,13 @@ export default function AnalyticsPanel() {
                       }}
                     />
                   </div>
-                  <span className="text-[9px] text-gray-400">
+                  <span className="text-[9px] text-slate-500">
                     {d.date.slice(5)}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex gap-3 text-[10px] text-gray-500">
+            <div className="mt-1 flex gap-3 text-[10px] text-slate-500">
               <span className="flex items-center gap-1">
                 <span className="inline-block h-2 w-2 rounded-sm bg-blue-400" />
                 Stops

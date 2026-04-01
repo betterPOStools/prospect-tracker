@@ -101,15 +101,15 @@ const CANVASS_DOT: Record<string, string> = {
   converted:  '#22c55e',  // green-500
   canvassed:  '#86efac',  // green-300
   in_canvass: '#facc15',  // yellow-400
-  unworked:   '#d1d5db',  // gray-300
+  unworked:   '#64748b',  // slate-500
   on_hold:    '#ef4444',  // red-500
 }
 
 function RecordRow({ record, selected, onToggle, onClick, onDoubleClick }: RecordRowProps) {
   return (
     <div
-      className={`flex items-center gap-3 border-b border-gray-100 px-4 py-2 transition-colors ${
-        selected ? 'bg-blue-50' : 'hover:bg-gray-50'
+      className={`flex items-center gap-3 border-b border-[#1e2535] px-4 py-2 transition-colors ${
+        selected ? 'bg-[#1a2744]' : 'hover:bg-[#1a2744]'
       }`}
       style={{ height: 72, boxSizing: 'border-box' }}
       onDoubleClick={onDoubleClick}
@@ -121,12 +121,12 @@ function RecordRow({ record, selected, onToggle, onClick, onDoubleClick }: Recor
         checked={selected}
         onChange={onToggle}
         onClick={(e) => e.stopPropagation()}
-        className="shrink-0 rounded border-gray-300"
+        className="shrink-0 rounded border-[#1e2535] bg-[#0f1117]"
         aria-label={`Select ${record.name}`}
       />
 
       {/* Canvass progress dot */}
-      <span className="shrink-0 h-3 w-3 rounded-full" style={{ background: CANVASS_DOT[record.status] ?? '#d1d5db' }} aria-hidden />
+      <span className="shrink-0 h-3 w-3 rounded-full" style={{ background: CANVASS_DOT[record.status] ?? '#64748b' }} aria-hidden />
 
       {/* Name + details */}
       <button
@@ -134,16 +134,16 @@ function RecordRow({ record, selected, onToggle, onClick, onDoubleClick }: Recor
         onClick={onClick}
         aria-label={`Open ${record.name}`}
       >
-        <span className="text-sm font-medium text-gray-900 truncate w-full">{record.name}</span>
+        <span className="text-sm font-medium text-slate-100 truncate w-full">{record.name}</span>
         <div className="flex items-center gap-1.5 flex-wrap">
           <PriorityBadge priority={record.priority} score={record.score} />
           <Badge variant={statusVariant(record.status)}>{statusLabel(record.status)}</Badge>
           {record.area && (
-            <span className="text-xs text-gray-400">{record.area}</span>
+            <span className="text-xs text-slate-500">{record.area}</span>
           )}
         </div>
         {record.address && (
-          <span className="text-xs text-gray-500 truncate w-full">{record.address}</span>
+          <span className="text-xs text-slate-500 truncate w-full">{record.address}</span>
         )}
       </button>
     </div>
@@ -181,12 +181,12 @@ function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
     }
   }
 
-  const inputClass = 'rounded border border-gray-300 bg-white px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20'
-  const selectClass = 'rounded border border-gray-300 bg-white px-1 py-1 text-xs focus:border-blue-500 focus:outline-none'
+  const inputClass = 'rounded border border-[#1e2535] bg-[#0f1117] px-1.5 py-1 text-xs text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20'
+  const selectClass = 'rounded border border-[#1e2535] bg-[#0f1117] px-1 py-1 text-xs text-slate-200 focus:border-blue-500 focus:outline-none'
 
   return (
     <div
-      className="flex items-center gap-2 border-b border-blue-200 bg-blue-50/50 px-4 py-2"
+      className="flex items-center gap-2 border-b border-blue-500/30 bg-[#1a2744] px-4 py-2"
       style={{ height: 72, boxSizing: 'border-box' }}
       onKeyDown={handleKeyDown}
       data-testid={`inline-edit-row-${record.id}`}
@@ -250,7 +250,7 @@ function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
       {/* Save / Cancel buttons */}
       <button
         onClick={() => onSave(record.id, form)}
-        className="shrink-0 rounded p-1 text-green-600 hover:bg-green-100 transition-colors"
+        className="shrink-0 rounded p-1 text-green-400 hover:bg-green-900/30 transition-colors"
         aria-label="Save inline edit"
         title="Save"
       >
@@ -260,7 +260,7 @@ function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
       </button>
       <button
         onClick={onCancel}
-        className="shrink-0 rounded p-1 text-red-500 hover:bg-red-100 transition-colors"
+        className="shrink-0 rounded p-1 text-red-400 hover:bg-red-900/30 transition-colors"
         aria-label="Cancel inline edit"
         title="Cancel"
       >
@@ -574,14 +574,14 @@ export default function BrowsePanel() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-end gap-2 border-b border-gray-100 bg-white px-4 py-2">
+      <div className="flex flex-wrap items-end gap-2 border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
         <div className="flex-1 min-w-[160px]">
           <input
             type="search"
             placeholder="Search by name…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Search records"
           />
         </div>
@@ -619,30 +619,30 @@ export default function BrowsePanel() {
             placeholder="Filter group…"
             value={filterGroup}
             onChange={(e) => setFilterGroup(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             aria-label="Filter by group"
           />
         </div>
-        <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer whitespace-nowrap">
+        <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer whitespace-nowrap">
           <input
             type="checkbox"
             checked={hideOnHold}
             onChange={(e) => setHideOnHold(e.target.checked)}
-            className="rounded border-gray-300"
+            className="rounded border-[#1e2535] bg-[#0f1117]"
           />
           Hide on hold
         </label>
       </div>
 
       {/* Count + select all/clear */}
-      <div className="flex items-center gap-3 border-b border-gray-100 bg-gray-50 px-4 py-1.5">
-        <span className="text-xs text-gray-500">
-          Showing <span className="font-semibold text-gray-700">{filteredRecords.length}</span>{' '}
-          of <span className="font-semibold text-gray-700">{records.length}</span>
+      <div data-testid="browse-count-bar" className="flex items-center gap-3 border-b border-[#1e2535] bg-[#0f1117] px-4 py-1.5">
+        <span className="text-xs text-slate-500">
+          Showing <span className="font-semibold text-slate-300">{filteredRecords.length}</span>{' '}
+          of <span className="font-semibold text-slate-300">{records.length}</span>
         </span>
 
         {hasSelection && (
-          <span className="text-xs text-blue-700 font-medium">
+          <span className="text-xs text-blue-400 font-medium">
             {selectedIds.size} selected
           </span>
         )}
@@ -661,7 +661,7 @@ export default function BrowsePanel() {
 
       {/* Bulk action bar — sticky when selection active */}
       {hasSelection && (
-        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-blue-200 bg-blue-50 px-4 py-2">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-blue-500/30 bg-[#1a2744] px-4 py-2">
           <Button
             size="sm"
             variant="primary"
@@ -678,7 +678,7 @@ export default function BrowsePanel() {
                 key={d}
                 onClick={() => handleQuickDay(d)}
                 disabled={bulkLoading}
-                className="rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full border border-[#1e2535] bg-[#161b27] px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-[#1e2535] active:bg-[#1e2535] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {d.slice(0, 3)}
               </button>
@@ -690,7 +690,7 @@ export default function BrowsePanel() {
             <select
               value={bulkDay}
               onChange={(e) => setBulkDay(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
               aria-label="Assign day"
             >
               <option value="">Day…</option>
@@ -713,7 +713,7 @@ export default function BrowsePanel() {
             <select
               value={bulkStatus}
               onChange={(e) => setBulkStatus(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
               aria-label="Change status"
             >
               {BULK_STATUS_OPTIONS.map((o) => (
@@ -738,7 +738,7 @@ export default function BrowsePanel() {
 
       {/* Toast notification */}
       {toastMessage && (
-        <div className="mx-4 mt-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs font-medium text-green-800 animate-fade-in">
+        <div className="mx-4 mt-2 rounded-lg bg-green-900/30 border border-green-500/30 px-3 py-2 text-xs font-medium text-green-400 animate-fade-in">
           {toastMessage}
         </div>
       )}

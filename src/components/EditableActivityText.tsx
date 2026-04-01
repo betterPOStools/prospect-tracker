@@ -55,7 +55,7 @@ export default function EditableActivityText({ text, onSave, className = '' }: E
         onBlur={save}
         onKeyDown={handleKeyDown}
         rows={2}
-        className="w-full rounded border border-blue-300 bg-white px-1.5 py-1 text-xs text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+        className="w-full rounded border border-[#1e2535] bg-[#0f1117] px-1.5 py-1 text-xs text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
       />
     )
   }
@@ -63,7 +63,7 @@ export default function EditableActivityText({ text, onSave, className = '' }: E
   return (
     <span
       onClick={startEdit}
-      className={`cursor-pointer rounded px-0.5 hover:bg-gray-100 group-hover/note:underline ${className}`}
+      className={`cursor-pointer rounded px-0.5 hover:bg-[#1e2535] group-hover/note:underline ${className}`}
       title="Click to edit"
     >
       {text}

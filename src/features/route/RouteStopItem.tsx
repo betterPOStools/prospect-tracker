@@ -88,19 +88,19 @@ export default function RouteStopItem({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
+    <div className="flex items-start gap-3 rounded-lg border border-[#1e2535] bg-[#161b27] p-3">
       {/* Number */}
       <div className="flex flex-col items-center pt-0.5">
-        <span data-testid="stop-number" className="text-sm font-bold text-gray-700 tabular-nums w-6 text-center">
+        <span data-testid="stop-number" className="text-sm font-bold text-slate-300 tabular-nums w-6 text-center">
           {number}
         </span>
       </div>
 
       {/* Main content */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-gray-900">{stop.name}</p>
+        <p className="truncate text-sm font-bold text-slate-100">{stop.name}</p>
         {stop.address && (
-          <p className="mt-0.5 truncate text-xs text-gray-500">{stop.address}</p>
+          <p className="mt-0.5 truncate text-xs text-slate-500">{stop.address}</p>
         )}
         <div className="mt-1">
           <Badge variant={STATUS_BADGE_VARIANT[stop.status]}>
@@ -118,7 +118,7 @@ export default function RouteStopItem({
               onClick={onMoveUp}
               disabled={index === 0}
               aria-label="Move stop up"
-              className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ▲
             </button>
@@ -126,7 +126,7 @@ export default function RouteStopItem({
               onClick={onMoveDown}
               disabled={index === total - 1}
               aria-label="Move stop down"
-              className="flex h-6 w-6 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ▼
             </button>

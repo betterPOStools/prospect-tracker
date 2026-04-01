@@ -26,15 +26,15 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div role="dialog" aria-modal="true" className={`w-full rounded-t-2xl bg-white shadow-xl sm:rounded-2xl ${SIZE[size]} max-h-[90vh] flex flex-col`}>
+      <div role="dialog" aria-modal="true" className={`w-full rounded-t-xl bg-[#161b27] border border-[#1e2535] shadow-xl sm:rounded-xl ${SIZE[size]} max-h-[90vh] flex flex-col`}>
         {title && (
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-            <h2 className="font-semibold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between border-b border-[#1e2535] px-4 py-3">
+            <h2 className="font-semibold text-slate-100">{title}</h2>
             <button
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-lg p-1 text-slate-500 hover:bg-[#1e2535] hover:text-slate-300"
               onClick={onClose}
               aria-label="Close"
             >

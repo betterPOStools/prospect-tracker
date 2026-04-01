@@ -92,20 +92,20 @@ export default function LeadsTab() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Stats row */}
-      <div className="flex items-center gap-4 border-b border-gray-100 bg-white px-4 py-2">
-        <span className="text-xs text-gray-500">
-          <span className="font-semibold text-gray-800">{counts.All}</span> total
+      <div className="flex items-center gap-4 border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
+        <span className="text-xs text-slate-500">
+          <span className="font-semibold text-slate-200">{counts.All}</span> total
         </span>
-        <span className="text-xs text-blue-700">
+        <span className="text-xs text-blue-400">
           <span className="font-semibold">{counts.Open}</span> open
         </span>
-        <span className="text-xs text-green-700">
+        <span className="text-xs text-green-400">
           <span className="font-semibold">{counts.Won}</span> won
         </span>
-        <span className="text-xs text-red-600">
+        <span className="text-xs text-red-400">
           <span className="font-semibold">{counts.Lost}</span> lost
         </span>
-        <span className="text-xs text-yellow-700">
+        <span className="text-xs text-yellow-400">
           <span className="font-semibold">{counts.Abandoned}</span> abandoned
         </span>
         <div className="ml-auto">
@@ -120,14 +120,14 @@ export default function LeadsTab() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex border-b border-gray-200 bg-white px-1" data-testid="leads-filter-bar">
+      <div className="flex border-b border-[#1e2535] bg-[#161b27] px-1" data-testid="leads-filter-bar">
         {FILTER_OPTIONS.map((f) => (
           <button
             key={f}
             className={`flex min-h-[44px] items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
               filter === f
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-slate-500 hover:text-slate-300'
             }`}
             onClick={() => setFilter(f)}
             aria-pressed={filter === f}
@@ -137,8 +137,8 @@ export default function LeadsTab() {
               <span
                 className={`min-w-[18px] rounded-full px-1 py-0.5 text-center text-[10px] font-semibold ${
                   filter === f
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-blue-500/10 text-blue-400'
+                    : 'bg-[#1e2535] text-slate-400'
                 }`}
               >
                 {counts[f] > 99 ? '99+' : counts[f]}

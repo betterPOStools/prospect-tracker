@@ -187,33 +187,33 @@ export default function EndDayModal({ open, onClose, stops }: EndDayModalProps) 
     >
       <div className="flex flex-col gap-4">
         {/* Summary table */}
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="rounded-lg border border-[#1e2535] overflow-hidden">
           {rows.map((row) => (
             <div
               key={row.label}
-              className="flex items-center justify-between border-b border-gray-100 px-3 py-2 last:border-b-0"
+              className="flex items-center justify-between border-b border-[#1e2535] px-3 py-2 last:border-b-0"
             >
               <div className="flex flex-col">
-                <span className={`text-sm font-medium ${row.color ?? 'text-gray-900'}`}>
+                <span className={`text-sm font-medium ${row.color ?? 'text-slate-100'}`}>
                   {row.label}
                 </span>
-                <span className="text-[11px] text-gray-400">{row.detail}</span>
+                <span className="text-[11px] text-slate-500">{row.detail}</span>
               </div>
-              <span className={`text-lg font-bold ${row.color ?? 'text-gray-900'}`}>
+              <span className={`text-lg font-bold ${row.color ?? 'text-slate-100'}`}>
                 {row.count}
               </span>
             </div>
           ))}
 
           {/* Total row */}
-          <div className="flex items-center justify-between bg-gray-50 px-3 py-2">
-            <span className="text-sm font-semibold text-gray-900">Total</span>
-            <span className="text-lg font-bold text-gray-900">{totalCount}</span>
+          <div className="flex items-center justify-between bg-[#0f1117] px-3 py-2">
+            <span className="text-sm font-semibold text-slate-100">Total</span>
+            <span className="text-lg font-bold text-slate-100">{totalCount}</span>
           </div>
         </div>
 
         {/* Explanation */}
-        <p className="text-xs text-gray-500 leading-relaxed">
+        <p className="text-xs text-slate-500 leading-relaxed">
           Queue stops are returned to the database as unworked. Come back later and DM
           unavailable stops are kept as follow-ups for{' '}
           <strong>{getNextBusinessDay()}</strong>. Canvassed and converted stops are

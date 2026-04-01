@@ -8,13 +8,13 @@ export default function Select({ label, options, className = '', id, ...props }:
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={selectId} className="text-xs font-medium text-gray-600">
+        <label htmlFor={selectId} className="text-xs font-medium text-slate-400">
           {label}
         </label>
       )}
       <select
         id={selectId}
-        className={`rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${className}`}
+        className={`rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${className}`}
         {...props}
       >
         {options.map((o) => (
