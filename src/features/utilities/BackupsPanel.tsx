@@ -142,7 +142,7 @@ export default function BackupsPanel() {
           {snapshots.map((snap) => (
             <div
               key={snap.key}
-              className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] p-3"
+              className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] p-3 transition-all duration-200 hover:border-[#2a3550]"
             >
               <div>
                 <p className="text-sm font-medium text-slate-100">

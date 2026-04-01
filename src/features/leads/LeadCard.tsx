@@ -87,7 +87,7 @@ function ActivityLog({
   const isEditable = (act: Activity) => !act.system && act.type === 'note' && onEditActivity
 
   return (
-    <div className="mt-2 border-t border-[#1e2535] pt-2">
+    <div className="mt-2 border-t border-[#1e2535] pt-2 transition-all duration-200">
       <div className="flex flex-col gap-1">
         {!expanded && activities.length > 3 && (
           <button
@@ -260,7 +260,7 @@ function InlineEditForm({ lead, onSave, onCancel }: InlineEditProps) {
         </label>
         <textarea
           id={`notes-${lead.id}`}
-          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           rows={3}
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
@@ -502,7 +502,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
   }
 
   return (
-    <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-3">
+    <div className="border-b border-[#1e2535] bg-[#161b27] px-4 py-3 transition-all duration-200 hover:border-[#2a3550] hover:shadow-lg hover:shadow-black/20">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -520,7 +520,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
       {lead.status === 'Won' && (
         <button
           onClick={openInMenuImport}
-          className="mt-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 active:bg-green-800"
+          className="mt-2 w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:bg-green-700 active:bg-green-800"
         >
           Open in Menu Import →
         </button>
@@ -532,12 +532,12 @@ export default function LeadCard({ lead }: LeadCardProps) {
           <span className="text-sm text-slate-400">{lead.address}</span>
         )}
         {phone && (
-          <a href={`tel:${lead.phone}`} className="text-sm text-blue-400 active:opacity-70">
+          <a href={`tel:${lead.phone}`} className="text-sm text-blue-400 hover:underline active:opacity-70">
             {phone}
           </a>
         )}
         {email && (
-          <a href={`mailto:${email}`} className="text-sm text-blue-400 active:opacity-70">
+          <a href={`mailto:${email}`} className="text-sm text-blue-400 hover:underline active:opacity-70">
             {email}
           </a>
         )}
@@ -608,7 +608,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
         <form onSubmit={handleAddNote} className="mt-2 flex gap-1.5">
           <input
             type="text"
-            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             placeholder="Add a note..."
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -641,7 +641,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
             <a
               href={`tel:${lead.phone}`}
               onClick={handleCall}
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 hover:bg-blue-500/20 active:bg-blue-500/30"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 transition-colors duration-150 hover:bg-blue-500/20 active:bg-blue-500/30"
             >
               Call
             </a>
@@ -650,7 +650,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
             <a
               href={`sms:${lead.phone}`}
               onClick={handleText}
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-medium text-purple-400 hover:bg-purple-500/20 active:bg-purple-500/30"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-purple-500/10 px-3 py-1.5 text-xs font-medium text-purple-400 transition-colors duration-150 hover:bg-purple-500/20 active:bg-purple-500/30"
             >
               Text
             </a>
@@ -660,7 +660,7 @@ export default function LeadCard({ lead }: LeadCardProps) {
               href={`https://maps.google.com/?q=${encodeURIComponent(lead.address)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[36px] items-center rounded-lg bg-[#1e2535] px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-[#1a2744] active:bg-[#1a2744]"
+              className="inline-flex min-h-[36px] items-center rounded-lg bg-[#1e2535] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors duration-150 hover:bg-[#1a2744] active:bg-[#1a2744]"
             >
               Navigate
             </a>

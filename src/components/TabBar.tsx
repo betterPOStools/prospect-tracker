@@ -38,10 +38,10 @@ export default function TabBar({ activeTab, onTabChange }: TabBarProps) {
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex shrink-0 items-center justify-center whitespace-nowrap px-3 py-2.5 text-xs font-medium transition-colors ${
+          className={`flex flex-1 shrink-0 items-center justify-center whitespace-nowrap px-3 py-2.5 text-xs font-medium transition-all duration-150 ${
             activeTab === tab.id
               ? 'border-b-2 border-blue-500 text-white'
-              : 'border-b-2 border-transparent text-slate-400 hover:text-slate-200'
+              : 'border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-[#1e2535]/50'
           }`}
         >
           {tab.label}

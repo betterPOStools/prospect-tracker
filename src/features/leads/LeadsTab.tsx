@@ -92,7 +92,7 @@ export default function LeadsTab() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Stats row */}
-      <div className="flex items-center gap-4 border-b border-[#1e2535] bg-[#161b27] px-4 py-2">
+      <div className="flex items-center gap-4 border-b border-[#1e2535] bg-[#161b27] px-4 py-2 shadow-sm shadow-black/20">
         <span className="text-xs text-slate-500">
           <span className="font-semibold text-slate-200">{counts.All}</span> total
         </span>
@@ -124,7 +124,7 @@ export default function LeadsTab() {
         {FILTER_OPTIONS.map((f) => (
           <button
             key={f}
-            className={`flex min-h-[44px] items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+            className={`flex min-h-[44px] items-center gap-1.5 px-3 py-2 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
               filter === f
                 ? 'border-b-2 border-blue-500 text-blue-400'
                 : 'text-slate-500 hover:text-slate-300'

@@ -88,11 +88,11 @@ export default function BlocklistPanel() {
           {sorted.map((term) => (
             <span
               key={term}
-              className="flex items-center gap-1 rounded-full bg-[#1e2535] px-3 py-1 text-xs text-slate-300"
+              className="flex items-center gap-1 rounded-full bg-[#1e2535] px-3 py-1 text-xs text-slate-300 transition-colors duration-150"
             >
               {term}
               <button
-                className="ml-0.5 rounded-full text-slate-500 hover:text-red-500 focus:outline-none"
+                className="ml-0.5 rounded-full text-slate-500 hover:text-red-500 focus:outline-none transition-colors duration-150"
                 onClick={() => handleRemove(term)}
                 aria-label={`Remove ${term}`}
               >

@@ -109,7 +109,7 @@ export default function SettingsPanel() {
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
           Appearance
         </h3>
-        <div className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] px-4 py-3">
+        <div className="flex items-center justify-between rounded-xl border border-[#1e2535] bg-[#161b27] px-4 py-3 transition-all duration-200 hover:border-[#2a3550]">
           <div>
             <p className="text-sm font-medium text-slate-100">Dark Mode</p>
             <p className="text-xs text-slate-500">Currently: {theme === 'dark' ? 'Dark' : 'Light'}</p>
@@ -119,7 +119,7 @@ export default function SettingsPanel() {
             aria-checked={theme === 'dark'}
             aria-label="Dark Mode"
             onClick={toggle}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-[#161b27] ${
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 focus:ring-offset-[#161b27] ${
               theme === 'dark' ? 'bg-blue-600' : 'bg-[#1e2535]'
             }`}
           >
@@ -241,7 +241,7 @@ export default function SettingsPanel() {
               <select
                 value={cuPipeline ? `${cuPipeline.pipeline_id}:${cuPipeline.stage_id}` : ''}
                 onChange={(e) => handlePipelineSelect(e.target.value)}
-                className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-150"
               >
                 <option value="">Select pipeline & stage</option>
                 {pipelines.flatMap((p) =>

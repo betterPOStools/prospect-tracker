@@ -168,7 +168,7 @@ export default function AddLeadModal({ open, onClose }: AddLeadModalProps) {
           </label>
           <textarea
             id="add-lead-notes"
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             placeholder="Any notes about this prospect..."
             rows={3}
             value={form.notes}

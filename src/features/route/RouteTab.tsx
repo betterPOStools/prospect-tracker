@@ -300,7 +300,7 @@ export default function RouteTab() {
           <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
             <button
               onClick={() => setSelectedDay('Today')}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                 selectedDay === 'Today'
                   ? 'bg-[#1a2744] text-white'
                   : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
@@ -312,7 +312,7 @@ export default function RouteTab() {
               <button
                 key={day}
                 onClick={() => setSelectedDay(day)}
-                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                   selectedDay === day
                     ? 'bg-[#1a2744] text-white'
                     : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
@@ -344,7 +344,7 @@ export default function RouteTab() {
         <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="day-selector">
           <button
             onClick={() => setSelectedDay('Today')}
-            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
               selectedDay === 'Today'
                 ? 'bg-[#1a2744] text-white'
                 : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
@@ -356,7 +356,7 @@ export default function RouteTab() {
             <button
               key={day}
               onClick={() => setSelectedDay(day)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                 selectedDay === day
                   ? 'bg-[#1a2744] text-white'
                   : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
@@ -464,7 +464,7 @@ export default function RouteTab() {
           <button
             onClick={() => setUseCoords((prev) => !prev)}
             data-testid="coords-toggle"
-            className={`ml-auto shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`ml-auto shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 ${
               useCoords
                 ? 'bg-[#1a2744] text-blue-400'
                 : 'bg-[#161b27] text-slate-400 hover:bg-[#1e2535]'
@@ -541,7 +541,7 @@ export default function RouteTab() {
       >
         {/* Progress bar background */}
         <div
-          className="absolute inset-0 bg-green-950/40 transition-all duration-300"
+          className="absolute inset-0 bg-green-950/40 transition-all duration-500 ease-out"
           style={{ width: `${progressPct}%` }}
         />
         <p className="relative text-xs font-medium text-slate-400 text-center">

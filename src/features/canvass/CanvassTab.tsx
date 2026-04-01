@@ -111,7 +111,7 @@ export default function CanvassTab() {
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Stats row */}
       <div
-        className="flex shrink-0 divide-x divide-[#1e2535] border-b border-[#1e2535] bg-[#161b27]"
+        className="flex shrink-0 divide-x divide-[#1e2535] border-b border-[#1e2535] bg-[#161b27] shadow-sm shadow-black/20"
         data-testid="canvass-stats"
       >
         <div className="flex flex-1 flex-col items-center py-2">
@@ -134,7 +134,7 @@ export default function CanvassTab() {
           <SubTabs tabs={tabs} active={subTab} onChange={setSubTab} />
         </div>
         <button
-          className="mr-2 shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500 active:bg-blue-700"
+          className="mr-2 shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all duration-150 active:scale-[0.97] hover:bg-blue-500 active:bg-blue-700"
           onClick={() => setAddOpen(true)}
         >
           + Add Stop
@@ -411,7 +411,7 @@ function FollowUpPanel({ stops, filter, onFilterChange }: FollowUpPanelProps) {
           {filterOptions.map((opt) => (
             <button
               key={opt.value}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                 filter === opt.value
                   ? 'bg-blue-600 text-white'
                   : 'bg-[#1e2535] text-slate-300 hover:bg-[#1a2744]'

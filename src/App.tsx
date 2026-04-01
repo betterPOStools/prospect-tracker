@@ -21,7 +21,7 @@ function AppShell() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 bg-[#161b27] px-4 py-2">
+      <header className="shrink-0 bg-[#161b27] px-4 py-2 border-b border-[#1e2535] shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <h1 className="text-sm font-bold leading-tight text-slate-100">

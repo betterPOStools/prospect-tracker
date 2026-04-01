@@ -108,7 +108,7 @@ const CANVASS_DOT: Record<string, string> = {
 function RecordRow({ record, selected, onToggle, onClick, onDoubleClick }: RecordRowProps) {
   return (
     <div
-      className={`flex items-center gap-3 border-b border-[#1e2535] px-4 py-2 transition-colors ${
+      className={`flex items-center gap-3 border-b border-[#1e2535] px-4 py-2 transition-colors duration-150 ${
         selected ? 'bg-[#1a2744]' : 'hover:bg-[#1a2744]'
       }`}
       style={{ height: 72, boxSizing: 'border-box' }}
@@ -250,7 +250,7 @@ function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
       {/* Save / Cancel buttons */}
       <button
         onClick={() => onSave(record.id, form)}
-        className="shrink-0 rounded p-1 text-green-400 hover:bg-green-900/30 transition-colors"
+        className="shrink-0 rounded p-1 text-green-400 hover:bg-green-900/30 transition-all duration-150"
         aria-label="Save inline edit"
         title="Save"
       >
@@ -260,7 +260,7 @@ function InlineEditRow({ record, onSave, onCancel }: InlineEditRowProps) {
       </button>
       <button
         onClick={onCancel}
-        className="shrink-0 rounded p-1 text-red-400 hover:bg-red-900/30 transition-colors"
+        className="shrink-0 rounded p-1 text-red-400 hover:bg-red-900/30 transition-all duration-150"
         aria-label="Cancel inline edit"
         title="Cancel"
       >
@@ -661,7 +661,7 @@ export default function BrowsePanel() {
 
       {/* Bulk action bar — sticky when selection active */}
       {hasSelection && (
-        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-blue-500/30 bg-[#1a2744] px-4 py-2">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-blue-500/30 bg-[#1a2744] px-4 py-2 shadow-lg shadow-black/30">
           <Button
             size="sm"
             variant="primary"
@@ -678,7 +678,7 @@ export default function BrowsePanel() {
                 key={d}
                 onClick={() => handleQuickDay(d)}
                 disabled={bulkLoading}
-                className="rounded-full border border-[#1e2535] bg-[#161b27] px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-[#1e2535] active:bg-[#1e2535] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full border border-[#1e2535] bg-[#161b27] px-2.5 py-1 text-xs font-medium text-slate-300 transition-all duration-150 hover:bg-[#1e2535] active:scale-[0.97] active:bg-[#1e2535] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {d.slice(0, 3)}
               </button>
@@ -690,7 +690,7 @@ export default function BrowsePanel() {
             <select
               value={bulkDay}
               onChange={(e) => setBulkDay(e.target.value)}
-              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none transition-colors duration-150"
               aria-label="Assign day"
             >
               <option value="">Day…</option>
@@ -713,7 +713,7 @@ export default function BrowsePanel() {
             <select
               value={bulkStatus}
               onChange={(e) => setBulkStatus(e.target.value)}
-              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-200 focus:border-blue-500 focus:outline-none transition-colors duration-150"
               aria-label="Change status"
             >
               {BULK_STATUS_OPTIONS.map((o) => (

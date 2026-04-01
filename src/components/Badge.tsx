@@ -10,7 +10,7 @@ export function PriorityBadge({ priority, score }: PriorityBadgeProps) {
   const color = PRIORITY_COLOR[priority]
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold transition-colors duration-150"
       style={{ background: color + '22', color }}
     >
       {PRIORITY_EMOJI[priority]} {priority}
@@ -34,7 +34,7 @@ const VARIANT_CLASSES: Record<NonNullable<BadgeProps['variant']>, string> = {
 
 export function Badge({ children, variant = 'default' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${VARIANT_CLASSES[variant]}`}>
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors duration-150 ${VARIANT_CLASSES[variant]}`}>
       {children}
     </span>
   )

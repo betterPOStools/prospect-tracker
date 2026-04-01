@@ -191,7 +191,7 @@ export default function EndDayModal({ open, onClose, stops }: EndDayModalProps) 
           {rows.map((row) => (
             <div
               key={row.label}
-              className="flex items-center justify-between border-b border-[#1e2535] px-3 py-2 last:border-b-0"
+              className="flex items-center justify-between border-b border-[#1e2535] px-3 py-2 last:border-b-0 transition-colors duration-150 hover:bg-[#1a2030]"
             >
               <div className="flex flex-col">
                 <span className={`text-sm font-medium ${row.color ?? 'text-slate-100'}`}>

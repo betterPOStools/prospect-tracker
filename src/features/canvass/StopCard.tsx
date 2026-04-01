@@ -127,7 +127,7 @@ function ActivityHistory({
       </button>
 
       {open && (
-        <div className="mt-1.5 border-t border-[#1e2535] pt-1.5">
+        <div className="mt-1.5 border-t border-[#1e2535] pt-1.5 transition-all duration-200">
           {sorted.length === 0 ? (
             <p className="text-[11px] text-slate-500 italic">No activity yet</p>
           ) : (
@@ -441,7 +441,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
   }
 
   return (
-    <div className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3 shadow-sm">
+    <div className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3 shadow-sm transition-all duration-200 hover:border-[#2a3550] hover:shadow-lg hover:shadow-black/20">
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -497,7 +497,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
         <form onSubmit={handleAddNote} className="mt-2 flex gap-1.5">
           <input
             type="text"
-            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="min-w-0 flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             placeholder="Add a note…"
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
@@ -533,7 +533,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
           <select
             value={stop.status}
             onChange={(e) => updateStatus(e.target.value as StopStatus)}
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-2 py-1.5 text-xs text-slate-300 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="queued">Not Visited</option>
             <option value="come_back_later">Come Back Later</option>
@@ -585,7 +585,7 @@ export default function StopCard({ stop, readOnly = false, showOverdue = false }
           {REMOVAL_REASONS.map((reason) => (
             <button
               key={reason.label}
-              className="flex items-center justify-between rounded-lg border border-[#1e2535] px-3 py-2.5 text-left text-sm text-slate-300 transition-colors hover:border-[#2a3548] hover:bg-[#1a2744] active:bg-[#1e2535]"
+              className="flex items-center justify-between rounded-lg border border-[#1e2535] px-3 py-2.5 text-left text-sm text-slate-300 transition-all duration-150 hover:border-[#2a3550] hover:bg-[#1a2744] active:bg-[#1e2535]"
               onClick={() => handleRemoveWithReason(reason)}
             >
               <span>{reason.label}</span>

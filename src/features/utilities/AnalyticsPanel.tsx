@@ -22,7 +22,7 @@ function StatBox({
 }) {
   return (
     <div
-      className="flex flex-col items-center justify-center rounded-xl px-3 py-3 text-center"
+      className="flex flex-col items-center justify-center rounded-xl px-3 py-3 text-center transition-all duration-200 hover:border-[#2a3550]"
       style={{ background: color ? color + '18' : undefined, border: `1px solid ${color ?? '#1e2535'}40` }}
     >
       <span className="text-xl font-bold" style={{ color: color ?? '#94a3b8' }}>
@@ -165,7 +165,7 @@ export default function AnalyticsPanel() {
               </thead>
               <tbody className="divide-y divide-[#1e2535] bg-[#161b27]">
                 {territory.byArea.map((a) => (
-                  <tr key={a.area} className="hover:bg-[#1a2744]">
+                  <tr key={a.area} className="hover:bg-[#1a2744] transition-colors duration-150">
                     <td className="px-3 py-2 font-medium text-slate-100">{a.area}</td>
                     <td className="px-3 py-2 text-right text-slate-400">{a.total}</td>
                     <td className="px-3 py-2 text-right text-slate-400">{a.coveragePct}%</td>

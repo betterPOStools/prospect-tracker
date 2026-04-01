@@ -38,7 +38,7 @@ function DayRow({ day, records, onCanvass, onClear, loading }: DayRowProps) {
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border p-3 ${
+      className={`flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:border-[#2a3550] ${
         day === today ? 'border-blue-500/40 bg-[#1a2744]' : 'border-[#1e2535] bg-[#161b27]'
       }`}
     >
@@ -370,7 +370,7 @@ export default function PlannerPanel() {
             <button
               key={d}
               onClick={() => setSelectedDay(d)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                 selectedDay === d
                   ? 'bg-blue-600 text-white'
                   : d === today

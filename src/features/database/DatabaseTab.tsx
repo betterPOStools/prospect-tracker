@@ -36,7 +36,7 @@ function StatsRow() {
 
   return (
     <div
-      className="flex items-center gap-3 overflow-x-auto border-b border-[#1e2535] bg-[#161b27] px-4 py-2 text-xs shrink-0"
+      className="flex items-center gap-3 overflow-x-auto border-b border-[#1e2535] bg-[#161b27] px-4 py-2 text-xs shrink-0 shadow-sm shadow-black/20"
       aria-label="Database statistics"
     >
       <StatItem label="Total" value={stats.total} color="text-slate-300" />

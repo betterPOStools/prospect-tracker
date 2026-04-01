@@ -56,7 +56,7 @@ function RecordView({
       </div>
 
       {/* Contact info */}
-      <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1.5 text-sm">
+      <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1.5 text-sm shadow-sm shadow-black/20">
         {record.address && <p className="text-slate-300">{record.address}</p>}
         {(record.city || record.zip) && (
           <p className="text-slate-500 text-xs">
@@ -167,7 +167,7 @@ function RecordView({
 
       {/* Business details */}
       {(record.employees || record.revenue || record.naics_description) && (
-        <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1 text-xs text-slate-400">
+        <div className="rounded-lg bg-[#0f1117] border border-[#1e2535] p-3 space-y-1 text-xs text-slate-400 shadow-sm shadow-black/20">
           {record.employees && <p>Employees: {record.employees}</p>}
           {record.revenue && <p>Revenue: {record.revenue}</p>}
           {record.naics_description && (
@@ -504,7 +504,7 @@ function RecordEditForm({
           value={form.notes}
           onChange={(e) => setField('notes', e.target.value)}
           rows={3}
-          className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
           placeholder="Notes…"
         />
       </div>

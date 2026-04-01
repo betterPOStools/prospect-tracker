@@ -22,7 +22,7 @@ export default function SyncStatus() {
 
   if (!isOnline) {
     return (
-      <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-red-400">
+      <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-red-400 transition-colors duration-300">
         <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
         Offline
       </div>
@@ -31,7 +31,7 @@ export default function SyncStatus() {
 
   if (queueLength > 0) {
     return (
-      <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-yellow-400">
+      <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-yellow-400 transition-colors duration-300">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
         Syncing {queueLength}…
       </div>
@@ -40,7 +40,7 @@ export default function SyncStatus() {
 
   const rel = relativeTime(syncedAt)
   return (
-    <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-slate-500">
+    <div className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-slate-500 transition-colors duration-300">
       <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
       {rel ? `Cloud · ${rel}` : 'Cloud sync ready'}
     </div>

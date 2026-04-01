@@ -131,7 +131,7 @@ export default function DemoteModal({ open, onClose, lead }: DemoteModalProps) {
         </label>
         <textarea
           id="demote-reason"
-          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           rows={3}
           placeholder="Why is this lead being moved back?"
           value={reason}

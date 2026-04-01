@@ -88,7 +88,7 @@ export default function RouteStopItem({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-[#1e2535] bg-[#161b27] p-3">
+    <div className="flex items-start gap-3 rounded-lg border border-[#1e2535] bg-[#161b27] p-3 transition-all duration-200 hover:border-[#2a3550] hover:shadow-lg hover:shadow-black/20">
       {/* Number */}
       <div className="flex flex-col items-center pt-0.5">
         <span data-testid="stop-number" className="text-sm font-bold text-slate-300 tabular-nums w-6 text-center">
@@ -118,7 +118,7 @@ export default function RouteStopItem({
               onClick={onMoveUp}
               disabled={index === 0}
               aria-label="Move stop up"
-              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
             >
               ▲
             </button>
@@ -126,7 +126,7 @@ export default function RouteStopItem({
               onClick={onMoveDown}
               disabled={index === total - 1}
               aria-label="Move stop down"
-              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-[#1e2535] hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150"
             >
               ▼
             </button>

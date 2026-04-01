@@ -241,7 +241,7 @@ function SearchSubTab({ onSwitchToQueue }: { onSwitchToQueue: () => void }) {
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-slate-400">Categories</label>
             <textarea
-              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
               rows={3}
               value={categories}
               onChange={(e) => setCategories(e.target.value)}
@@ -398,7 +398,7 @@ function QueueSubTab() {
       )}
 
       {tasks.map((task) => (
-        <div key={task.id} className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3">
+        <div key={task.id} className="rounded-xl border border-[#1e2535] bg-[#161b27] p-3 transition-all duration-200">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-slate-100">
@@ -442,7 +442,7 @@ function QueueSubTab() {
         <p className="mb-2 text-xs font-medium text-slate-400">Add Task by ID</p>
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="flex-1 rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
             placeholder="Outscraper task ID"
             value={manualTaskId}
             onChange={(e) => setManualTaskId(e.target.value)}
@@ -484,7 +484,7 @@ function OsSettingsSubTab() {
         <label className="text-xs font-medium text-slate-400">API Key</label>
         <input
           type="password"
-          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
           placeholder="os_••••••••"
           value={apiKey}
           onChange={(e) => setApiKeyState(e.target.value)}
@@ -494,7 +494,7 @@ function OsSettingsSubTab() {
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-slate-400">Categories</label>
         <textarea
-          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+          className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
           rows={3}
           value={cfg.categories}
           onChange={(e) => update('categories', e.target.value)}
@@ -508,7 +508,7 @@ function OsSettingsSubTab() {
             type="number"
             min={1}
             max={50}
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
             value={cfg.zipBatchSize}
             onChange={(e) => update('zipBatchSize', Number(e.target.value))}
           />
@@ -520,7 +520,7 @@ function OsSettingsSubTab() {
             min={0}
             max={5}
             step={0.1}
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
             value={cfg.minRating}
             onChange={(e) => update('minRating', Number(e.target.value))}
           />
@@ -531,7 +531,7 @@ function OsSettingsSubTab() {
             type="number"
             min={0}
             max={1000}
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
             value={cfg.minReviews}
             onChange={(e) => update('minReviews', Number(e.target.value))}
           />
@@ -540,7 +540,7 @@ function OsSettingsSubTab() {
           <label className="text-xs font-medium text-slate-400">Webhook URL</label>
           <input
             type="text"
-            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-lg border border-[#1e2535] bg-[#0f1117] px-3 py-2 text-sm text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-colors duration-150"
             placeholder="https://…"
             value={cfg.webhookUrl}
             onChange={(e) => update('webhookUrl', e.target.value)}

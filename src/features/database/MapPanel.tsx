@@ -147,7 +147,7 @@ export default function MapPanel() {
         />
         <button
           onClick={() => setFitTrigger((n) => n + 1)}
-          className="rounded-lg border border-[#1e2535] bg-[#161b27] px-3 py-2 text-sm text-slate-300 hover:bg-[#1a2744] active:bg-[#1e2535] transition-colors"
+          className="rounded-lg border border-[#1e2535] bg-[#161b27] px-3 py-2 text-sm text-slate-300 hover:bg-[#1a2744] active:bg-[#1e2535] transition-all duration-150"
           aria-label="Fit view to records"
         >
           Fit View
