@@ -74,7 +74,7 @@ export function useOutscraper() {
           dispatch({ type: 'UPSERT_MANY', records: allRecords })
 
           // Mark task complete in Supabase
-          await supabase
+          await db
             .from('outscraper_tasks')
             .update({ status: 'completed' as TaskStatus, record_count: added + updated, completed_at: new Date().toISOString() })
             .eq('task_id', requestId)
@@ -83,7 +83,7 @@ export function useOutscraper() {
         }
 
         if (status === 'Error' || status === 'error') {
-          await supabase
+          await db
             .from('outscraper_tasks')
             .update({ status: 'failed' as TaskStatus })
             .eq('task_id', requestId)
@@ -103,7 +103,7 @@ export function useOutscraper() {
   // ── Fetch stored tasks from Supabase ──────────────────────────────────────
 
   const fetchTasks = useCallback(async (): Promise<OutscraperTask[]> => {
-    const { data, error: err } = await supabase
+    const { data, error: err } = await db
       .from('outscraper_tasks')
       .select('*')
       .order('created_at', { ascending: false })

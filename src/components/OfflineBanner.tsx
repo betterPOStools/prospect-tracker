@@ -7,7 +7,7 @@ export default function OfflineBanner() {
   const { isOnline, queueLength } = useOffline()
   const [banner, setBanner] = useState<BannerState>('hidden')
   const wasOfflineRef = useRef(false)
-  const dismissTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     // Clear any pending dismiss timer on state change
