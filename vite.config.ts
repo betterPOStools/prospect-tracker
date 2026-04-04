@@ -10,7 +10,7 @@ export default defineConfig({
   },
   server: {
     port: 5176,
-    host: true,
+    host: "100.96.113.106", // bind to Tailscale only — LAN devices cannot reach dev server
     headers: {
       "X-Frame-Options": "ALLOWALL",
     },
