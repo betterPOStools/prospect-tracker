@@ -1,5 +1,18 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+### Added
+### Fixed
+### Changed
+### Removed
+
+---
+
 ## v0.11.3
 - **Copy DB coordinates to canvass stops** — all 5 stop-creation paths (Fill Near Me, Browse load, Week Planner, Lead→Queue, Demote→Canvass) now carry `lat`/`lng` from the Outscraper DB record, eliminating Nominatim geocoding for imported stops
 - **DB-lookup fallback in route optimizer** — before hitting Nominatim, the optimizer checks the linked DB record for coordinates (instant, no rate limiting); Nominatim only used for manually-added stops
