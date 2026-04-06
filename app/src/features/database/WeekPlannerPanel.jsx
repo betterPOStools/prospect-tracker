@@ -76,16 +76,70 @@ export default function WeekPlannerPanel() {
     const { assignments, skippedNoCoords } = autoFillWeek(db.dbRecords, stopsPerDay, areaFilter)
     if (!assignments.length) { flash('Not enough data to auto-fill week.' + (skippedNoCoords ? ` (${skippedNoCoords} missing coordinates)` : ''), 'err'); return }
     dbDispatch({ type: 'WEEK_ASSIGN', assignments })
+
+    // Auto-load to canvass
+    const existingNames = new Set(canvass.map(c => c.name.toLowerCase()))
+    const newStops = []
+    const dbUpdates = []
+    assignments.forEach(({ id }) => {
+      const r = db.dbRecords.find(x => x.id === id); if (!r) return
+      if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
+      newStops.push({
+        id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
+        lat: r.lt, lng: r.lg,
+        status: 'Not visited yet',
+        date: new Date().toLocaleDateString(),
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
+      })
+      dbUpdates.push(id)
+    })
+    if (newStops.length) {
+      cDispatch({ type: 'ADD_MANY', stops: newStops })
+      dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
+    }
+
     const skipMsg = skippedNoCoords ? ` (${skippedNoCoords} skipped — no coordinates)` : ''
-    flash(`Week filled — ${assignments.length} stops assigned across ${DAYS.length} days.${skipMsg}`, 'ok')
+    flash(`Week filled — ${assignments.length} stops assigned and loaded to canvass.${skipMsg}`, 'ok')
   }
 
   function handleAutoFillDay(day) {
     const { assignments, skippedNoCoords } = autoAssignDay(db.dbRecords, day, stopsPerDay, areaFilter)
     if (!assignments.length) { flash(`No unworked records available for ${day}.` + (skippedNoCoords ? ` (${skippedNoCoords} missing coordinates)` : ''), 'err'); return }
     dbDispatch({ type: 'WEEK_ASSIGN', assignments })
+
+    // Auto-load to canvass
+    const existingNames = new Set(canvass.map(c => c.name.toLowerCase()))
+    const newStops = []
+    const dbUpdates = []
+    assignments.forEach(({ id }) => {
+      const r = db.dbRecords.find(x => x.id === id); if (!r) return
+      if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
+      newStops.push({
+        id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
+        lat: r.lt, lng: r.lg,
+        status: 'Not visited yet',
+        date: new Date().toLocaleDateString(),
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
+      })
+      dbUpdates.push(id)
+    })
+    if (newStops.length) {
+      cDispatch({ type: 'ADD_MANY', stops: newStops })
+      dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
+    }
+
     const skipMsg = skippedNoCoords ? ` (${skippedNoCoords} skipped — no coordinates)` : ''
-    flash(`${assignments.length} stops assigned to ${day}.${skipMsg}`, 'ok')
+    flash(`${assignments.length} stops assigned to ${day} and loaded to canvass.${skipMsg}`, 'ok')
   }
 
   function handleClearDay(day) {

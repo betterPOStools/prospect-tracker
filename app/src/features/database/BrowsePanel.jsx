@@ -121,8 +121,38 @@ export default function BrowsePanel() {
     if (!assignDay) { flash('Pick a day first.', 'err'); return }
     const ids = [...selected]; if (!ids.length) { flash('Select records first.', 'err'); return }
     dbDispatch({ type: 'ASSIGN_DAY', ids, day: assignDay })
+
+    // Auto-load to canvass
+    const existingNames = new Set(canvass.map(c => c.name.toLowerCase()))
+    const stops = []
+    const dbUpdates = []
+    const todayISO = new Date().toISOString().slice(0, 10)
+    ids.forEach(id => {
+      const r = recordById.get(id); if (!r) return
+      if (r.st !== 'unworked') return
+      if (r.co && r.co > todayISO) return
+      if (existingNames.has((r.n || '').toLowerCase())) return
+      const now = new Date().toISOString()
+      const contactNote = r.cn ? (r.ct ? r.cn + ' (' + r.ct + ')' : r.cn) : ''
+      stops.push({
+        id: 'canvass_' + r.id, name: r.n, addr: r.a, phone: r.ph,
+        notes: '', website: r.web, menu: r.mn, email: r.em,
+        ...parseWorkingHours(r.hr),
+        lat: r.lt, lng: r.lg,
+        status: 'Not visited yet',
+        date: new Date().toLocaleDateString(),
+        added: now, fromDb: r.id, score: r.sc, priority: r.pr,
+        history: [], notesLog: contactNote ? [{ text: 'Contact: ' + contactNote, ts: now, system: true }] : [],
+      })
+      dbUpdates.push(id)
+    })
+    if (stops.length) {
+      cDispatch({ type: 'ADD_MANY', stops })
+      dbDispatch({ type: 'UPDATE_RECORD_STATUS_MANY', ids: dbUpdates, fields: { st: 'in_canvass' } })
+    }
+
     clearSel()
-    flash(`${ids.length} stops assigned to ${assignDay}.`, 'ok')
+    flash(`${ids.length} records assigned to ${assignDay}${stops.length ? `, ${stops.length} loaded to canvass` : ''}.`, 'ok')
   }
 
   function setGroup() {
