@@ -23,8 +23,13 @@ export default function LeadCard({ prospect, onDemote }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
   const [showAllActivity, setShowAllActivity] = useState(false)
+  const [newNote, setNewNote] = useState('')
+  const [editingNoteIdx, setEditingNoteIdx] = useState(-1)
+  const [editNoteText, setEditNoteText] = useState('')
+  const [showAllNotes, setShowAllNotes] = useState(false)
   const p = prospect
   const activityLog = p.activityLog || []
+  const notesLog = p.notesLog || []
 
   function startEdit() {
     setForm({ ...p })
@@ -52,6 +57,26 @@ export default function LeadCard({ prospect, onDemote }) {
   function logActivity(type, text) {
     const now = new Date().toISOString()
     dispatch({ type: 'UPDATE', prospect: { ...p, activityLog: [...activityLog, { text, ts: now, type }], lastContact: now } })
+  }
+
+  function addNote() {
+    if (!newNote.trim()) return
+    const now = new Date().toISOString()
+    dispatch({ type: 'UPDATE', prospect: { ...p, notesLog: [...notesLog, { text: newNote.trim(), ts: now }] } })
+    setNewNote('')
+  }
+
+  function startEditNote(idx) {
+    setEditingNoteIdx(idx)
+    setEditNoteText(notesLog[idx].text)
+  }
+
+  function saveEditNote() {
+    if (editingNoteIdx < 0) return
+    const updated = notesLog.map((n, i) => i === editingNoteIdx ? { ...n, text: editNoteText } : n)
+    dispatch({ type: 'UPDATE', prospect: { ...p, notesLog: updated } })
+    setEditingNoteIdx(-1)
+    setEditNoteText('')
   }
 
   const todayISO = new Date().toISOString().slice(0, 10)
@@ -155,6 +180,50 @@ export default function LeadCard({ prospect, onDemote }) {
           {lastContactLabel && <span>Last contact: {lastContactLabel}</span>}
         </div>
       )}
+
+      <div style={{ marginTop: '8px', borderTop: '0.5px solid var(--border)', paddingTop: '6px' }}>
+        {notesLog.length > 0 && (
+          <>
+            {notesLog.length > 3 && !showAllNotes && (
+              <button onClick={() => setShowAllNotes(true)}
+                style={{ background: 'none', border: 'none', color: 'var(--blue-text)', fontSize: '11px', cursor: 'pointer', padding: 0, marginBottom: '4px' }}>
+                View all ({notesLog.length}) notes
+              </button>
+            )}
+            {showAllNotes && notesLog.length > 3 && (
+              <button onClick={() => setShowAllNotes(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--blue-text)', fontSize: '11px', cursor: 'pointer', padding: 0, marginBottom: '4px' }}>
+                Show recent
+              </button>
+            )}
+            {(showAllNotes ? notesLog : notesLog.slice(-3)).map((n, i) => {
+              const realIdx = showAllNotes ? i : notesLog.length - Math.min(notesLog.length, 3) + i
+              return editingNoteIdx === realIdx ? (
+                <div key={realIdx} style={{ display: 'flex', gap: '4px', marginBottom: '3px' }}>
+                  <input type="text" value={editNoteText} autoFocus
+                    style={{ flex: 1, fontSize: '12px', padding: '2px 6px' }}
+                    onChange={e => setEditNoteText(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveEditNote(); if (e.key === 'Escape') setEditingNoteIdx(-1) }} />
+                  <Button size="sm" onClick={saveEditNote} style={{ fontSize: '11px' }}>OK</Button>
+                </div>
+              ) : (
+                <div key={realIdx} onClick={() => startEditNote(realIdx)}
+                  style={{ fontSize: '12px', color: 'var(--text2)', marginBottom: '3px', cursor: 'pointer' }}>
+                  <span style={{ color: 'var(--text3)', fontSize: '10px' }}>{fmtTs(n.ts)}</span>
+                  {' '}{n.text}
+                </div>
+              )
+            })}
+          </>
+        )}
+        <div style={{ display: 'flex', gap: '4px', marginTop: notesLog.length > 0 ? '4px' : '0' }}>
+          <input type="text" value={newNote} placeholder="Add note…"
+            style={{ flex: 1, fontSize: '12px', padding: '3px 8px' }}
+            onChange={e => setNewNote(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') addNote() }} />
+          <Button size="sm" onClick={addNote} disabled={!newNote.trim()} style={{ fontSize: '11px' }}>+</Button>
+        </div>
+      </div>
 
       {activityLog.length > 0 && (
         <div style={{ marginTop: '8px', borderTop: '0.5px solid var(--border)', paddingTop: '6px' }}>

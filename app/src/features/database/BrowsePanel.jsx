@@ -1,8 +1,8 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { useDatabase, useDatabaseDispatch, useCanvass, useCanvassDispatch } from '../../data/store.jsx'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import { calcScore, calcPriority, PRIORITY_COLOR, PRIORITY_EMOJI, PRIORITIES } from '../../data/scoring.js'
-import { parseWorkingHours } from '../../data/helpers.js'
+import { parseWorkingHours, navUrl } from '../../data/helpers.js'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Button from '../../components/Button.jsx'
 
@@ -23,6 +23,198 @@ function statusBadge(st) {
 
 const ROW_HEIGHT = 52 // estimated px per row
 
+// ── Detail field definitions ──────────────────────────────────────────────
+const FIELD_GROUPS = [
+  { label: 'Contact', fields: [
+    { key: 'ph',  label: 'Phone' },
+    { key: 'pt',  label: 'Phone Type' },
+    { key: 'pc',  label: 'Carrier' },
+    { key: 'em',  label: 'Email' },
+    { key: 'es',  label: 'Email Status' },
+    { key: 'cn',  label: 'Contact Name' },
+    { key: 'ct',  label: 'Contact Title' },
+    { key: 'web', label: 'Website', link: true },
+    { key: 'mn',  label: 'Menu', link: true },
+    { key: 'fb',  label: 'Facebook', link: true },
+    { key: 'ig',  label: 'Instagram', link: true },
+  ]},
+  { label: 'Business', fields: [
+    { key: 'ty',  label: 'Type' },
+    { key: 'rt',  label: 'Rating' },
+    { key: 'rv',  label: 'Reviews' },
+    { key: 'ch',  label: 'Is Chain', bool: true },
+    { key: 'emp', label: 'Employees' },
+    { key: 'rev', label: 'Revenue' },
+    { key: 'nai', label: 'NAICS Code' },
+    { key: 'nad', label: 'NAICS Desc' },
+    { key: 'hr',  label: 'Hours' },
+  ]},
+  { label: 'Location', fields: [
+    { key: 'a',   label: 'Address' },
+    { key: 'ci',  label: 'City' },
+    { key: 'zi',  label: 'ZIP' },
+    { key: 'lt',  label: 'Latitude', readonly: true },
+    { key: 'lg',  label: 'Longitude', readonly: true },
+    { key: 'pi',  label: 'Place ID', readonly: true },
+  ]},
+  { label: 'Organization', fields: [
+    { key: 'ar',  label: 'Area' },
+    { key: 'da',  label: 'Day' },
+    { key: 'grp', label: 'Group' },
+    { key: 'st',  label: 'Status', select: ['unworked', 'in_canvass', 'canvassed', 'converted', 'lead'] },
+    { key: 'co',  label: 'Cooldown Until', type: 'date' },
+  ]},
+  { label: 'Notes', fields: [
+    { key: 'nt',  label: 'Notes', textarea: true },
+  ]},
+]
+
+const dStyle = { fontSize: '12px', padding: '12px', background: 'var(--bg2)', borderBottom: '0.5px solid var(--border)' }
+const fieldRow = { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '3px 0', gap: '8px' }
+const fieldLabel = { color: 'var(--text3)', fontSize: '11px', flexShrink: 0, width: '90px' }
+const fieldValue = { color: 'var(--text)', fontSize: '12px', textAlign: 'right', flex: 1, minWidth: 0, wordBreak: 'break-word' }
+const fieldEmpty = { ...fieldValue, color: 'var(--text3)', fontStyle: 'italic' }
+const groupTitle = { fontSize: '11px', fontWeight: 600, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '10px', marginBottom: '4px' }
+const inputStyle = { width: '100%', height: '28px', fontSize: '12px', padding: '0 8px', borderRadius: 'var(--radius)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }
+
+function RecordDetail({ r, dbDispatch, flash }) {
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState({})
+
+  function startEdit() {
+    setForm({ ...r })
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    setEditing(false)
+    setForm({})
+  }
+
+  function saveEdit() {
+    const sc = calcScore(form)
+    const pr = calcPriority(sc)
+    dbDispatch({ type: 'UPDATE_RECORD', record: { ...form, sc, pr } })
+    setEditing(false)
+    setForm({})
+    flash('Record updated.', 'ok')
+  }
+
+  function upd(key, val) {
+    setForm(prev => ({ ...prev, [key]: val }))
+  }
+
+  function renderField(f) {
+    if (editing && !f.readonly) {
+      if (f.textarea) {
+        return (
+          <div key={f.key} style={{ padding: '3px 0' }}>
+            <div style={{ ...fieldLabel, width: 'auto', marginBottom: '4px' }}>{f.label}</div>
+            <textarea value={form[f.key] || ''} onChange={e => upd(f.key, e.target.value)}
+              style={{ ...inputStyle, height: '60px', padding: '6px 8px', resize: 'vertical' }} />
+          </div>
+        )
+      }
+      if (f.select) {
+        return (
+          <div key={f.key} style={fieldRow}>
+            <span style={fieldLabel}>{f.label}</span>
+            <select value={form[f.key] || ''} onChange={e => upd(f.key, e.target.value)}
+              style={{ ...inputStyle, width: 'auto', minWidth: '120px' }}>
+              {f.select.map(o => <option key={o} value={o}>{badgeLabel[o] || o}</option>)}
+            </select>
+          </div>
+        )
+      }
+      if (f.bool) {
+        return (
+          <div key={f.key} style={fieldRow}>
+            <span style={fieldLabel}>{f.label}</span>
+            <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <input type="checkbox" checked={!!form[f.key]} onChange={e => upd(f.key, e.target.checked)}
+                style={{ accentColor: 'var(--accent)' }} />
+              {form[f.key] ? 'Yes' : 'No'}
+            </label>
+          </div>
+        )
+      }
+      return (
+        <div key={f.key} style={fieldRow}>
+          <span style={fieldLabel}>{f.label}</span>
+          <input type={f.type || 'text'} value={form[f.key] ?? ''} onChange={e => upd(f.key, e.target.value)}
+            style={{ ...inputStyle, textAlign: 'right', flex: 1 }} />
+        </div>
+      )
+    }
+
+    // View mode
+    const val = r[f.key]
+    const hasVal = val != null && val !== '' && val !== false
+    if (f.textarea) {
+      return (
+        <div key={f.key} style={{ padding: '3px 0' }}>
+          <div style={{ ...fieldLabel, width: 'auto', marginBottom: '2px' }}>{f.label}</div>
+          <div style={hasVal ? { ...fieldValue, textAlign: 'left', whiteSpace: 'pre-wrap' } : { ...fieldEmpty, textAlign: 'left' }}>
+            {hasVal ? val : '—'}
+          </div>
+        </div>
+      )
+    }
+    if (f.bool) {
+      return (
+        <div key={f.key} style={fieldRow}>
+          <span style={fieldLabel}>{f.label}</span>
+          <span style={fieldValue}>{val ? 'Yes' : 'No'}</span>
+        </div>
+      )
+    }
+    return (
+      <div key={f.key} style={fieldRow}>
+        <span style={fieldLabel}>{f.label}</span>
+        {hasVal ? (
+          f.link ? (
+            <a href={String(val).startsWith('http') ? val : 'https://' + val} target="_blank" rel="noopener noreferrer"
+              style={{ ...fieldValue, color: 'var(--accent)', textDecoration: 'none' }}
+              onClick={e => e.stopPropagation()}>
+              {String(val).replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)}
+            </a>
+          ) : (
+            <span style={fieldValue}>{String(val)}</span>
+          )
+        ) : (
+          <span style={fieldEmpty}>—</span>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div style={dStyle} onClick={e => e.stopPropagation()}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: PRIORITY_COLOR[r.pr] }}>{PRIORITY_EMOJI[r.pr]} {r.pr}</span>
+          <span style={{ fontSize: '12px', color: 'var(--text2)', fontFamily: 'var(--mono)' }}>Score {r.sc}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {editing ? (<>
+            <Button size="sm" variant="primary" onClick={saveEdit}>Save</Button>
+            <Button size="sm" onClick={cancelEdit}>Cancel</Button>
+          </>) : (
+            <Button size="sm" onClick={startEdit}>Edit</Button>
+          )}
+        </div>
+      </div>
+
+      {FIELD_GROUPS.map(group => (
+        <div key={group.label}>
+          <div style={groupTitle}>{group.label}</div>
+          {group.fields.map(renderField)}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function BrowsePanel() {
   const db           = useDatabase()
   const dbDispatch   = useDatabaseDispatch()
@@ -38,6 +230,7 @@ export default function BrowsePanel() {
   const [filterGroup,  setFilterGroup]  = useState('all')
   const [hideHold,     setHideHold]     = useState(true)
   const [selected,     setSelected]     = useState(new Set())
+  const [expandedId,   setExpandedId]   = useState(null)
   const [assignDay,    setAssignDay]     = useState('')
   const [groupInput,   setGroupInput]   = useState('')
   const [bulkStatus,   setBulkStatus]   = useState('')
@@ -296,8 +489,8 @@ export default function BrowsePanel() {
                 ref={virtualizer.measureElement}
                 data-index={vRow.index}>
                 <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderBottom: '0.5px solid var(--border)', fontSize: '13px', background: selected.has(r.id) ? 'var(--bg2)' : 'transparent', cursor: 'pointer' }}
-                  onClick={() => toggle(r.id)}>
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 12px', borderBottom: expandedId === r.id ? 'none' : '0.5px solid var(--border)', fontSize: '13px', background: selected.has(r.id) ? 'var(--bg2)' : 'transparent', cursor: 'pointer' }}
+                  onClick={() => setExpandedId(prev => prev === r.id ? null : r.id)}>
                   <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)}
                     style={{ width: '15px', height: '15px', flexShrink: 0, accentColor: 'var(--accent)' }}
                     onClick={e => e.stopPropagation()} />
@@ -320,6 +513,7 @@ export default function BrowsePanel() {
                     {r.ph && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{r.ph}</span>}
                   </div>
                 </div>
+                {expandedId === r.id && <RecordDetail r={r} dbDispatch={dbDispatch} flash={flash} />}
               </div>
             )
           })}
