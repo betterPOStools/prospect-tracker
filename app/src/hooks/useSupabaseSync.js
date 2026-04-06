@@ -65,7 +65,7 @@ export function useSupabaseSync() {
       .channel('app_state_changes')
       .on(
         'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: TABLE, filter: `id=eq.${ROW_ID}` },
+        { event: 'UPDATE', schema: 'prospect', table: TABLE, filter: `id=eq.${ROW_ID}` },
         (event) => {
           if (lastWriteTimeRef.current && Date.now() - lastWriteTimeRef.current < ECHO_WINDOW_MS) return
           const incoming = event.new

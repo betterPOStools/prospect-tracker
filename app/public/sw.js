@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pt-v1'
+const CACHE_NAME = 'pt-v2'
 const FONT_CACHE = 'pt-fonts-v1'
 
 // Install: cache the app shell entry point
