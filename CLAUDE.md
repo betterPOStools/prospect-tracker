@@ -20,6 +20,9 @@
 - Any command outside the project directory
 - Any deployment command
 
+## Dev Server Port
+This app runs on port **5176**. See the [suite port table](/Users/nomad/Projects/CLAUDE.md#dev-server-port-assignments) for all assignments — never change ports without updating that table.
+
 ## Stack
 - React 19 + Vite + TypeScript (strict)
 - Tailwind CSS 4 + `src/styles/mobile.css` for native overrides
