@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useCanvass, useCanvassDispatch, useDatabase } from '../../data/store.jsx'
 import { hoursChip, navUrl, getRouteProvider } from '../../data/helpers.js'
 import { CANVASS_ACTIVE, REMOVAL_STATUSES } from '../canvass/constants.js'
+import { DAYS } from '../../data/weekPlanner.js'
 import { useFlashMessage } from '../../hooks/useFlashMessage.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
@@ -102,6 +103,7 @@ export default function RouteTab() {
   const { msg, flash } = useFlashMessage()
 
   const today = useMemo(() => new Date().toLocaleDateString(), [])
+  const todayDayName = useMemo(() => DAYS[new Date().getDay() - 1] || null, [])
 
   const todayStops = useMemo(() =>
     canvass.filter(s =>
@@ -110,6 +112,18 @@ export default function RouteTab() {
       !REMOVAL_STATUSES.includes(s.status)
     ),
   [canvass, today])
+
+  // Map canvass stop → planned day (via linked DB record's `da` field)
+  const recordDayMap = useMemo(() => {
+    const m = {}
+    db.dbRecords.forEach(r => { if (r.da) m[r.id] = r.da })
+    return m
+  }, [db.dbRecords])
+
+  const getDayForStop = useCallback(s => {
+    if (s.fromDb && recordDayMap[s.fromDb]) return recordDayMap[s.fromDb]
+    return null // unassigned
+  }, [recordDayMap])
 
   const [order, setOrder] = useState(null)  // null = default order
   const [useCoords, setUseCoords] = useState(true) // true = lat/lng, false = addresses
@@ -139,10 +153,33 @@ export default function RouteTab() {
     flash('RouteXL credentials removed.', 'ok')
   }
 
+  // Separate today's-day stops from other-day stops
+  const { todayDayStops, otherDayStops } = useMemo(() => {
+    const todayDay = []
+    const other = []
+    todayStops.forEach(s => {
+      const day = getDayForStop(s)
+      if (!day || day === todayDayName) todayDay.push(s)
+      else other.push(s)
+    })
+    return { todayDayStops: todayDay, otherDayStops: other }
+  }, [todayStops, getDayForStop, todayDayName])
+
   const stops = useMemo(() => {
-    if (!order) return [...todayStops].sort((a, b) => (b.score || 0) - (a.score || 0))
-    return order.map(id => todayStops.find(s => s.id === id)).filter(Boolean)
-  }, [todayStops, order])
+    if (!order) return [...todayDayStops].sort((a, b) => (b.score || 0) - (a.score || 0))
+    return order.map(id => todayDayStops.find(s => s.id === id)).filter(Boolean)
+  }, [todayDayStops, order])
+
+  // Group other-day stops by their assigned day for display
+  const otherDayGroups = useMemo(() => {
+    const groups = []
+    for (const day of DAYS) {
+      if (day === todayDayName) continue
+      const dayStops = otherDayStops.filter(s => getDayForStop(s) === day)
+      if (dayStops.length) groups.push({ day, stops: dayStops })
+    }
+    return groups
+  }, [otherDayStops, getDayForStop, todayDayName])
 
   const legs = useMemo(() => {
     const result = []
@@ -293,6 +330,10 @@ export default function RouteTab() {
     return <EmptyState>No stops for today's run. Stops added to Today's Canvass will appear here.</EmptyState>
   }
 
+  const totalInCanvass = todayStops.length
+  const optimizableCount = stops.length
+  const otherCount = otherDayStops.length
+
   const url = routeUrl(currentLeg, useCoords)
   const hasCoords = currentLeg.some(s => s.lat && s.lng)
 
@@ -302,9 +343,10 @@ export default function RouteTab() {
       <div style={headerBox}>
         <div style={headerFlex}>
           <div>
-            <div style={headerTitle}>Today's Route</div>
+            <div style={headerTitle}>{todayDayName ? `${todayDayName}'s Route` : "Today's Route"}</div>
             <div style={headerSub}>
               {stops.length} stop{stops.length !== 1 ? 's' : ''}
+              {otherCount > 0 && ` · ${otherCount} other-day stops below`}
               {legs.length > 1 && ` · Leg ${safeActiveLeg + 1} of ${legs.length} (${currentLeg.length} stops)`}
               {' · Reorder with arrows · Navigate with Maps or Waze'}
             </div>
@@ -431,6 +473,48 @@ export default function RouteTab() {
           </div>
         ))}
       </div>
+
+      {/* Other-day stops (not optimized) */}
+      {otherDayGroups.map(({ day, stops: dayStops }) => (
+        <div key={day} style={{ marginTop: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+            <span style={{ fontSize: '12px', color: 'var(--text3)', whiteSpace: 'nowrap', fontWeight: 500 }}>
+              {day} · {dayStops.length} stop{dayStops.length !== 1 ? 's' : ''} · not optimized
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+          </div>
+          <div style={{ ...listBox, opacity: 0.6 }}>
+            {dayStops.map((s, i) => {
+              const chip = hoursChip(s.openTime, s.closeTime)
+              return (
+                <div key={s.id} style={stopRow}>
+                  <div style={posBadge}>{i + 1}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={stopName}>{s.name}</div>
+                    <div style={stopAddr}>{s.addr}</div>
+                    {chip && (
+                      <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '10px', marginTop: '2px', display: 'inline-block',
+                        background: chip.isOpen ? 'var(--green-bg)' : 'var(--bg3)',
+                        color: chip.isOpen ? 'var(--green-text)' : 'var(--text3)' }}>
+                        {chip.label}
+                      </span>
+                    )}
+                  </div>
+                  <div style={statusBox}>
+                    <div style={{ fontSize: '11px', fontWeight: 500, color: STATUS_COLOR[s.status] || 'var(--text3)' }}>
+                      {s.status}
+                    </div>
+                  </div>
+                  {s.addr && (
+                    <a href={navUrl(s.addr)} target="_blank" rel="noreferrer" style={navLinkStyle}>Navigate ↗</a>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
 
       {msg && <div style={{ fontSize: '12px', marginTop: '6px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>{msg.text}</div>}
 

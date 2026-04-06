@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/prospect-tracker/',
   server: {
+    port: 5176,
     proxy: {
       '/s3-proxy': {
         target: 'https://s3.us-east-005.backblazeb2.com',
