@@ -3,6 +3,7 @@ import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './sto
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
 import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
 import { calcScore, calcPriority } from './scoring.js'
+import { loadTracks, saveTracks } from '../hooks/useLocationTracking.js'
 
 function rescoreAll(records) {
   let changed = false
@@ -301,6 +302,7 @@ export function DataProvider({ children }) {
               dbAreas: data.dbAreas, dbBlocklist: data.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: data.prospects })
             canvassDispatch({ type: '_REPLACE_ALL', items: data.canvass })
+            if (data.locationTracks) saveTracks(data.locationTracks)
           }
         }
       }
@@ -322,6 +324,7 @@ export function DataProvider({ children }) {
               dbAreas: p.dbAreas, dbBlocklist: p.dbBlocklist })
             prospectsDispatch({ type: '_REPLACE_ALL', items: p.prospects || [] })
             canvassDispatch({ type: '_REPLACE_ALL', items: p.canvass || [] })
+            if (p.locationTracks) saveTracks(p.locationTracks)
           }
         }
       }
@@ -346,6 +349,7 @@ export function DataProvider({ children }) {
       prospects, canvass: canvassStops,
       dbRecords: db.dbRecords,
       dbAreas: db.dbAreas, dbBlocklist: db.dbBlocklist,
+      locationTracks: loadTracks(),
     })
   }, [prospects, canvassStops, db, fileSync.linked]) // writeToFile is stable (useCallback)
 
@@ -360,6 +364,7 @@ export function DataProvider({ children }) {
       dbRecords:   db.dbRecords,
       dbAreas:     db.dbAreas,
       dbBlocklist: db.dbBlocklist,
+      locationTracks: loadTracks(),
     })
   }, [prospects, canvassStops, db, supabaseSync.enabled]) // writeToSupabase is stable (useCallback)
 
@@ -376,6 +381,7 @@ export function DataProvider({ children }) {
         }
         if (payload.prospects !== undefined) prospectsDispatch({ type: '_REPLACE_ALL', items: payload.prospects })
         if (payload.canvass   !== undefined) canvassDispatch({ type: '_REPLACE_ALL', items: payload.canvass })
+        if (payload.locationTracks !== undefined) saveTracks(payload.locationTracks)
       }
     })
   }, [supabaseSync.enabled]) // eslint-disable-line react-hooks/exhaustive-deps

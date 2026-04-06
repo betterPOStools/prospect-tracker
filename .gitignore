@@ -1,4 +1,8 @@
 node_modules/
+dist/
+.env.local
+playwright-report/
+test-results/
 
 # Always track the sync backup even if it gets large
 !data/backup.json

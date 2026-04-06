@@ -1,0 +1,13 @@
+{
+  "appId": "com.valuesystems.prospecttracker",
+  "appName": "Prospect Tracker",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Geolocation": {
+      "permissions": ["location", "coarseLocation"]
+    }
+  }
+}

@@ -6,10 +6,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:android": "CAPACITOR_BUILD=1 vite build && npx cap sync android",
+    "apk": "CAPACITOR_BUILD=1 vite build && npx cap sync android && cd android && ./gradlew assembleRelease",
+    "apk:debug": "CAPACITOR_BUILD=1 vite build && npx cap sync android && cd android && ./gradlew assembleDebug",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/browser": "^8.0.3",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/geolocation": "^8.2.0",
+    "@capawesome-team/capacitor-android-foreground-service": "^8.1.0",
     "@supabase/supabase-js": "^2.99.3",
     "@tanstack/react-virtual": "^3.13.23",
     "jszip": "^3.10.1",

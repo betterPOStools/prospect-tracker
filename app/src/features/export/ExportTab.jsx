@@ -9,6 +9,10 @@ import SnapshotManager  from '../database/SnapshotManager.jsx'
 import BlocklistManager from '../database/BlocklistManager.jsx'
 import OutscraperPanel  from '../database/OutscraperPanel.jsx'
 import AnalyticsPanel   from './AnalyticsPanel.jsx'
+import MileagePanel     from './MileagePanel.jsx'
+import { isNative, isAndroid } from '../../lib/platform.js'
+import Modal            from '../../components/Modal.jsx'
+import { checkForUpdate, openDownload, CURRENT_VERSION_CODE } from '../../lib/updateChecker.js'
 
 function relativeTime(d) {
   if (!d) return 'never'
@@ -59,7 +63,7 @@ function Section({ title, sub, children }) {
   )
 }
 
-const SUB_TABS = ['Analytics', 'Import', 'Export', 'Backups', 'Blocklist', 'Settings']
+const SUB_TABS = ['Analytics', 'Mileage', 'Import', 'Export', 'Backups', 'Blocklist', 'Settings']
 
 // ── Import sub-tab ────────────────────────────────────────────────────────
 function ImportPanel() {
@@ -198,6 +202,7 @@ function ExportPanel() {
         </div>
       )}
 
+      {!isNative && (
       <Section title="Auto File Sync" sub={
         fileSync.isAvailable
           ? fileSync.linked
@@ -236,6 +241,7 @@ function ExportPanel() {
           <Button size="sm" variant="danger" onClick={fileSync.unlinkFile} style={{ marginLeft: 'auto' }}>Unlink</Button>
         </>)}
       </Section>
+      )}
 
       <Section
         title="Full Backup (JSON)"
@@ -268,6 +274,7 @@ function ExportPanel() {
         <Button size="sm" onClick={exportCanvassCSV}>Canvass Log ({canvass.length})</Button>
       </Section>
 
+      {!isNative && (
       <Section
         title="Git Sync Workflow"
         sub="How to keep data in sync across devices using git:">
@@ -277,6 +284,7 @@ function ExportPanel() {
           <div><strong style={{ color: 'var(--text)' }}>3. Pull &amp; Import</strong> — On another device: <code style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>git pull</code> → "Import from JSON"</div>
         </div>
       </Section>
+      )}
     </div>
   )
 }
@@ -287,6 +295,30 @@ function SettingsPanel() {
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem('vs_settings') || '{}') } catch { return {} }
   })
+
+  // Update checker state
+  const [checking, setChecking] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState(null)
+  const [updateError, setUpdateError] = useState(null)
+  const [checkedNoUpdate, setCheckedNoUpdate] = useState(false)
+
+  async function handleCheckUpdate() {
+    setChecking(true)
+    setUpdateError(null)
+    setCheckedNoUpdate(false)
+    try {
+      const result = await checkForUpdate()
+      if (result.hasUpdate) {
+        setUpdateInfo(result)
+      } else {
+        setCheckedNoUpdate(true)
+      }
+    } catch {
+      setUpdateError('Could not check for updates. Are you online?')
+    } finally {
+      setChecking(false)
+    }
+  }
 
   function update(key, value) {
     const next = { ...settings, [key]: value }
@@ -327,6 +359,41 @@ function SettingsPanel() {
           </div>
         </div>
       </Section>
+
+      {isAndroid && (
+        <Section title="App Updates" sub={`Current version: v${CURRENT_VERSION_CODE}`}>
+          <Button size="sm" onClick={handleCheckUpdate} disabled={checking}>
+            {checking ? 'Checking...' : 'Check for Updates'}
+          </Button>
+          {updateError && (
+            <div style={{ fontSize: '12px', color: 'var(--red-text)', marginTop: '4px', width: '100%' }}>
+              {updateError}
+            </div>
+          )}
+          {checkedNoUpdate && (
+            <div style={{ fontSize: '12px', color: 'var(--green-text)', marginTop: '4px', width: '100%' }}>
+              You're on the latest version.
+            </div>
+          )}
+        </Section>
+      )}
+
+      {updateInfo && (
+        <Modal title="Update Available" onClose={() => setUpdateInfo(null)}>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', marginBottom: '8px' }}>
+            {updateInfo.versionName}
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text2)', whiteSpace: 'pre-wrap', marginBottom: '16px', lineHeight: 1.6 }}>
+            {updateInfo.changelog}
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button variant="primary" onClick={() => { openDownload(updateInfo.downloadUrl); setUpdateInfo(null) }}>
+              Update Now
+            </Button>
+            <Button onClick={() => setUpdateInfo(null)}>Later</Button>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -338,14 +405,14 @@ export default function ExportTab() {
   return (
     <div>
       {/* Sub-tab bar */}
-      <div style={{ display: 'flex', gap: '4px', margin: '0 0 12px', borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
+      <div style={{ display: 'flex', gap: '4px', margin: '0 0 12px', borderBottom: '1px solid var(--border)', paddingBottom: '0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {SUB_TABS.map(t => (
           <button key={t} onClick={() => setSubTab(t)}
             style={{
               background: 'none', border: 'none', borderBottom: subTab === t ? '2px solid var(--accent)' : '2px solid transparent',
               padding: '6px 12px', fontSize: '13px', fontWeight: subTab === t ? 600 : 400,
               color: subTab === t ? 'var(--text)' : 'var(--text2)', cursor: 'pointer',
-              marginBottom: '-1px', transition: 'color .15s',
+              marginBottom: '-1px', transition: 'color .15s', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
             {t}
           </button>
@@ -353,6 +420,7 @@ export default function ExportTab() {
       </div>
 
       {subTab === 'Analytics' && <AnalyticsPanel />}
+      {subTab === 'Mileage'   && <MileagePanel />}
       {subTab === 'Import'    && <ImportPanel />}
       {subTab === 'Export'    && <ExportPanel />}
       {subTab === 'Backups'   && <SnapshotManager />}

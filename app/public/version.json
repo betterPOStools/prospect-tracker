@@ -1,0 +1,6 @@
+{
+  "versionCode": 1,
+  "versionName": "v0.11.3",
+  "downloadUrl": "",
+  "changelog": "Initial Capacitor release with mileage tracking and background GPS."
+}
