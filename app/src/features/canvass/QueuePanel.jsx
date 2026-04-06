@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useCanvass, useCanvassDispatch, useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { CANVASS_ACTIVE } from './constants.js'
+import { DAYS } from '../../data/weekPlanner.js'
 import { haversine } from '../../data/clustering.js'
 import { parseWorkingHours } from '../../data/helpers.js'
 import EmptyState from '../../components/EmptyState.jsx'
@@ -44,6 +45,39 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
     .sort((a, b) => new Date(a.added) - new Date(b.added))
 
   const list = [...overdueStops, ...todayStops]
+
+  // Build a map from record id → day assignment
+  const recordDayMap = useMemo(() => {
+    const m = {}
+    db.dbRecords.forEach(r => { if (r.da) m[r.id] = r.da })
+    return m
+  }, [db.dbRecords])
+
+  // Group stops by day (via their linked DB record's `da` field)
+  const dayGroups = useMemo(() => {
+    const groups = []
+    for (const day of DAYS) {
+      const dayStops = list.filter(c => c.fromDb && recordDayMap[c.fromDb] === day)
+      if (dayStops.length) groups.push({ day, stops: dayStops })
+    }
+    const unassigned = list.filter(c => !c.fromDb || !recordDayMap[c.fromDb])
+    if (unassigned.length) groups.push({ day: '_unassigned', label: 'Unassigned', stops: unassigned })
+    return groups
+  }, [list, recordDayMap])
+
+  const hasDayGroups = dayGroups.length > 0 && !(dayGroups.length === 1 && dayGroups[0].day === '_unassigned')
+
+  const todayDayName = DAYS[new Date().getDay() - 1] || null
+  const [collapsedDays, setCollapsedDays] = useState(() => {
+    const c = new Set(DAYS.filter(d => d !== todayDayName))
+    c.add('_unassigned')
+    return c
+  })
+  const toggleDay = day => setCollapsedDays(prev => {
+    const next = new Set(prev)
+    if (next.has(day)) next.delete(day); else next.add(day)
+    return next
+  })
 
   function handleEndDay() {
     const active = canvassStops.filter(c => c.date === todayStr && CANVASS_ACTIVE.includes(c.status))
@@ -181,19 +215,62 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
         </div>
       )}
 
-      {list.length === 0
-        ? <EmptyState>No stops in queue — go to the <strong>Database</strong> tab to load your canvass list, or use <strong>+ Add Stop</strong> to add manually.</EmptyState>
-        : list.map(c => (
-            <CanvassCard
-              key={c.id}
-              stop={c}
-              overdue={c.date !== todayStr}
-              ageLabel={c.date !== todayStr ? ageLabel(c) : null}
-              onConvert={onConvert}
-              onBuildRun={onBuildRun}
-            />
-          ))
-      }
+      {list.length === 0 ? (
+        <EmptyState>No stops in queue — go to the <strong>Database</strong> tab to load your canvass list, or use <strong>+ Add Stop</strong> to add manually.</EmptyState>
+      ) : !hasDayGroups ? (
+        list.map(c => (
+          <CanvassCard
+            key={c.id}
+            stop={c}
+            overdue={c.date !== todayStr}
+            ageLabel={c.date !== todayStr ? ageLabel(c) : null}
+            onConvert={onConvert}
+            onBuildRun={onBuildRun}
+          />
+        ))
+      ) : (
+        dayGroups.map(({ day, label, stops: dayStops }) => {
+          const isToday = day === todayDayName
+          const isCollapsed = collapsedDays.has(day)
+          const displayLabel = label || day
+          return (
+            <div key={day} style={{ marginBottom: '2px' }}>
+              <button
+                onClick={() => toggleDay(day)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+                  padding: '10px 12px', border: 'none', borderBottom: '0.5px solid var(--border)',
+                  background: isToday ? 'var(--blue-bg, rgba(59,130,246,0.08))' : 'var(--bg2)',
+                  cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: '11px', transition: 'transform 0.15s', transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)', color: 'var(--text3)' }}>▶</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: isToday ? 'var(--blue-text, #60a5fa)' : 'var(--text)' }}>
+                  {displayLabel}
+                </span>
+                {isToday && (
+                  <span style={{ fontSize: '10px', fontWeight: 500, color: 'var(--blue-text, #60a5fa)', background: 'var(--blue-bg, rgba(59,130,246,0.12))', padding: '2px 6px', borderRadius: '4px' }}>
+                    Today
+                  </span>
+                )}
+                <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text3)' }}>
+                  {dayStops.length} stop{dayStops.length !== 1 ? 's' : ''}
+                </span>
+              </button>
+              {!isCollapsed && dayStops.map(c => (
+                <CanvassCard
+                  key={c.id}
+                  stop={c}
+                  overdue={c.date !== todayStr}
+                  ageLabel={c.date !== todayStr ? ageLabel(c) : null}
+                  onConvert={onConvert}
+                  onBuildRun={onBuildRun}
+                />
+              ))}
+            </div>
+          )
+        })
+      )}
 
       {msg && (
         <div style={{ fontSize: '12px', marginTop: '6px', color: msg.type === 'ok' ? 'var(--green-text)' : 'var(--red-text)' }}>
