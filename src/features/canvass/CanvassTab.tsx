@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useStops, useStopsDispatch } from '../../store/StopsContext'
 import { useRecords, useRecordsDispatch } from '../../store/RecordsContext'
 import { db } from '../../lib/supabase'
 import { haversine } from '../../data/clustering'
+import { DAYS } from '../../types'
+import type { Day } from '../../types'
+import type { CanvassStop } from '../../types'
 import Button from '../../components/Button'
 import EmptyState from '../../components/EmptyState'
 import Modal from '../../components/Modal'
@@ -220,6 +223,12 @@ interface QueuePanelProps {
   onClearAll: () => void
 }
 
+function getTodayDay(): Day | null {
+  const dayIndex = new Date().getDay() // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  if (dayIndex >= 1 && dayIndex <= 5) return DAYS[dayIndex - 1]
+  return null
+}
+
 function QueuePanel({
   stops,
   search,
@@ -238,6 +247,42 @@ function QueuePanel({
   const [fillArea, setFillArea] = useState('')
   const [filling, setFilling] = useState(false)
   const [fillResult, setFillResult] = useState<string | null>(null)
+
+  const today = getTodayDay()
+  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(() => {
+    // Expand today, collapse all other days
+    const collapsed = new Set<string>()
+    for (const day of DAYS) {
+      if (day !== today) collapsed.add(day)
+    }
+    collapsed.add('_unassigned')
+    return collapsed
+  })
+
+  const toggleDay = (day: string) => {
+    setCollapsedDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(day)) next.delete(day)
+      else next.add(day)
+      return next
+    })
+  }
+
+  // Group stops by day
+  const groupedStops = useMemo(() => {
+    const groups: { day: string; label: string; stops: CanvassStop[] }[] = []
+    for (const day of DAYS) {
+      const dayStops = stops.filter((s) => s.day === day)
+      if (dayStops.length > 0) {
+        groups.push({ day, label: day, stops: dayStops })
+      }
+    }
+    const unassigned = stops.filter((s) => !s.day || !DAYS.includes(s.day as Day))
+    if (unassigned.length > 0) {
+      groups.push({ day: '_unassigned', label: 'Unassigned', stops: unassigned })
+    }
+    return groups
+  }, [stops])
 
   const areaOptions = [
     { value: '', label: 'All Areas' },
@@ -368,17 +413,61 @@ function QueuePanel({
         </div>
       </div>
 
-      {/* Stop list */}
+      {/* Stop list grouped by day */}
       {stops.length === 0 ? (
         <EmptyState
           title="Queue is empty"
           description="Fill Near Me to load nearby stops, or add from the Database tab."
         />
-      ) : (
+      ) : groupedStops.length === 1 && groupedStops[0].day === '_unassigned' ? (
+        // No day assignments — render flat list
         <div className="flex flex-col gap-2 p-3">
           {stops.map((stop) => (
             <StopCard key={stop.id} stop={stop} />
           ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-0">
+          {groupedStops.map(({ day, label, stops: dayStops }) => {
+            const isToday = day === today
+            const isCollapsed = collapsedDays.has(day)
+            return (
+              <div key={day}>
+                <button
+                  onClick={() => toggleDay(day)}
+                  className={`flex w-full items-center gap-2 border-b border-[#1e2535] px-3 py-2.5 text-left transition-colors ${
+                    isToday
+                      ? 'bg-blue-600/10 hover:bg-blue-600/15'
+                      : 'bg-[#131720] hover:bg-[#161b27]'
+                  }`}
+                >
+                  <span
+                    className={`text-xs transition-transform duration-150 ${isCollapsed ? '' : 'rotate-90'}`}
+                  >
+                    ▶
+                  </span>
+                  <span className={`text-sm font-semibold ${isToday ? 'text-blue-400' : 'text-slate-300'}`}>
+                    {label}
+                  </span>
+                  {isToday && (
+                    <span className="rounded bg-blue-600/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400">
+                      Today
+                    </span>
+                  )}
+                  <span className="ml-auto text-xs text-slate-500">
+                    {dayStops.length} stop{dayStops.length !== 1 ? 's' : ''}
+                  </span>
+                </button>
+                {!isCollapsed && (
+                  <div className="flex flex-col gap-2 p-3">
+                    {dayStops.map((stop) => (
+                      <StopCard key={stop.id} stop={stop} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
