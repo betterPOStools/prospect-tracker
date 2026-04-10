@@ -26,7 +26,7 @@ This app runs on port **5176**. See the [suite port table](/Users/nomad/Projects
 ## Stack
 - React 19 + Vite + TypeScript (strict)
 - Tailwind CSS 4 + `src/styles/mobile.css` for native overrides
-- Supabase PostgreSQL (normalized tables in `prospect` schema)
+- Turso (LibSQL/SQLite) — migrated from Supabase 2026-04-10
 - Capacitor 6 for Android native shell
 - Vitest (unit) + Playwright (E2E)
 
@@ -34,7 +34,7 @@ This app runs on port **5176**. See the [suite port table](/Users/nomad/Projects
 ```
 src/
   lib/
-    supabase.ts     — Supabase client
+    supabase.ts     — DEPRECATED (Supabase client, no longer used)
     platform.ts     — isNative, isAndroid, exportFile, getNetworkStatus
     storage.ts      — localStorage cache helpers
   store/
@@ -65,6 +65,18 @@ src/
   types/
     index.ts        — all shared interfaces
 ```
+
+## Database (Supabase DEV)
+
+Rolled back from Turso to Supabase DEV on 2026-04-10. Turso migration had white-screen issues; DEV Supabase is stable.
+
+- **Project:** `mqifktmmyiqzrolrvsmy` (DEV) — PROD `nngjtbrvwhjrmbokephl` is stuck/unrecoverable
+- **URL:** `https://mqifktmmyiqzrolrvsmy.supabase.co`
+- **Env vars (baked into APK at build time):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- **Sync hook:** `app/src/hooks/useSupabaseSync.js` — Supabase realtime
+- **Schema:** `prospect` — tables: `app_state` (full state JSON), `records`, `leads`, `canvass_stops`
+- **APK:** rebuild required after any env change — `npm run build && npx cap sync android && ./gradlew assembleDebug`
+- **APK output:** `app/android/app/build/outputs/apk/debug/app-debug.apk`
 
 ## Tabs
 1. **My Leads** — converted leads pipeline (`prospect.leads`)

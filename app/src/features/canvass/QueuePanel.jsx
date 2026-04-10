@@ -28,6 +28,8 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
   const [fillCount, setFillCount] = useState(parseInt(savedCount) || 15)
 
   const todayStr = new Date().toLocaleDateString()
+  const routeOrderData = JSON.parse(localStorage.getItem('vs_route_order') || 'null')
+  const savedRouteOrder = routeOrderData?.date === todayStr ? routeOrderData.ids : null
   const q = search.toLowerCase()
   const groups = [...new Set(canvassStops.map(c => c.grp).filter(Boolean))].sort()
 
@@ -38,7 +40,16 @@ export default function QueuePanel({ onConvert, onBuildRun, msg, flash }) {
 
   const todayStops = canvassStops
     .filter(c => c.date === todayStr && matchesFilter(c))
-    .sort((a, b) => new Date(a.added) - new Date(b.added))
+    .sort((a, b) => {
+      if (savedRouteOrder) {
+        const ai = savedRouteOrder.indexOf(a.id)
+        const bi = savedRouteOrder.indexOf(b.id)
+        if (ai !== -1 && bi !== -1) return ai - bi
+        if (ai !== -1) return -1
+        if (bi !== -1) return 1
+      }
+      return new Date(a.added) - new Date(b.added)
+    })
 
   const overdueStops = canvassStops
     .filter(c => c.date !== todayStr && matchesFilter(c))

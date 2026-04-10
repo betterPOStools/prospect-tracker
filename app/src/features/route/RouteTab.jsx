@@ -31,6 +31,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 // ── RouteXL helpers ──────────────────────────────────────────────────────────
 const RXL_USER_KEY = 'vs_rxl_user'
 const RXL_PASS_KEY = 'vs_rxl_pass'
+const ROUTE_ORDER_KEY = 'vs_route_order'
 
 async function callRouteXL(user, pass, locations) {
   const body = 'locations=' + encodeURIComponent(JSON.stringify(locations))
@@ -202,6 +203,7 @@ export default function RouteTab() {
       const next = [...o]
       if (idx === 0) return next
       ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+      localStorage.setItem(ROUTE_ORDER_KEY, JSON.stringify({ date: today, ids: next }))
       return next
     })
   }
@@ -213,11 +215,16 @@ export default function RouteTab() {
       const next = [...o]
       if (idx === next.length - 1) return next
       ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+      localStorage.setItem(ROUTE_ORDER_KEY, JSON.stringify({ date: today, ids: next }))
       return next
     })
   }
 
-  function resetOrder() { setOrder(null); setActiveLeg(0) }
+  function resetOrder() {
+    setOrder(null)
+    setActiveLeg(0)
+    localStorage.removeItem(ROUTE_ORDER_KEY)
+  }
 
   function copyAddresses() {
     const addrs = stops.map((s, i) => `${i + 1}. ${s.name} — ${s.addr || 'no address'}`).join('\n')
@@ -306,7 +313,9 @@ export default function RouteTab() {
       // Append skipped + no-address stops at end
       const optimizedSet = new Set(optimizedIds)
       const remaining = stops.filter(s => !optimizedSet.has(s.id)).map(s => s.id)
-      setOrder([...optimizedIds, ...remaining])
+      const finalOrder = [...optimizedIds, ...remaining]
+      setOrder(finalOrder)
+      localStorage.setItem(ROUTE_ORDER_KEY, JSON.stringify({ date: today, ids: finalOrder }))
       setActiveLeg(0)
 
       const last = result.route[String(Object.keys(result.route).length - 1)]
