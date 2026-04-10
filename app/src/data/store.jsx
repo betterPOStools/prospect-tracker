@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react'
 import { loadAll, saveProspects, saveCanvass, saveDb, loadFromFile } from './storage.js'
 import { useFileSync as useFileSyncHook } from '../hooks/useFileSync.js'
-import { useSupabaseSync } from '../hooks/useSupabaseSync.js'
+import { useTursoSync as useSupabaseSync } from '../hooks/useTursoSync.js'
 import { calcScore, calcPriority } from './scoring.js'
 import { loadTracks, saveTracks } from '../hooks/useLocationTracking.js'
 
