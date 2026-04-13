@@ -6,6 +6,7 @@ import { HoursChip } from '../../components/Badge.jsx'
 import Button from '../../components/Button.jsx'
 import styles from './CanvassCard.module.css'
 import btnStyles from '../../components/Button.module.css'
+import { useDemoStatus, loadDemo } from '../../lib/demoBuilder.js'
 
 // Module-level geocode cache — survives re-renders, cleared on page reload
 const _geocodeCache = new Map()
@@ -27,12 +28,16 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
   const [showHistory, setShowHistory] = useState(false)
   const [editingNoteIdx, setEditingNoteIdx] = useState(-1)
   const [editNoteText, setEditNoteText] = useState('')
+  const [loadDemoMsg, setLoadDemoMsg] = useState('')
+  const [loadDemoLoading, setLoadDemoLoading] = useState(false)
   const c = stop
   const isConverted = c.status === 'Converted'
   const isRemoved = REMOVAL_STATUSES.includes(c.status)
   const isArchived = isConverted || isRemoved
   const dbRecord = c.fromDb ? db.dbRecords.find(r => r.id === c.fromDb) : null
   const droppedCount = dbRecord?.df || 0
+  const demoEntry = useDemoStatus(c.fromDb)
+  const demoReady = dbRecord?.mn && demoEntry?.status === 'done'
   const notesLog = c.notesLog || []
   const history = c.history || []
 
@@ -137,6 +142,24 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
     if (editingNoteIdx < 0) return
     canvassDispatch({ type: 'UPDATE_NOTE', id: c.id, noteIdx: editingNoteIdx, text: editNoteText })
     setEditingNoteIdx(-1)
+  }
+
+  async function handleLoadDemo() {
+    setLoadDemoLoading(true)
+    try {
+      const { ok, status, data } = await loadDemo(c.fromDb)
+      if (ok) {
+        setLoadDemoMsg('Demo queued for deployment — open Demo Builder to monitor')
+      } else if (status === 404) {
+        setLoadDemoMsg('No demo built yet for this prospect')
+      } else {
+        setLoadDemoMsg(data.error || 'Load failed')
+      }
+    } catch {
+      setLoadDemoMsg('Could not reach Demo Builder — check your connection')
+    }
+    setLoadDemoLoading(false)
+    setTimeout(() => setLoadDemoMsg(''), 5000)
   }
 
   const hours = hoursChip(c.openTime, c.closeTime)
@@ -343,7 +366,19 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
         {showBuildRun && (
           <Button size="sm" className={styles.buildRunBtn} onClick={() => onBuildRun(c)}>Build Run</Button>
         )}
+        {demoReady && (
+          <Button size="sm" onClick={handleLoadDemo} disabled={loadDemoLoading}
+            style={{ background: 'var(--green-bg)', color: 'var(--green-text)', borderColor: 'var(--green-text)' }}>
+            {loadDemoLoading ? '…' : 'Load Demo'}
+          </Button>
+        )}
       </div>
+      {loadDemoMsg && (
+        <div style={{ marginTop: '6px', fontSize: '11px',
+                      color: loadDemoMsg.includes('queued') ? 'var(--green-text)' : 'var(--red-text)' }}>
+          {loadDemoMsg}
+        </div>
+      )}
     </div>
   )
 }

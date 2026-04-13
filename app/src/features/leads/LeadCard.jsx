@@ -7,6 +7,8 @@ import PosSelect from '../../components/PosSelect.jsx'
 import styles from './LeadCard.module.css'
 import btnStyles from '../../components/Button.module.css'
 
+const DEMO_BUILDER_URL = import.meta.env.VITE_DEMO_BUILDER_URL || 'http://localhost:3002'
+
 const STATUSES = ['Open', 'Won', 'Lost', 'Abandoned']
 
 function fmtTs(ts) {
@@ -108,6 +110,19 @@ export default function LeadCard({ prospect, onDemote }) {
       history: [],
       notesLog: p.owner ? [{ text: 'Contact: ' + p.owner, ts: now, system: true }] : [],
     }})
+  }
+
+  function openCustomDemo() {
+    const dbRec = p.fromDb ? db.dbRecords.find(r => r.id === p.fromDb) : null
+    const params = new URLSearchParams()
+    const menuUrl = p.menu || dbRec?.mn
+    if (menuUrl) params.set('menu_url', menuUrl)
+    params.set('name', p.name)
+    const type = dbRec?.ty
+    if (type) params.set('type', type)
+    const ptRecordId = dbRec?.id || p.fromDb
+    if (ptRecordId) params.set('pt_record_id', ptRecordId)
+    window.open(`${DEMO_BUILDER_URL}/?${params.toString()}`, '_blank', 'noopener,noreferrer')
   }
 
   if (editing) {
@@ -267,6 +282,10 @@ export default function LeadCard({ prospect, onDemote }) {
         <Button size="sm" onClick={startEdit}>Edit</Button>
         <Button size="sm" variant="warning" onClick={() => onDemote(p)}>↩ Canvass</Button>
         <Button size="sm" variant="danger" onClick={handleDelete}>Remove</Button>
+        <Button size="sm" onClick={openCustomDemo}
+          style={{ marginLeft: 'auto', background: 'var(--blue-bg)', color: 'var(--blue-text)', borderColor: 'var(--blue-text)' }}>
+          Build Custom Demo ↗
+        </Button>
       </div>
     </div>
   )
