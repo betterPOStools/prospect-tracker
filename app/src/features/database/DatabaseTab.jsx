@@ -8,7 +8,7 @@ import DemoDatabasesPanel  from './DemoDatabasesPanel.jsx'
 
 const MapPanel = lazy(() => import('./MapPanel.jsx'))
 
-const SUB_TABS = ['Browse', 'Planner', 'Map']
+const SUB_TABS = ['Browse', 'Planner', 'Map', 'Demos']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
@@ -51,8 +51,7 @@ export default function DatabaseTab() {
       <Suspense fallback={<div style={{ padding: '24px', color: 'var(--text2)', fontSize: '13px' }}>Loading map…</div>}>
         {subTab === 'Map' && <MapPanel />}
       </Suspense>
-
-      <DemoDatabasesPanel />
+      {subTab === 'Demos'   && <DemoDatabasesPanel />}
     </div>
   )
 }
