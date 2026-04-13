@@ -47,8 +47,8 @@ export default function DemoDatabasesPanel() {
   const [areaFilter, setAreaFilter] = useState('')
   const pollRef = useRef(null)
 
-  // Records that have a menu link — these are the ones we can generate
-  const menuRecords = dbRecords.filter(r => r.mn)
+  // Records that have a menu link or website — either works for scraping
+  const menuRecords = dbRecords.filter(r => r.mn || r.web)
 
   const visible = areaFilter
     ? menuRecords.filter(r => (r.ci || '').toLowerCase().includes(areaFilter.toLowerCase()))
@@ -101,7 +101,7 @@ export default function DemoDatabasesPanel() {
         const s = statuses[r.id]?.status
         return !s || s === 'no_snapshot' || s === 'failed'
       })
-      .map(r => ({ pt_record_id: r.id, name: r.n, menu_url: r.mn, restaurant_type: r.ty || '' }))
+      .map(r => ({ pt_record_id: r.id, name: r.n, menu_url: r.mn || r.web, restaurant_type: r.ty || '' }))
 
     if (!toQueue.length) { flashQueueMsg('Nothing new to queue.'); return }
 
@@ -125,7 +125,7 @@ export default function DemoDatabasesPanel() {
     setStatuses(prev => ({ ...prev, [r.id]: { pt_record_id: r.id, status: 'queued' } }))
     try {
       await queueBatch(
-        [{ pt_record_id: r.id, name: r.n, menu_url: r.mn, restaurant_type: r.ty || '' }],
+        [{ pt_record_id: r.id, name: r.n, menu_url: r.mn || r.web, restaurant_type: r.ty || '' }],
         false,
       )
     } catch {
@@ -166,7 +166,7 @@ export default function DemoDatabasesPanel() {
         {menuRecords.length > 0 && (
           <span style={{ fontSize: '11px', color: 'var(--text3)', background: 'var(--bg3)',
                          padding: '1px 7px', borderRadius: '10px', fontWeight: 400 }}>
-            {menuRecords.length} with menu
+            {menuRecords.length} with URL
           </span>
         )}
       </button>
@@ -191,7 +191,7 @@ export default function DemoDatabasesPanel() {
 
           {visible.length === 0 ? (
             <div style={{ fontSize: '13px', color: 'var(--text3)', padding: '10px 0' }}>
-              {menuRecords.length === 0 ? 'No records have a menu link.' : 'No results for this city filter.'}
+              {menuRecords.length === 0 ? 'No records have a menu link or website.' : 'No results for this city filter.'}
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -221,10 +221,13 @@ export default function DemoDatabasesPanel() {
 
                         <td style={{ padding: '8px', color: 'var(--text3)',
                                      maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <a href={r.mn} target="_blank" rel="noreferrer"
+                          <a href={r.mn || r.web} target="_blank" rel="noreferrer"
                              style={{ color: 'var(--blue-text)', textDecoration: 'none' }}>
-                            {truncUrl(r.mn)}
+                            {truncUrl(r.mn || r.web)}
                           </a>
+                          {!r.mn && r.web && (
+                            <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: '4px' }}>site</span>
+                          )}
                         </td>
 
                         <td style={{ padding: '8px' }}>
