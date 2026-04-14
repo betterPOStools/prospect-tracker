@@ -1,5 +1,37 @@
 import { calcScore, calcPriority } from './scoring.js'
 import { isBlocklisted } from './blocklist.js'
+import { supabase } from '../lib/supabase.js'
+
+// Local Mac demo-builder URL — used ONLY for filesystem writes, always LAN/Tailscale.
+// Separate from VITE_DEMO_BUILDER_URL which may point at Vercel.
+const LOCAL_DEMO_BUILDER_URL = import.meta.env.VITE_LOCAL_DEMO_BUILDER_URL || 'http://100.118.51.78:3002'
+
+// ── Raw scrape archiver ────────────────────────────────────────────────────────
+// Saves the full unstripped rows to:
+//   1. Supabase prospect.raw_scrapes  (always — cloud backup)
+//   2. Local Mac file via demo-builder (when running — Scrapes/raw/*.json)
+// Both are fire-and-forget — never blocks the import flow.
+export function saveRawScrape(rows, area, source, taskId = null) {
+  // 1. Supabase
+  if (supabase) {
+    supabase.from('raw_scrapes').insert({
+      area,
+      source,
+      task_id:    taskId,
+      row_count:  rows.length,
+      raw_data:   rows,
+    }).then(({ error }) => {
+      if (error) console.warn('[RawScrape] Supabase save failed:', error.message)
+    })
+  }
+
+  // 2. Local Mac file via demo-builder (silent if server not running or off-LAN)
+  fetch(`${LOCAL_DEMO_BUILDER_URL}/api/scrapes/save`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ area, source, task_id: taskId, rows }),
+  }).catch(() => { /* demo-builder offline or unreachable — Supabase is the backup */ })
+}
 
 // ── localStorage keys (isolated from main store — never synced to Drive/Supabase) ──
 const OS_KEYS = {

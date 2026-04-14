@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
 import { useOutscraper } from '../../hooks/useOutscraper.js'
-import { lookupZips, loadOsTasks, getTaskConfig, pollTask, processOutscraperRows, saveOsApiKey, saveOsConfig, extractTaskId } from '../../data/outscraper.js'
+import { lookupZips, loadOsTasks, getTaskConfig, pollTask, processOutscraperRows, saveRawScrape, saveOsApiKey, saveOsConfig, extractTaskId } from '../../data/outscraper.js'
 import { supabase } from '../../lib/supabase.js'
 import Button from '../../components/Button.jsx'
 
@@ -341,6 +341,7 @@ function QueueView({ os }) {
   const [, setTick] = useState(0) // force re-render to update "X ago" display
 
   const doImport = useCallback((task) => {
+    saveRawScrape(task.resultData, `${task.city}, ${task.state}`, 'api', task.taskId)
     takeSnapshot('pre-import')
     const result = processOutscraperRows(
       task.resultData,
@@ -374,6 +375,7 @@ function QueueView({ os }) {
         : t
       ))
       // Import immediately
+      saveRawScrape(rows, `${task.city}, ${task.state}`, 'api', task.taskId)
       takeSnapshot('pre-import')
       const result = processOutscraperRows(
         rows,
@@ -438,6 +440,7 @@ function QueueView({ os }) {
         const titleMatch = (row.title || '').match(/^([^,]+),\s*([A-Z]{2})\s*[—-]/)
         const area = titleMatch ? `${titleMatch[1].trim()}, ${titleMatch[2]}` : row.tags || 'Webhook Import'
 
+        saveRawScrape(resultData, area, 'webhook', row.task_id)
         takeSnapshot('pre-import')
         const result = processOutscraperRows(resultData, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
         dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })

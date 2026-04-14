@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useDatabase, useDatabaseDispatch } from '../../data/store.jsx'
 import { useSnapshots } from '../../hooks/useSnapshots.js'
-import { processOutscraperRows } from '../../data/outscraper.js'
+import { processOutscraperRows, saveRawScrape } from '../../data/outscraper.js'
 import btnStyles from '../../components/Button.module.css'
 
 export default function ImportBar({ onImported }) {
@@ -36,6 +36,7 @@ export default function ImportBar({ onImported }) {
 
       if (!rows.length) { setMsg({ text: 'No data found in file.', type: 'err' }); return }
 
+      saveRawScrape(rows, area, 'file')
       const result = processOutscraperRows(rows, area, db.dbRecords, db.dbBlocklist, db.dbAreas)
       dispatch({ type: 'IMPORT', dbRecords: result.allRecords, dbAreas: result.dbAreas })
       setMsg({ text: `"${area}" imported — ${result.added} added, ${result.updated} updated, ${result.dupes} skipped. ${result.allRecords.length} total records.`, type: 'ok' })
