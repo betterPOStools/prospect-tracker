@@ -32,16 +32,29 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 const RXL_USER_KEY = 'vs_rxl_user'
 const RXL_PASS_KEY = 'vs_rxl_pass'
 const ROUTE_ORDER_KEY = 'vs_route_order'
+// Start/end endpoint persistence — 'gps' | 'home' | 'work' | 'custom' (+ 'none' for end)
+const RXL_START_KEY        = 'vs_rxl_start_choice'
+const RXL_END_KEY          = 'vs_rxl_end_choice'
+const RXL_HOME_ADDR_KEY    = 'vs_rxl_home_addr'
+const RXL_HOME_COORDS_KEY  = 'vs_rxl_home_coords'
+const RXL_WORK_ADDR_KEY    = 'vs_rxl_work_addr'
+const RXL_WORK_COORDS_KEY  = 'vs_rxl_work_coords'
+const RXL_CUSTOM_START_KEY = 'vs_rxl_custom_start'
+const RXL_CUSTOM_END_KEY   = 'vs_rxl_custom_end'
 
-async function callRouteXL(user, pass, locations) {
-  const body = 'locations=' + encodeURIComponent(JSON.stringify(locations))
+async function callRouteXL(user, pass, locations, extras = {}) {
+  const params = new URLSearchParams()
+  params.set('locations', JSON.stringify(locations))
+  // `fixedends=1` tells RouteXL to keep locations[0] first and locations[N-1] last.
+  // Only set when we have an explicit end waypoint — otherwise RouteXL picks its own close.
+  for (const [k, v] of Object.entries(extras)) if (v != null) params.set(k, String(v))
   const res = await fetch('https://api.routexl.com/tour/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic ' + btoa(user + ':' + pass),
     },
-    body,
+    body: params.toString(),
   })
   if (res.status === 401) throw new Error('Invalid RouteXL credentials.')
   if (res.status === 403) throw new Error('Too many stops for your RouteXL plan (max 20 free).')
@@ -63,18 +76,57 @@ function mapsUrl(addr) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
 }
 
-function routeUrl(stops, useCoords) {
-  if (!stops.length) return ''
+// Resolve a start/end choice to a URL-ready locator. `null` means "use the
+// first stop as origin / last stop as destination" (original behavior).
+// `{ label: 'My+Location' }` is the special Google Maps token — we never
+// substitute coordinates there, because My Location beats a stale fix.
+function readEndpointLocator(choice, isEnd) {
+  if (!choice || choice === 'none') return null
+  if (choice === 'gps') return { label: 'My+Location' }
+  if (choice === 'home' || choice === 'work') {
+    const addr = localStorage.getItem(choice === 'home' ? 'vs_rxl_home_addr' : 'vs_rxl_work_addr') || ''
+    if (!addr) return null
+    let coords = null
+    try {
+      const raw = localStorage.getItem(choice === 'home' ? 'vs_rxl_home_coords' : 'vs_rxl_work_coords')
+      coords = raw ? JSON.parse(raw) : null
+    } catch { /* ignore */ }
+    return { label: encodeURIComponent(addr), addr, lat: coords?.lat, lng: coords?.lng }
+  }
+  if (choice === 'custom') {
+    const raw = localStorage.getItem(isEnd ? 'vs_rxl_custom_end' : 'vs_rxl_custom_start') || ''
+    return raw ? { label: encodeURIComponent(raw), addr: raw } : null
+  }
+  return null
+}
+
+function routeUrl(stops, useCoords, start, end) {
+  const hasStops = stops.length > 0
+  if (!hasStops && !end) return ''
+
+  const originSegment = start
+    ? (useCoords && start.lat && start.lng ? `${start.lat},${start.lng}` : (start.label || 'My+Location'))
+    : 'My+Location'
+
   if (useCoords) {
     const pts = stops.filter(s => s.lat && s.lng).map(s => `${s.lat},${s.lng}`)
-    if (pts.length < 2) return routeUrl(stops, false) // fallback to addresses
-    return `https://www.google.com/maps/dir/My+Location/${pts.join('/')}`
+    const tail = end ? (end.lat && end.lng ? `${end.lat},${end.lng}` : (end.label || '')) : ''
+    const all = tail ? [...pts, tail] : pts
+    if (all.length < 1) return routeUrl(stops, false, start, end)
+    return `https://www.google.com/maps/dir/${originSegment}/${all.join('/')}`
   }
-  const addrs = stops.map(s => s.addr).filter(Boolean)
-  if (addrs.length === 1) return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(addrs[0])}`
-  const dest   = encodeURIComponent(addrs[addrs.length - 1])
-  const wps    = addrs.slice(0, -1).map(a => encodeURIComponent(a)).join('|')
-  return `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${dest}&waypoints=${wps}`
+
+  const addrs = stops.map(s => s.addr).filter(Boolean).map(encodeURIComponent)
+  const endLabel = end ? end.label : null
+  if (endLabel) {
+    if (addrs.length === 0) return `https://www.google.com/maps/dir/?api=1&origin=${originSegment}&destination=${endLabel}`
+    return `https://www.google.com/maps/dir/?api=1&origin=${originSegment}&destination=${endLabel}&waypoints=${addrs.join('|')}`
+  }
+  if (addrs.length === 0) return ''
+  if (addrs.length === 1) return `https://www.google.com/maps/dir/?api=1&origin=${originSegment}&destination=${addrs[0]}`
+  const dest = addrs[addrs.length - 1]
+  const wps = addrs.slice(0, -1).join('|')
+  return `https://www.google.com/maps/dir/?api=1&origin=${originSegment}&destination=${dest}&waypoints=${wps}`
 }
 
 // Google Maps web directions limit
@@ -126,7 +178,19 @@ export default function RouteTab() {
     return null // unassigned
   }, [recordDayMap])
 
-  const [order, setOrder] = useState(null)  // null = default order
+  // Rehydrate from localStorage — but only if the saved order is from today.
+  // A stale yesterday-order would silently reshape today's stop list into a
+  // sequence that references IDs we no longer have. Mismatched IDs filter out
+  // in the `stops` memo, but the user perception is "my route is missing stops."
+  const [order, setOrder] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ROUTE_ORDER_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      const sameDay = parsed?.date === new Date().toLocaleDateString()
+      return sameDay && Array.isArray(parsed.ids) ? parsed.ids : null
+    } catch { return null }
+  })
   const [useCoords, setUseCoords] = useState(true) // true = lat/lng, false = addresses
 
   const [activeLeg, setActiveLeg] = useState(0)
@@ -138,6 +202,58 @@ export default function RouteTab() {
   const [optimizing, setOptimizing] = useState(false)
   const [optStatus, setOptStatus] = useState('')
   const hasRxlCreds = Boolean(rxlUser && rxlPass)
+
+  // Start/end endpoint selection — persisted between runs.
+  const [startChoice, setStartChoice] = useState(() => localStorage.getItem(RXL_START_KEY) || 'gps')
+  const [endChoice,   setEndChoice]   = useState(() => localStorage.getItem(RXL_END_KEY)   || 'none')
+  const [homeAddr, setHomeAddr] = useState(() => localStorage.getItem(RXL_HOME_ADDR_KEY) || '')
+  const [workAddr, setWorkAddr] = useState(() => localStorage.getItem(RXL_WORK_ADDR_KEY) || '')
+  const [customStart, setCustomStart] = useState(() => localStorage.getItem(RXL_CUSTOM_START_KEY) || '')
+  const [customEnd,   setCustomEnd]   = useState(() => localStorage.getItem(RXL_CUSTOM_END_KEY)   || '')
+
+  function persistChoice(key, value) { try { localStorage.setItem(key, value) } catch { /* ignore */ } }
+  function updateStartChoice(v) { setStartChoice(v); persistChoice(RXL_START_KEY, v) }
+  function updateEndChoice(v)   { setEndChoice(v);   persistChoice(RXL_END_KEY, v) }
+
+  // Resolve a pick to coords. Returns { lat, lng, label } or null. Geocodes on
+  // demand and caches for home/work so subsequent runs don't re-hit Nominatim.
+  async function resolveEndpoint(choice, { isEnd = false } = {}) {
+    if (choice === 'none') return null
+    if (choice === 'gps') {
+      const home = await getGPS()
+      return home ? { lat: home.lat, lng: home.lng, label: 'Current GPS' } : null
+    }
+    if (choice === 'home' || choice === 'work') {
+      const addrKey   = choice === 'home' ? RXL_HOME_ADDR_KEY   : RXL_WORK_ADDR_KEY
+      const coordsKey = choice === 'home' ? RXL_HOME_COORDS_KEY : RXL_WORK_COORDS_KEY
+      const addr = localStorage.getItem(addrKey)
+      if (!addr) throw new Error(`No ${choice} address saved — set it in RouteXL setup.`)
+      const cached = localStorage.getItem(coordsKey)
+      if (cached) {
+        try { const p = JSON.parse(cached); if (p?.lat && p?.lng) return { lat: p.lat, lng: p.lng, label: choice } } catch { /* fall through */ }
+      }
+      const g = await geocodeAddr(addr)
+      if (!g) throw new Error(`Could not geocode ${choice} address.`)
+      try { localStorage.setItem(coordsKey, JSON.stringify(g)) } catch { /* ignore */ }
+      return { lat: g.lat, lng: g.lng, label: choice }
+    }
+    if (choice === 'custom') {
+      const raw = (isEnd ? customEnd : customStart).trim()
+      if (!raw) throw new Error(`Enter a custom ${isEnd ? 'end' : 'start'} address.`)
+      const g = await geocodeAddr(raw)
+      if (!g) throw new Error(`Could not geocode custom ${isEnd ? 'end' : 'start'} address.`)
+      return { lat: g.lat, lng: g.lng, label: 'custom' }
+    }
+    return null
+  }
+
+  function saveHomeWork() {
+    persistChoice(RXL_HOME_ADDR_KEY, homeAddr)
+    persistChoice(RXL_WORK_ADDR_KEY, workAddr)
+    // Clear cached coords so next run re-geocodes the (possibly new) address.
+    try { localStorage.removeItem(RXL_HOME_COORDS_KEY); localStorage.removeItem(RXL_WORK_COORDS_KEY) } catch { /* ignore */ }
+    flash('Home/work saved.', 'ok')
+  }
 
   function saveRxlCreds() {
     localStorage.setItem(RXL_USER_KEY, rxlUser)
@@ -252,10 +368,13 @@ export default function RouteTab() {
 
     setOptimizing(true)
     try {
-      // Step 0: Get current GPS position for route starting point
-      setOptStatus('Getting your location…')
-      const home = await getGPS()
-      if (!home) flash('Could not get location — route won\'t be anchored to your position.', 'err')
+      // Step 0: Resolve user-picked start / end endpoints (see state block above).
+      // Both can be null — null start means RouteXL picks its own open-start; null
+      // end means open-return (equivalent to pre-endpoint behavior).
+      setOptStatus('Resolving start / end…')
+      const start = await resolveEndpoint(startChoice, { isEnd: false })
+      const end   = await resolveEndpoint(endChoice,   { isEnd: true })
+      if (startChoice === 'gps' && !start) flash("Couldn't get GPS — route won't be anchored to your position.", 'err')
 
       // Step 1: Geocode stops that don't have lat/lng yet
       const geocoded = []  // { stop, lat, lng }
@@ -296,19 +415,27 @@ export default function RouteTab() {
         lng: String(g.lng),
       }))
 
-      // Inject GPS as starting point so RouteXL optimizes from our position
-      if (home) {
-        locations.unshift({ address: '__home__', lat: String(home.lat), lng: String(home.lng) })
+      // Inject start and end waypoints. `fixedends=1` tells RouteXL to keep
+      // locations[0] as start and locations[N-1] as end; without it, RouteXL
+      // reorders them along with the rest.
+      if (start) {
+        locations.unshift({ address: '__start__', lat: String(start.lat), lng: String(start.lng) })
       }
+      if (end) {
+        locations.push({ address: '__end__', lat: String(end.lat), lng: String(end.lng) })
+      }
+      const extras = {}
+      if (start && end) extras.fixedends = 1   // lock both
+      else if (end)     extras.fixedends = 1   // RouteXL still honors end when start is model-chosen? conservatively lock both ends
 
-      const result = await callRouteXL(rxlUser, rxlPass, locations)
+      const result = await callRouteXL(rxlUser, rxlPass, locations, extras)
       if (!result.route) { flash('RouteXL returned no route.', 'err'); setOptimizing(false); setOptStatus(''); return }
 
-      // Step 3: Map optimized order back to stop IDs, strip __home__ waypoint
+      // Step 3: Map optimized order back to stop IDs, strip synthetic waypoints
       const optimizedIds = Object.keys(result.route)
         .sort((a, b) => Number(a) - Number(b))
         .map(k => result.route[k].name)
-        .filter(name => name !== '__home__')
+        .filter(name => name !== '__home__' && name !== '__start__' && name !== '__end__')
 
       // Append skipped + no-address stops at end
       const optimizedSet = new Set(optimizedIds)
@@ -326,10 +453,11 @@ export default function RouteTab() {
       flash(`Route optimized — ${optimizedIds.length} stops${details ? ', ' + details + ' total' : ''}${skipMsg}.`, 'ok')
     } catch (e) {
       flash(e.message || 'RouteXL optimization failed.', 'err')
+      if (/credentials|401|unauthori[sz]ed/i.test(e.message || '')) setShowRxlSetup(true)
     }
     setOptimizing(false)
     setOptStatus('')
-  }, [stops, hasRxlCreds, rxlUser, rxlPass, canvassDispatch, db.dbRecords, flash])
+  }, [stops, hasRxlCreds, rxlUser, rxlPass, canvassDispatch, db.dbRecords, flash, startChoice, endChoice, customStart, customEnd])
 
   if (!canvass.length) {
     return <EmptyState>No canvass stops yet — load stops from the Database or add them manually in the Canvass tab.</EmptyState>
@@ -343,7 +471,15 @@ export default function RouteTab() {
   const optimizableCount = stops.length
   const otherCount = otherDayStops.length
 
-  const url = routeUrl(currentLeg, useCoords)
+  // BUSINESS RULE: start applies only to leg 0 (subsequent legs begin from
+  // where you ended the previous one, so "My Location" is correct). End
+  // applies only to the final leg — otherwise the locked end would appear as
+  // a stop on every intermediate leg.
+  const isFirstLeg = safeActiveLeg === 0
+  const isLastLeg  = safeActiveLeg === legs.length - 1
+  const startLoc = isFirstLeg ? readEndpointLocator(startChoice, false) : null
+  const endLoc   = isLastLeg  ? readEndpointLocator(endChoice,   true)  : null
+  const url = routeUrl(currentLeg, useCoords, startLoc, endLoc)
   const hasCoords = currentLeg.some(s => s.lat && s.lng)
 
   return (
@@ -397,8 +533,54 @@ export default function RouteTab() {
             {hasRxlCreds && <Button size="sm" variant="danger" onClick={clearRxlCreds}>Remove</Button>}
             <Button size="sm" onClick={() => setShowRxlSetup(false)}>Cancel</Button>
           </div>
+          <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text)', margin: '12px 0 4px' }}>Home / Work addresses</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>
+            Used by the Start / End pickers above the stop list. Geocoded once and cached.
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <input type="text" value={homeAddr} placeholder="Home address" style={{ width: '220px', fontSize: '12px' }}
+              onChange={e => setHomeAddr(e.target.value)} />
+            <input type="text" value={workAddr} placeholder="Work address" style={{ width: '220px', fontSize: '12px' }}
+              onChange={e => setWorkAddr(e.target.value)} />
+            <Button size="sm" onClick={saveHomeWork}>Save addresses</Button>
+          </div>
         </div>
       )}
+
+      {/* Start / End endpoint pickers */}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '8px', fontSize: '12px', color: 'var(--text2)' }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          Start:
+          <select value={startChoice} onChange={e => updateStartChoice(e.target.value)}
+            style={{ fontSize: '12px', padding: '2px 4px', borderRadius: 'var(--radius-sm)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }}>
+            <option value="gps">Current GPS</option>
+            <option value="home" disabled={!homeAddr}>Home{!homeAddr ? ' (set in setup)' : ''}</option>
+            <option value="work" disabled={!workAddr}>Work{!workAddr ? ' (set in setup)' : ''}</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </label>
+        {startChoice === 'custom' && (
+          <input type="text" value={customStart} placeholder="Start address"
+            onChange={e => { setCustomStart(e.target.value); persistChoice(RXL_CUSTOM_START_KEY, e.target.value) }}
+            style={{ width: '200px', fontSize: '12px', padding: '2px 6px', borderRadius: 'var(--radius-sm)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+        )}
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          End:
+          <select value={endChoice} onChange={e => updateEndChoice(e.target.value)}
+            style={{ fontSize: '12px', padding: '2px 4px', borderRadius: 'var(--radius-sm)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }}>
+            <option value="none">None (open-ended)</option>
+            <option value="gps">Current GPS</option>
+            <option value="home" disabled={!homeAddr}>Home{!homeAddr ? ' (set in setup)' : ''}</option>
+            <option value="work" disabled={!workAddr}>Work{!workAddr ? ' (set in setup)' : ''}</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </label>
+        {endChoice === 'custom' && (
+          <input type="text" value={customEnd} placeholder="End address"
+            onChange={e => { setCustomEnd(e.target.value); persistChoice(RXL_CUSTOM_END_KEY, e.target.value) }}
+            style={{ width: '200px', fontSize: '12px', padding: '2px 6px', borderRadius: 'var(--radius-sm)', border: '0.5px solid var(--border)', background: 'var(--bg)', color: 'var(--text)' }} />
+        )}
+      </div>
 
       {/* Settings row */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginBottom: '8px', alignItems: 'center' }}>
@@ -468,7 +650,7 @@ export default function RouteTab() {
                   Leg {legIdx + 1} end · {leg.length} stops
                 </span>
                 <a
-                  href={routeUrl(legs[legIdx + 1], useCoords)}
+                  href={routeUrl(legs[legIdx + 1], useCoords, null, (legIdx + 1) === legs.length - 1 ? readEndpointLocator(endChoice, true) : null)}
                   target="_blank"
                   rel="noreferrer"
                   style={{ ...routeLink, fontSize: '11px', height: '26px', padding: '0 9px', flexShrink: 0 }}
