@@ -39,6 +39,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_AI_RANK_URL: https://prospect-tracker-api.vercel.app/api/rank
 
       - uses: actions/configure-pages@v4
 
