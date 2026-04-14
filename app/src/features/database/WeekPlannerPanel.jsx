@@ -6,6 +6,8 @@ import { PRIORITY_COLOR, PRIORITY_EMOJI } from '../../data/scoring.js'
 import { parseWorkingHours } from '../../data/helpers.js'
 import Button from '../../components/Button.jsx'
 import EmptyState from '../../components/EmptyState.jsx'
+import AiPriorityPanel from './AiPriorityPanel.jsx'
+import CorridorPlannerPanel from './CorridorPlannerPanel.jsx'
 
 export default function WeekPlannerPanel() {
   const db         = useDatabase()
@@ -195,6 +197,8 @@ export default function WeekPlannerPanel() {
 
   return (
     <div>
+      <AiPriorityPanel />
+      <CorridorPlannerPanel />
       {/* Controls */}
       <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '12px 14px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>

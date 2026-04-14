@@ -73,10 +73,14 @@ self.addEventListener('fetch', event => {
     url.hostname === 'nominatim.openstreetmap.org' ||
     url.hostname === 'api.routexl.com' ||
     url.hostname === 'api.zippopotam.us' ||
-    url.hostname.includes('backblazeb2.com')
+    url.hostname.includes('backblazeb2.com') ||
+    url.hostname.includes('vercel.app')
   ) {
     return // Let browser handle normally
   }
+
+  // Cache API only supports GET — skip anything else (POST/PUT/DELETE).
+  if (event.request.method !== 'GET') return
 
   // 4. Navigation — network-first, fall back to cached app shell
   if (event.request.mode === 'navigate') {
