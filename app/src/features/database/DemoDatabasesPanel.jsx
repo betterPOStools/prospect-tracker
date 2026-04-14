@@ -11,6 +11,7 @@ const STATUS_LABEL = {
   processing:  'Generating…',
   done:        'Ready ✓',
   failed:      'Failed',
+  needs_pdf:   'PDF menu',
 }
 
 const STATUS_STYLE = {
@@ -19,6 +20,7 @@ const STATUS_STYLE = {
   processing:  { background: 'var(--yellow-bg)', color: 'var(--yellow-text)' },
   done:        { background: 'var(--green-bg)',  color: 'var(--green-text)' },
   failed:      { background: 'var(--red-bg)',    color: 'var(--red-text)' },
+  needs_pdf:   { background: '#FFF3CD',          color: '#92400E' },
 }
 
 const DEMO_STATUS_OPTIONS = [
@@ -28,6 +30,7 @@ const DEMO_STATUS_OPTIONS = [
   { value: 'processing',   label: 'Generating' },
   { value: 'done',         label: 'Ready' },
   { value: 'failed',       label: 'Failed' },
+  { value: 'needs_pdf',    label: 'PDF menu' },
 ]
 
 function StatusBadge({ status, title }) {
@@ -306,7 +309,10 @@ export default function DemoDatabasesPanel() {
                     </td>
 
                     <td style={{ padding: '8px' }}>
-                      <StatusBadge status={status} title={status === 'failed' ? entry?.error : undefined} />
+                      <StatusBadge status={status}
+                        title={status === 'failed' ? entry?.error
+                             : status === 'needs_pdf' ? 'Menu is a PDF — queued for vision extraction'
+                             : undefined} />
                     </td>
 
                     <td style={{ padding: '8px 0 8px 8px', textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -323,6 +329,10 @@ export default function DemoDatabasesPanel() {
                         <Button size="sm" onClick={() => handleQueueSingle(r)}>
                           {status === 'failed' ? 'Retry' : 'Generate'}
                         </Button>
+                      ) : status === 'needs_pdf' ? (
+                        <span style={{ fontSize: '11px', color: '#92400E' }}>
+                          PDF — vision queue
+                        </span>
                       ) : null}
                     </td>
 
