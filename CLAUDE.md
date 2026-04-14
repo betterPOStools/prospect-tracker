@@ -102,3 +102,17 @@ Rolled back from Turso to Supabase DEV on 2026-04-10. Turso migration had white-
 ## Design Doc
 Full spec (archived): `/Users/nomad/Projects/app-suite-docs/archive/2026-03-28-original-specs/PROSPECT-TRACKER-DESIGN.md`
 Current technical analysis: `/Users/nomad/Projects/app-suite-docs/TECHNICAL_ANALYSIS_2026-03-30.md`
+
+## AI Prioritization Layer
+
+Intelligence layer on top of the static `calcScore` and geo `autoAssignDay`. Lets the rep ask Claude "who deserves attention today?" using enrichment + behavioral signals (last contact, overdue follow-ups, recent notes) derived from `prospect.canvass_stops` at call-time.
+
+- **Proxy:** `prospect-tracker-api/` (Vercel edge). Holds the Anthropic key; clients never see it.
+- **Client env:** `VITE_AI_RANK_URL` must point at the deployed proxy.
+- **Two modes:** `rank` (Haiku 4.5 shortlist) and `brief` (Sonnet 4.6 narrative briefing with 2k thinking budget).
+- **Prompt caching:** system block marked ephemeral — see `docs/prompt-caching.md`.
+- **UI:** `AiPriorityPanel` mounted above `WeekPlannerPanel`. Selecting candidates and clicking "Mark as AI-seed" tags records with `grp='ai-seed'` — this is a bias, not a route override. Geo planner still decides shape.
+- **Rationale:** `docs/adr/ADR-001-ai-prioritization-layer.md`.
+- **Tools doc:** `TOOLS.md`.
+
+**Untouched by this layer:** `scoring.js`, `clustering.js`, `weekPlanner.js`. Additive only.
