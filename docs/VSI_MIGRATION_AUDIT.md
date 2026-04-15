@@ -229,11 +229,11 @@ PT stores blocklist as `string[]` in localStorage key `vs_db_block` and in the S
 
 ---
 
-### 2e. `locationTracks` — localStorage-only
+### 2e. `locationTracks` — move to Supabase
 
-PT stores GPS track points under `vs_location_tracks` (key from `hooks/useLocationTracking.js:6`). Structure: `{ [YYYY-MM-DD]: { date, points: [{lat, lng, ts}][], miles } }`. VSI stores the same under `pecan-location-tracks` (`hooks/useLocationTracking.ts:13`).
+PT stores GPS track points under `vs_location_tracks` (key from `hooks/useLocationTracking.js:6`). Structure: `{ [YYYY-MM-DD]: { date, points: [{lat, lng, ts}][], miles } }`. VSI currently stores the same under `pecan-location-tracks` (`hooks/useLocationTracking.ts:13`).
 
-**Verdict: localStorage-only, keep as-is.** Do not migrate to Supabase. Rationale: tracks are local/ephemeral, device-specific, and large (potentially MB of GPS points). VSI already has a compatible hook with the same `TrackPoint` shape. ETL simply does not touch this data.
+**Verdict: migrate to `vsi_prospect.location_tracks` (Phase 0 adds the table).** Per user directive (2026-04-14): *"I want as little and local storage as possible. still developing and constantly switching devices"*. Schema: `(date DATE PRIMARY KEY, points JSONB, miles NUMERIC, updated_at TIMESTAMPTZ)`. Writes debounced per-day (appending points is chatty — batch at end-of-day or on 30s cadence). ETL: pull any existing `vs_location_tracks` entries from localStorage at cutover via an in-app one-time upload button — the server-side ETL can't see localStorage.
 
 ---
 
@@ -247,7 +247,7 @@ PT stores `string[]` in localStorage `vs_db_areas`. VSI has no equivalent table 
 
 PT stores Outscraper task metadata at `prospect.app_state` row `id=2`, field `payload.osTasks` (`hooks/useOutscraper.js:11`). Structure: `OsTask[]` — taskId, city, state, zips, queryCount, status, resultData, recordCount, etc.
 
-**Verdict: localStorage-only, migrate manually.** VSI `src/lib/outscraper.ts` stores tasks at `pecan-outscraper-tasks`. These are transient — in-flight tasks complete within hours. The ETL does not migrate `osTasks`. Rep should complete or abandon any in-flight tasks before cutover.
+**Verdict: move to `vsi_prospect.os_tasks` (Phase 0 adds the table).** Per user directive (2026-04-14) to minimize localStorage under multi-device dev workflow. Schema: `(task_id TEXT PRIMARY KEY, city TEXT, state TEXT, zips JSONB, query_count INT, status TEXT, result_data JSONB, record_count INT, created_at TIMESTAMPTZ, updated_at TIMESTAMPTZ)`. ETL migrates `prospect.app_state` row id=2 → `vsi_prospect.os_tasks` row-per-task. VSI `src/lib/outscraper.ts` moves off `pecan-outscraper-tasks` localStorage key to reads/writes against this table.
 
 ---
 
@@ -405,7 +405,11 @@ All 5 stash into `db_records.metadata` JSONB. **Phase 0 must add `metadata JSONB
 **Entry criteria:** Audit signed off.
 
 **Files touched:**
-- `vsi-prospect-tracker/supabase/migrations/001_vsi_prospect_schema.sql` — create `vsi_prospect` schema with all 5 tables (currently live in Supabase DEV but not codified). Include `metadata JSONB` column on `db_records` and `raw_scrapes` table.
+- `vsi-prospect-tracker/supabase/migrations/001_vsi_prospect_schema.sql` — create `vsi_prospect` schema with all 5 core tables (currently live in Supabase DEV but not codified). Include `metadata JSONB` column on `db_records`, and these **new tables to eliminate localStorage** (per 2026-04-14 directive "I want as little and local storage as possible"):
+  - `raw_scrapes` — Outscraper raw archive (mirrors `prospect.raw_scrapes`)
+  - `location_tracks (date DATE PK, points JSONB, miles NUMERIC, updated_at TIMESTAMPTZ)` — mileage tracking, was `vs_location_tracks` localStorage
+  - `os_tasks (task_id TEXT PK, city, state, zips JSONB, query_count, status, result_data JSONB, record_count, created_at, updated_at)` — was `pecan-outscraper-tasks` localStorage
+  - `user_prefs (user_id UUID PK, routexl_user TEXT, routexl_pass TEXT, outscraper_key TEXT, rxl_start_choice TEXT, rxl_end_choice TEXT, rxl_home_addr TEXT, rxl_work_addr TEXT, updated_at)` — was six separate localStorage keys (`vs_rxl_*`, `pecan-routexl-*`, `pecan-outscraper-key`)
 - `vsi-prospect-tracker/CLAUDE.md` — add project rules, stack, port (5176 same as PT — verify no conflict; if conflict, assign 5177 and update suite port table).
 - `vsi-prospect-tracker/HANDOFF.md` — current session state.
 - `vsi-prospect-tracker/TOOLS.md` — document the ETL script.
