@@ -65,10 +65,13 @@ export async function queueBatch(prospects, skipIfExists = true) {
 
 /** Trigger tablet deployment for a pre-generated demo. */
 export async function loadDemo(ptRecordId) {
+  // NOTE: sessions.pt_record_id still stores the `db_` prefix — Phase A2 of
+  // the VSI migration only stripped batch_queue.pt_record_id. Send the raw
+  // id here; strip only for the batch_queue-backed batch/status endpoint.
   const res = await fetch(`${DEMO_BUILDER_URL}/api/batch/load`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pt_record_id: stripDbPrefix(ptRecordId) }),
+    body: JSON.stringify({ pt_record_id: ptRecordId }),
   })
   return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) }
 }
