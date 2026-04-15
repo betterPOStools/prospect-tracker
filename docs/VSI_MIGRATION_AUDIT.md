@@ -409,7 +409,7 @@ All 5 stash into `db_records.metadata` JSONB. **Phase 0 must add `metadata JSONB
   - `raw_scrapes` — Outscraper raw archive (mirrors `prospect.raw_scrapes`)
   - `location_tracks (date DATE PK, points JSONB, miles NUMERIC, updated_at TIMESTAMPTZ)` — mileage tracking, was `vs_location_tracks` localStorage
   - `os_tasks (task_id TEXT PK, city, state, zips JSONB, query_count, status, result_data JSONB, record_count, created_at, updated_at)` — was `pecan-outscraper-tasks` localStorage
-  - `user_prefs (user_id UUID PK, routexl_user TEXT, routexl_pass TEXT, outscraper_key TEXT, rxl_start_choice TEXT, rxl_end_choice TEXT, rxl_home_addr TEXT, rxl_work_addr TEXT, updated_at)` — was six separate localStorage keys (`vs_rxl_*`, `pecan-routexl-*`, `pecan-outscraper-key`)
+  - `app_config (id INT PK DEFAULT 1, rxl_start_choice TEXT, rxl_end_choice TEXT, rxl_home_addr TEXT, rxl_work_addr TEXT, updated_at)` — single-row table for non-secret route-planning prefs, was `vs_rxl_start_choice` etc. localStorage. **Third-party credentials (`pecan-routexl-*`, `pecan-outscraper-key`) intentionally stay in localStorage** — without an auth gate, Supabase has no per-user scoping, so the anon key would expose any server-side creds. Rep re-enters creds once per device; that's the deliberate tradeoff for skipping auth.
 - `vsi-prospect-tracker/CLAUDE.md` — add project rules, stack, port (5176 same as PT — verify no conflict; if conflict, assign 5177 and update suite port table).
 - `vsi-prospect-tracker/HANDOFF.md` — current session state.
 - `vsi-prospect-tracker/TOOLS.md` — document the ETL script.
