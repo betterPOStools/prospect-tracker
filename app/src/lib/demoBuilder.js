@@ -76,6 +76,14 @@ export async function loadDemo(ptRecordId) {
   return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) }
 }
 
+/** Fetch a session by id — used to poll deploy_status after loadDemo. */
+export async function fetchSession(sessionId) {
+  const res = await fetch(`${DEMO_BUILDER_URL}/api/sessions/${sessionId}`)
+  if (!res.ok) throw new Error(`sessions/${sessionId} HTTP ${res.status}`)
+  const { session } = await res.json()
+  return session
+}
+
 /**
  * Global poll: keeps demoStatusCache warm for all records that could have a demo,
  * so CanvassCard and any other consumer sees fresh statuses without depending on

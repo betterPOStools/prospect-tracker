@@ -6,7 +6,7 @@ import { HoursChip } from '../../components/Badge.jsx'
 import Button from '../../components/Button.jsx'
 import styles from './CanvassCard.module.css'
 import btnStyles from '../../components/Button.module.css'
-import { useDemoStatus, loadDemo } from '../../lib/demoBuilder.js'
+import { useDemoStatus, loadDemo, fetchSession } from '../../lib/demoBuilder.js'
 
 // Module-level geocode cache — survives re-renders, cleared on page reload
 const _geocodeCache = new Map()
@@ -146,20 +146,41 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
 
   async function handleLoadDemo() {
     setLoadDemoLoading(true)
+    setLoadDemoMsg('Queuing demo…')
     try {
       const { ok, status, data } = await loadDemo(c.fromDb)
-      if (ok) {
-        setLoadDemoMsg('Demo queued for deployment — open Demo Builder to monitor')
-      } else if (status === 404) {
-        setLoadDemoMsg('No demo built yet for this prospect')
-      } else {
-        setLoadDemoMsg(data.error || 'Load failed')
+      if (!ok) {
+        setLoadDemoMsg(status === 404 ? 'No demo built yet for this prospect' : (data.error || 'Load failed'))
+        setLoadDemoLoading(false)
+        setTimeout(() => setLoadDemoMsg(''), 5000)
+        return
+      }
+      // Poll the session's deploy_status until done/failed or 60s elapses.
+      setLoadDemoMsg('Deploying to tablet…')
+      const sessionId = data.session_id
+      const deadline = Date.now() + 60_000
+      while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, 2000))
+        try {
+          const session = await fetchSession(sessionId)
+          if (session?.deploy_status === 'done') {
+            setLoadDemoMsg('Demo deployed to tablet ✓')
+            break
+          }
+          if (session?.deploy_status === 'failed') {
+            setLoadDemoMsg('Deploy failed — check Demo Builder')
+            break
+          }
+        } catch { /* keep polling on transient network errors */ }
+      }
+      if (Date.now() >= deadline) {
+        setLoadDemoMsg('Deploy taking longer than usual — check Demo Builder')
       }
     } catch {
       setLoadDemoMsg('Could not reach Demo Builder — check your connection')
     }
     setLoadDemoLoading(false)
-    setTimeout(() => setLoadDemoMsg(''), 5000)
+    setTimeout(() => setLoadDemoMsg(''), 10_000)
   }
 
   const hours = hoursChip(c.openTime, c.closeTime)
@@ -369,13 +390,22 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
         {demoReady && (
           <Button size="sm" onClick={handleLoadDemo} disabled={loadDemoLoading}
             style={{ background: 'var(--green-bg)', color: 'var(--green-text)', borderColor: 'var(--green-text)' }}>
-            {loadDemoLoading ? '…' : 'Load Demo'}
+            {loadDemoLoading ? 'Loading…' : 'Load Demo'}
           </Button>
         )}
       </div>
       {loadDemoMsg && (
-        <div style={{ marginTop: '6px', fontSize: '11px',
-                      color: loadDemoMsg.includes('queued') ? 'var(--green-text)' : 'var(--red-text)' }}>
+        <div style={{
+          marginTop: '6px', padding: '6px 8px', fontSize: '12px', fontWeight: 500,
+          borderRadius: '4px',
+          background: loadDemoMsg.includes('✓') ? 'var(--green-bg)'
+                    : loadDemoMsg.includes('fail') || loadDemoMsg.includes('No demo') || loadDemoMsg.includes('Could not') ? 'var(--red-bg)'
+                    : 'var(--yellow-bg)',
+          color: loadDemoMsg.includes('✓') ? 'var(--green-text)'
+                : loadDemoMsg.includes('fail') || loadDemoMsg.includes('No demo') || loadDemoMsg.includes('Could not') ? 'var(--red-text)'
+                : 'var(--yellow-text)',
+        }}>
+          {loadDemoLoading && <span style={{ marginRight: '6px' }}>⏳</span>}
           {loadDemoMsg}
         </div>
       )}
