@@ -2,6 +2,7 @@ import { useState, useEffect, memo, useMemo, lazy, Suspense } from 'react'
 import { DataProvider, useProspects, useDatabase, useFileSync, useLastSave, useSupabaseSyncCtx } from './data/store.jsx'
 import { useTheme } from './hooks/useTheme.js'
 import { useOnlineStatus } from './hooks/useOnlineStatus.js'
+import { useGlobalDemoStatusPoll } from './lib/demoBuilder.js'
 import LeadsTab    from './features/leads/LeadsTab.jsx'
 import CanvassTab  from './features/canvass/CanvassTab.jsx'
 import styles from './App.module.css'
@@ -117,6 +118,8 @@ function OfflineBanner() {
 function AppShell() {
   const { toggleTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('leads')
+  const { dbRecords } = useDatabase()
+  useGlobalDemoStatusPoll(dbRecords)
 
   return (
     <div>

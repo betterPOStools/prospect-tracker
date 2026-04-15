@@ -59,6 +59,25 @@ export async function loadDemo(ptRecordId) {
 }
 
 /**
+ * Global poll: keeps demoStatusCache warm for all records that could have a demo,
+ * so CanvassCard and any other consumer sees fresh statuses without depending on
+ * the Demo Databases panel being open. Mount once at the app shell level.
+ */
+export function useGlobalDemoStatusPoll(dbRecords, intervalMs = 60_000) {
+  useEffect(() => {
+    const ids = dbRecords.filter(r => r.mn || r.web).map(r => r.id)
+    if (!ids.length) return
+    let cancelled = false
+    const run = async () => {
+      try { await fetchBatchStatus(ids) } catch { /* silent */ }
+    }
+    run()
+    const timer = setInterval(() => { if (!cancelled) run() }, intervalMs)
+    return () => { cancelled = true; clearInterval(timer) }
+  }, [dbRecords, intervalMs])
+}
+
+/**
  * Hook: returns the cached status entry for a single pt_record_id and
  * re-renders whenever the cache is updated by DemoDatabasesPanel's poll loop.
  */

@@ -37,7 +37,7 @@ export default function CanvassCard({ stop, overdue, ageLabel, showBuildRun, onC
   const dbRecord = c.fromDb ? db.dbRecords.find(r => r.id === c.fromDb) : null
   const droppedCount = dbRecord?.df || 0
   const demoEntry = useDemoStatus(c.fromDb)
-  const demoReady = dbRecord?.mn && demoEntry?.status === 'done'
+  const demoReady = demoEntry?.status === 'done'
   const notesLog = c.notesLog || []
   const history = c.history || []
 
