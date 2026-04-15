@@ -32,17 +32,24 @@ function notifyListeners() {
 }
 
 /** Fetch status for a list of pt_record_ids and update the cache. */
+// Vercel edge caps URL length; 50 Google place_ids (~1.5 KB) stays well under.
+const BATCH_STATUS_CHUNK = 50
+
 export async function fetchBatchStatus(ptRecordIds) {
   if (!ptRecordIds.length) return []
   const stripped = ptRecordIds.map(stripDbPrefix)
-  const res = await fetch(
-    `${DEMO_BUILDER_URL}/api/batch/status?pt_record_ids=${stripped.join(',')}`,
-  )
-  if (!res.ok) throw new Error(`batch/status HTTP ${res.status}`)
-  const { results } = await res.json()
-  results.forEach(r => demoStatusCache.set(r.pt_record_id, r))
+  const all = []
+  for (let i = 0; i < stripped.length; i += BATCH_STATUS_CHUNK) {
+    const chunk = stripped.slice(i, i + BATCH_STATUS_CHUNK)
+    const res = await fetch(
+      `${DEMO_BUILDER_URL}/api/batch/status?pt_record_ids=${chunk.join(',')}`,
+    )
+    if (!res.ok) throw new Error(`batch/status HTTP ${res.status}`)
+    const { results } = await res.json()
+    results.forEach(r => { demoStatusCache.set(r.pt_record_id, r); all.push(r) })
+  }
   notifyListeners()
-  return results
+  return all
 }
 
 /** Queue one or more prospects for batch generation. */
