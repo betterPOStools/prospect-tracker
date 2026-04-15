@@ -9,7 +9,14 @@ import { useState, useEffect } from 'react'
 
 const DEMO_BUILDER_URL = import.meta.env.VITE_DEMO_BUILDER_URL || 'http://localhost:3002'
 
-// { pt_record_id → { pt_record_id, status, session_id, error, created_at } }
+// Phase A2 (VSI migration, 2026-04-15) stripped the `db_` prefix from
+// demo_builder.batch_queue.pt_record_id. PT still stores ids with the prefix,
+// so we normalize at the boundary.
+function stripDbPrefix(id) {
+  return typeof id === 'string' && id.startsWith('db_') ? id.slice(3) : id
+}
+
+// { pt_record_id (stripped) → { pt_record_id, status, session_id, error, created_at } }
 export const demoStatusCache = new Map()
 
 const _listeners = new Set()
@@ -27,8 +34,9 @@ function notifyListeners() {
 /** Fetch status for a list of pt_record_ids and update the cache. */
 export async function fetchBatchStatus(ptRecordIds) {
   if (!ptRecordIds.length) return []
+  const stripped = ptRecordIds.map(stripDbPrefix)
   const res = await fetch(
-    `${DEMO_BUILDER_URL}/api/batch/status?pt_record_ids=${ptRecordIds.join(',')}`,
+    `${DEMO_BUILDER_URL}/api/batch/status?pt_record_ids=${stripped.join(',')}`,
   )
   if (!res.ok) throw new Error(`batch/status HTTP ${res.status}`)
   const { results } = await res.json()
@@ -53,7 +61,7 @@ export async function loadDemo(ptRecordId) {
   const res = await fetch(`${DEMO_BUILDER_URL}/api/batch/load`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pt_record_id: ptRecordId }),
+    body: JSON.stringify({ pt_record_id: stripDbPrefix(ptRecordId) }),
   })
   return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) }
 }
@@ -82,12 +90,13 @@ export function useGlobalDemoStatusPoll(dbRecords, intervalMs = 60_000) {
  * re-renders whenever the cache is updated by DemoDatabasesPanel's poll loop.
  */
 export function useDemoStatus(ptRecordId) {
-  const [entry, setEntry] = useState(() => demoStatusCache.get(ptRecordId) ?? null)
+  const key = stripDbPrefix(ptRecordId)
+  const [entry, setEntry] = useState(() => demoStatusCache.get(key) ?? null)
   useEffect(() => {
-    if (!ptRecordId) return
+    if (!key) return
     // Subscribe to cache updates; initial value already set by useState initializer.
-    // ptRecordId is stable for a card's lifetime so we don't need to re-sync on change.
-    return subscribeDemoStatus(() => setEntry(demoStatusCache.get(ptRecordId) ?? null))
-  }, [ptRecordId])
+    // key is stable for a card's lifetime so we don't need to re-sync on change.
+    return subscribeDemoStatus(() => setEntry(demoStatusCache.get(key) ?? null))
+  }, [key])
   return entry
 }
