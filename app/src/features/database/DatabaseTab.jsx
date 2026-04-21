@@ -5,10 +5,11 @@ import StatBar    from '../../components/StatBar.jsx'
 import BrowsePanel         from './BrowsePanel.jsx'
 import WeekPlannerPanel    from './WeekPlannerPanel.jsx'
 import DemoDatabasesPanel  from './DemoDatabasesPanel.jsx'
+import SalesQueuePanel     from './SalesQueuePanel.jsx'
 
 const MapPanel = lazy(() => import('./MapPanel.jsx'))
 
-const SUB_TABS = ['Browse', 'Planner', 'Map', 'Demos']
+const SUB_TABS = ['Browse', 'Planner', 'Map', 'Demos', 'Queue']
 
 export default function DatabaseTab() {
   const { dbRecords } = useDatabase()
@@ -52,6 +53,7 @@ export default function DatabaseTab() {
         {subTab === 'Map' && <MapPanel />}
       </Suspense>
       {subTab === 'Demos'   && <DemoDatabasesPanel />}
+      {subTab === 'Queue'   && <SalesQueuePanel />}
     </div>
   )
 }

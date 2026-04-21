@@ -62,3 +62,44 @@ node scripts/test-signal-derivation.mjs
 - `docs/adr/ADR-001-ai-prioritization-layer.md` — rationale
 - `docs/prompt-caching.md` — cache-control usage
 - `/Users/nomad/.claude/plans/velvety-giggling-giraffe.md` — implementation plan
+
+---
+
+## PT Prospect Ranking (batch classifier)
+
+Corpus-wide AI classifier that tiers every Outscraper prospect for Value Systems POS fit. Distinct from the per-session AI Prioritization Layer above: this runs offline against the full scrape corpus and writes durable rows; the prioritization layer reads canvass signals at call-time.
+
+**Code lives in demo-builder** (`betterpostools/db-suite/demo-builder/agent/`) because it shares that repo's Anthropic + Supabase infrastructure. Output targets PT workflows.
+
+| File | Role |
+|------|------|
+| `agent/pt_rank_batch.py` | One-shot Messages Batch submit/poll/ingest for all ~2229 prospects (50% batch discount + cache hits). State in `agent/.pt_rank_batch_state.json`. |
+| `agent/pt_rank_prototype.py` | Synchronous per-prospect ranker for iteration / spot checks. |
+| `agent/pt_rank_unified.py`, `pt_rank_v8_sample.py`, `pt_rank_crosscheck.py` | QA + rubric-revision flip-matrix tooling. |
+| `agent/scrape_loader.py` | Unified Outscraper loader — reads the 16 JSON/XLSX files in `prospect-tracker/Scrapes/`, dedups by `place_id`. |
+| `agent/prompts/pt_rank_rubric_v8.md` | Current rubric (versioned — bump file + `RUBRIC_VERSION` constant to roll forward). |
+| `agent/prompts/pt_rank_rubric_v7.md` | Archived — retained for `prospect_rankings.rubric_version = 'v7-2026-04-14'` row lineage. |
+| `agent/TOOLS.md` → "PT Prospect Ranking" | Full tool docs (inputs, iteration history, run commands). |
+
+**Storage:** `demo_builder.prospect_rankings` in Supabase DEV (`mqifktmmyiqzrolrvsmy`). Migrations: `db-suite/demo-builder/supabase/migrations/005_prospect_rankings.sql`, `006_..._detected_pos.sql`, `007_..._swipe_volume.sql`. Keyed by `place_id` (Google Place ID — `TEXT`, not UUID).
+
+**Key columns:** `tier` (`not_a_fit` | `chain_nogo` | `small_indie` | `mid_market` | `kiosk_tier`), `score`, `detected_pos` + `detected_pos_evidence`, `estimated_swipe_volume` (`high`|`medium`|`low`|`unknown`) + `swipe_volume_evidence`, `rubric_version`, `reasoning`, `signals`, `concerns`.
+
+**Common runs** (from `db-suite/demo-builder/`):
+```bash
+python3 agent/pt_rank_batch.py --dry-run          # build requests, print stats
+python3 agent/pt_rank_batch.py --only-missing --run  # rank only unranked prospects
+python3 agent/pt_rank_prototype.py <place_id>     # single-prospect spot check
+```
+
+**Sales queue SQL pattern** (weighted by residual potential):
+```sql
+SELECT place_id, name, city, state, tier, score, detected_pos, estimated_swipe_volume
+FROM demo_builder.prospect_rankings
+WHERE tier IN ('small_indie','mid_market','kiosk_tier')
+ORDER BY
+  CASE tier WHEN 'small_indie' THEN 1 WHEN 'mid_market' THEN 2 ELSE 3 END,
+  score DESC;
+```
+
+**PT integration status:** Data exists in Supabase but is NOT yet surfaced in the PT UI. Future wiring options: join `prospect_rankings` into DatabaseTab rows (tier badge + POS-detected flag), or feed `tier` into `AiPriorityPanel` candidate filter so the Planner skips `not_a_fit` / `chain_nogo` entirely.
